@@ -1,0 +1,52 @@
+version: '3.7'
+services:
+  db:
+    image: postgres
+    container_name: postgres
+    env_file:
+      - .env
+    ports:
+      - '5434:5432'
+    volumes:
+      - ${POSTGRES_VOLUME}:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: backend
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - gitlab
+    ports:
+      - '8080:8080'
+
+  gitlab:
+    #    образ под arm64
+    image: yrzr/gitlab-ce-arm64v8
+    container_name: gitlab
+    hostname: 'gitlab.localhost.com'
+    environment:
+      GITLAB_ROOT_PASSWORD: password123#
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://localhost'
+    ports:
+      - '443:443'
+      - '80:80'
+      - '22:22'
+    volumes:
+      - ${GITLAB_VOLUME}/config:/etc/gitlab
+      - ${GITLAB_VOLUME}/logs:/var/log/gitlab
+      - ${GITLAB_VOLUME}/data:/var/opt/gitlab
+
+  gitlab-runner:
+    image: gitlab/gitlab-runner
+    container_name: gitlab-runner
+    restart: unless-stopped
+    volumes:
+      - ${GITLAB_RUNNER_VOLUME}/etc:/etc/gitlab-runner
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - gitlab
