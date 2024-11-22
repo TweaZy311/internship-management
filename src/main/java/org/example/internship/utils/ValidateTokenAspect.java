@@ -1,5 +1,6 @@
 package org.example.internship.utils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.example.internship.annotation.GitlabTokenRequired;
@@ -33,7 +34,7 @@ public class ValidateTokenAspect {
     public void validateToken() throws ResponseStatusException {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         String token = request.getHeader("X-Gitlab-Token");
-        if (token == null || token.isEmpty() || !token.equals(this.token) ) {
+        if (StringUtils.isEmpty(token) || !token.equals(this.token) ) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid token");
         }
     }

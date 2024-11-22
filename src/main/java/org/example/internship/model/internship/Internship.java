@@ -18,7 +18,7 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 @Builder
-@Table(name = "internships")
+@Table(name = "internship")
 public class Internship {
 
     /**
