@@ -16,7 +16,7 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Data
 @Builder
-@Table(name = "users")
+@Table(name = "user")
 public class User {
 
     /**

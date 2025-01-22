@@ -19,7 +19,7 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 @Builder
-@Table(name = "lessons")
+@Table(name = "lesson")
 public class Lesson {
 
     /**
