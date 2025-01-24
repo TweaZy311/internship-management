@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
-//TODO ЗАМЕНИТЬ exception и javadoc
 public class LessonServiceImpl implements LessonService {
     private final String LESSON_WITH_SUCH_ID_COULD_NOT_BE_FOUND = "Lesson with such ID could not be found";
 

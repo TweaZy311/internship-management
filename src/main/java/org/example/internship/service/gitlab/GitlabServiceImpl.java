@@ -18,7 +18,6 @@ import java.util.List;
  * Реализация сервиса для взаимодействия с GitLab.
  */
 @Service
-//TODO ЗАМЕНИТЬ exception и javadoc
 public class GitlabServiceImpl implements GitlabService {
     private final GitLabApi gitlabApi;
 

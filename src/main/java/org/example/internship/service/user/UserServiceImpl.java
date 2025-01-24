@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
-//TODO ЗАМЕНИТЬ exception и javadoc
 public class UserServiceImpl implements UserService {
     private final String USER_NOT_FOUND_WITH = "User with such %s could not be found";
 

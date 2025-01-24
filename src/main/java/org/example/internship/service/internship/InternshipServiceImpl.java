@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
-//TODO ЗАМЕНИТЬ exception и javadoc
 public class InternshipServiceImpl implements InternshipService {
     private final String INTERNSHIP_WITH_SUCH_ID_COULD_NOT_BE_FOUND = "Internship with such ID could not be found";
 

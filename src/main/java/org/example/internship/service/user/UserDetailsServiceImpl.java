@@ -17,7 +17,6 @@ import java.util.List;
  */
 @Service
 @RequiredArgsConstructor
-//TODO ЗАМЕНИТЬ exception и javadoc
 public class UserDetailsServiceImpl implements UserDetailsService {
     private final UserRepository userRepository;
 
