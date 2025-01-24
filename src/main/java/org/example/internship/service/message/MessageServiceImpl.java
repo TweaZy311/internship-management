@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
+//TODO ЗАМЕНИТЬ exception и javadoc
 public class MessageServiceImpl implements MessageService {
     private final MessageRepository messageRepository;
     private final MessageMapper messageMapper;

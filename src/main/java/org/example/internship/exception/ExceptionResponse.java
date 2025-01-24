@@ -1,15 +1,16 @@
 package org.example.internship.exception;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 /**
  * Класс, представляющий объект ответа на исключение.
  */
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class ExceptionResponse {
     private String message;
+    private String code;
 }

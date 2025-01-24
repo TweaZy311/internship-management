@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.example.internship.dto.request.task.NewTaskDto;
 import org.example.internship.dto.request.task.UpdateTaskDto;
 import org.example.internship.dto.response.task.TaskDto;
-import org.example.internship.exception.AlreadyPublishedException;
-import org.example.internship.exception.NotPublishedException;
+import org.example.internship.exception.ErrorCode;
+import org.example.internship.exception.ServiceException;
 import org.example.internship.mapper.TaskMapper;
 import org.example.internship.model.Lesson;
 import org.example.internship.model.task.Task;
@@ -15,6 +15,7 @@ import org.example.internship.repository.TaskRepository;
 import org.example.internship.repository.UserRepository;
 import org.example.internship.service.gitlab.GitlabService;
 import org.gitlab4j.api.models.Project;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
@@ -27,7 +28,11 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
+//TODO ЗАМЕНИТЬ exception и javadoc
 public class TaskServiceImpl implements TaskService {
+    private final String TASK_WITH_SUCH_ID_COULD_NOT_BE_FOUND = "Task with such ID could not be found";
+    private final String LESSON_WITH_TASKS_NOT_PUBLISHED_YET = "Lesson with ID which contains these tasks is not published yet";
+
     private final TaskRepository taskRepository;
     private final GitlabService gitlabService;
     private final UserRepository userRepository;
@@ -69,12 +74,12 @@ public class TaskServiceImpl implements TaskService {
      *
      * @param id идентификатор задания
      * @return информация о задании
-     * @throws EntityNotFoundException если задание не найдено
+     * @throws ServiceException если задание не найдено
      */
     @Override
     public TaskDto getById(Long id) {
         Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Task not found with id: " + id));
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.TSK_404.getCode(), TASK_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         return taskMapper.modelToDto(task);
     }
 
@@ -82,12 +87,12 @@ public class TaskServiceImpl implements TaskService {
      * {@inheritDoc}
      *
      * @param taskDto данные обновленного задания
-     * @throws EntityNotFoundException если задание не найдено
+     * @throws ServiceException если задание не найдено
      */
     @Override
     public void update(UpdateTaskDto taskDto) {
         Task existingTask = taskRepository.findById(taskDto.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Task not found with id: " + taskDto.getId()));
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.TSK_404.getCode(), TASK_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
 
         taskMapper.updateDtoToModel(existingTask, taskDto);
         taskRepository.saveAndFlush(existingTask);
@@ -110,26 +115,27 @@ public class TaskServiceImpl implements TaskService {
      * {@inheritDoc}
      *
      * @param id идентификатор задания
-     * @throws EntityNotFoundException   если задание не найдено
-     * @throws NotPublishedException     если занятие, к которому относится
+     * @throws ServiceException   если задание не найдено
+     * @throws ServiceException     если занятие, к которому относится
      *                                   это задание еще не опубликовано
-     * @throws AlreadyPublishedException если задание уже было ранее опубликовано
+     * @throws ServiceException если задание уже было ранее опубликовано
      */
     @Override
     public void publishById(Long id) {
         Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Task not found with id: " + id));
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.TSK_404.getCode(), TASK_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
 
         Lesson lesson = task.getLesson();
         if (!lesson.getIsPublished()) {
-            throw new NotPublishedException("Lesson with this task is not published");
+            throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.TSK_400.getCode(), LESSON_WITH_TASKS_NOT_PUBLISHED_YET);
         }
         if (task.getPublishDate() != null && task.getPublishDate().isBefore(LocalDate.now())) {
-            throw new AlreadyPublishedException("This task is already published");
+            throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.TSK_400.getCode(), "Task with such ID is already published");
         }
 
         task.setPublishDate(LocalDate.now());
         List<User> users = userRepository.findAllByInternshipIdAndRole(task.getLesson().getInternship().getId(), Role.USER);
+        //todo возможно стоит убрать
         if (users.isEmpty()) {
             throw new EntityNotFoundException("Users not found");
         }
@@ -144,14 +150,15 @@ public class TaskServiceImpl implements TaskService {
         List<Task> tasks = taskRepository.findAllByLessonIdAndPublishDateIsNull(lessonId);
 
         if (tasks.isEmpty()) {
-            throw new EntityNotFoundException("Tasks not found for lesson with ID " + lessonId);
+            throw new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.TSK_404.getCode(), "Tasks not found for lesson with such ID");
         }
         Lesson lesson = tasks.get(0).getLesson();
         if (!lesson.getIsPublished()) {
-            throw new NotPublishedException("Lesson with these tasks is not published");
+            throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.TSK_400.getCode(), LESSON_WITH_TASKS_NOT_PUBLISHED_YET);
         }
 
         List<User> users = userRepository.findAllByInternshipIdAndRole(lesson.getInternship().getId(), Role.USER);
+        //todo возможно стоит убрать
         if (users.isEmpty()) {
             throw new EntityNotFoundException("Users not found");
         }

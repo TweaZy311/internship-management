@@ -7,6 +7,8 @@ import org.example.internship.dto.request.internship.UpdateInternshipDto;
 import org.example.internship.dto.response.ReportDto;
 import org.example.internship.dto.response.internship.AdminInternshipDto;
 import org.example.internship.dto.response.internship.PublicInternshipDto;
+import org.example.internship.exception.ErrorCode;
+import org.example.internship.exception.ServiceException;
 import org.example.internship.mapper.InternshipMapper;
 import org.example.internship.model.task.Task;
 import org.example.internship.model.internship.Internship;
@@ -19,6 +21,7 @@ import org.example.internship.repository.InternshipRepository;
 import org.example.internship.repository.SolutionRepository;
 import org.example.internship.repository.TaskRepository;
 import org.example.internship.repository.UserRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
@@ -32,7 +35,10 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
+//TODO ЗАМЕНИТЬ exception и javadoc
 public class InternshipServiceImpl implements InternshipService {
+    private final String INTERNSHIP_WITH_SUCH_ID_COULD_NOT_BE_FOUND = "Internship with such ID could not be found";
+
     private final InternshipRepository internshipRepository;
     private final UserRepository userRepository;
     private final TaskRepository taskRepository;
@@ -57,7 +63,7 @@ public class InternshipServiceImpl implements InternshipService {
     @Override
     public void changeStatus(InternshipStatusDto statusDto) {
         Internship internship = internshipRepository.findById(statusDto.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Internship not found with ID:" + statusDto.getStatus()));
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), INTERNSHIP_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         InternshipStatus status = InternshipStatus.valueOf(statusDto.getStatus().toUpperCase());
         internship.setStatus(status);
         internshipRepository.saveAndFlush(internship);
@@ -67,12 +73,12 @@ public class InternshipServiceImpl implements InternshipService {
      * {@inheritDoc}
      *
      * @param internshipDto обновленная информация о стажировке
-     * @throws EntityNotFoundException если стажировка не найдена
+     * @throws ServiceException если стажировка не найдена
      */
     @Override
     public void update(UpdateInternshipDto internshipDto) {
         Internship internship = internshipRepository.findById(internshipDto.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Internship not found with ID:" + internshipDto.getId()));
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), INTERNSHIP_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         internshipMapper.updateDtoToModel(internship, internshipDto);
         internshipRepository.saveAndFlush(internship);
     }
@@ -82,14 +88,14 @@ public class InternshipServiceImpl implements InternshipService {
      *
      * @param id идентификатор стажировки
      * @return информация о стажировке
-     * @throws EntityNotFoundException если стажировка не найдена
+     * @throws ServiceException если стажировка не найдена
      */
     @Override
     public PublicInternshipDto getById(Long id) {
         Internship internship = internshipRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Internship not found with ID:" + id));
+                .orElseThrow(() ->  new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), INTERNSHIP_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         if (internship.getStatus() != InternshipStatus.OPEN) {
-            throw new EntityNotFoundException("Internship is not opened");
+            throw new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), "Internship is not opened");
         }
         return internshipMapper.modelToPublicDto(internship);
     }
@@ -140,14 +146,15 @@ public class InternshipServiceImpl implements InternshipService {
      *
      * @param internshipId идентификатор стажировки
      * @return ведомость по стажировке
-     * @throws EntityNotFoundException если стажировка не найдена
+     * @throws ServiceException если стажировка не найдена
      */
     @Override
     public List<ReportDto> createReport(Long internshipId) {
         internshipRepository.findById(internshipId)
-                .orElseThrow(() -> new EntityNotFoundException("Internship not found with ID: " + internshipId));
+                .orElseThrow(() ->  new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), INTERNSHIP_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         List<User> users = userRepository.findAllByInternshipIdAndRole(internshipId, Role.USER);
         List<Task> tasks = taskRepository.findAllByLesson_InternshipId(internshipId);
+        //todo возможно здесь не нужны exception
         if (users.isEmpty()) {
             throw new EntityNotFoundException("No users found for internship with ID: " + internshipId);
         }

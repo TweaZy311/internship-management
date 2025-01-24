@@ -4,13 +4,14 @@ import lombok.RequiredArgsConstructor;
 import org.example.internship.dto.request.lesson.NewLessonDto;
 import org.example.internship.dto.response.lesson.AdminLessonDto;
 import org.example.internship.dto.response.lesson.UserLessonDto;
-import org.example.internship.exception.AlreadyPublishedException;
+import org.example.internship.exception.ErrorCode;
+import org.example.internship.exception.ServiceException;
 import org.example.internship.mapper.LessonMapper;
 import org.example.internship.model.Lesson;
 import org.example.internship.repository.LessonRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,7 +20,10 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
+//TODO ЗАМЕНИТЬ exception и javadoc
 public class LessonServiceImpl implements LessonService {
+    private final String LESSON_WITH_SUCH_ID_COULD_NOT_BE_FOUND = "Lesson with such ID could not be found";
+
     private final LessonRepository lessonRepository;
     private final LessonMapper lessonMapper;
 
@@ -39,12 +43,12 @@ public class LessonServiceImpl implements LessonService {
      *
      * @param id идентификатор занятия
      * @return информация о занятии
-     * @throws EntityNotFoundException если занятие не найдено
+     * @throws ServiceException если занятие не найдено
      */
     @Override
     public UserLessonDto getById(Long id) {
         Lesson lesson = lessonRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Lesson not found with id: " + id));
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.LSN_404.getCode(), LESSON_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         return lessonMapper.modelToUserDto(lesson);
     }
 
@@ -79,14 +83,14 @@ public class LessonServiceImpl implements LessonService {
      * {@inheritDoc}
      *
      * @param id идентификатор занятия
-     * @throws EntityNotFoundException если занятие не найдено
+     * @throws ServiceException если занятие не найдено
      */
     @Override
     public void publish(Long id) {
         Lesson lesson = lessonRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Lesson not found with id: " + id));
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.LSN_404.getCode(), LESSON_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         if (lesson.getIsPublished()) {
-            throw new AlreadyPublishedException("Lesson is already published with id: " + id);
+            throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.LSN_400.getCode(), "Lesson is already published");
         }
         lesson.setIsPublished(true);
         lessonRepository.saveAndFlush(lesson);

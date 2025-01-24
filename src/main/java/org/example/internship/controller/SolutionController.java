@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.example.internship.annotation.GitlabTokenRequired;
 import org.example.internship.dto.request.solution.SolutionStatusDto;
 import org.example.internship.dto.response.solution.SolutionDto;
+import org.example.internship.exception.ErrorCode;
+import org.example.internship.exception.ServiceException;
 import org.example.internship.service.gitlab.GitlabService;
 import org.example.internship.service.solution.SolutionService;
 import org.gitlab4j.api.systemhooks.PushSystemHookEvent;
@@ -128,7 +130,7 @@ public class SolutionController {
     public ResponseEntity<List<SolutionDto>> getAllSolutions(@RequestParam(required = false) String status,
                                                              @RequestParam(required = false) Long taskId) {
         if (status != null && taskId != null) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.SLN_400.getCode(), "Wrong param values");
         }
         List<SolutionDto> solutions;
         if (status != null) {

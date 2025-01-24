@@ -14,7 +14,9 @@ import org.example.internship.dto.request.internship.UpdateInternshipDto;
 import org.example.internship.dto.response.ReportDto;
 import org.example.internship.dto.response.internship.AdminInternshipDto;
 import org.example.internship.dto.response.internship.PublicInternshipDto;
+import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ExceptionResponse;
+import org.example.internship.exception.ServiceException;
 import org.example.internship.service.internship.InternshipService;
 import org.example.internship.utils.Validator;
 import org.springframework.http.HttpStatus;
@@ -58,8 +60,7 @@ public class InternshipController {
         if (!validator.dateIsValid(internship.getStartDate(),
                 internship.getEndDate(),
                 internship.getRegistrationEndDate())) {
-            ExceptionResponse exceptionResponse = new ExceptionResponse("Wrong date input");
-            return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
+            throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.ITS_400.getCode(), "Wrong date input");
         }
         internshipService.save(internship);
         return new ResponseEntity<>(HttpStatus.CREATED);
@@ -183,7 +184,7 @@ public class InternshipController {
     public ResponseEntity<ExceptionResponse> updateInternship(@RequestBody UpdateInternshipDto dto) {
         if (!validator.dateIsValid(dto.getStartDate(), dto.getEndDate(),
                 dto.getRegistrationStartDate(), dto.getRegistrationEndDate())) {
-            return new ResponseEntity<>(new ExceptionResponse("Wrong date input"), HttpStatus.BAD_REQUEST);
+            throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.ITS_400.getCode(), "Wrong date input");
         }
         internshipService.update(dto);
         return new ResponseEntity<>(HttpStatus.OK);

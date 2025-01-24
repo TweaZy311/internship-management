@@ -3,6 +3,8 @@ package org.example.internship.service.solution;
 import lombok.RequiredArgsConstructor;
 import org.example.internship.dto.request.solution.SolutionStatusDto;
 import org.example.internship.dto.response.solution.SolutionDto;
+import org.example.internship.exception.ErrorCode;
+import org.example.internship.exception.ServiceException;
 import org.example.internship.mapper.SolutionMapper;
 import org.example.internship.model.task.Solution;
 import org.example.internship.model.task.SolutionStatus;
@@ -12,6 +14,7 @@ import org.example.internship.repository.SolutionRepository;
 import org.example.internship.repository.TaskRepository;
 import org.example.internship.repository.UserRepository;
 import org.gitlab4j.api.systemhooks.PushSystemHookEvent;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
@@ -24,7 +27,10 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
+//TODO ЗАМЕНИТЬ exception и javadoc
 public class SolutionServiceImpl implements SolutionService {
+    private final String SOLUTION_WITH_SUCH_ID_COULD_NOT_BE_FOUND = "Solution with such ID could not be found";
+
     private final SolutionRepository solutionRepository;
     private final UserRepository userRepository;
     private final TaskRepository taskRepository;
@@ -63,7 +69,7 @@ public class SolutionServiceImpl implements SolutionService {
     @Override
     public void updateStatus(SolutionStatusDto solutionStatusDto) {
         Solution solution = solutionRepository.findById(solutionStatusDto.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Solution not found with ID: " + solutionStatusDto.getId()));
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.SLN_404.getCode(), SOLUTION_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         String status = solutionStatusDto.getStatus().toUpperCase();
         solution.setStatus(SolutionStatus.valueOf(status));
         solution.setCheckedTime(LocalDateTime.now());
@@ -80,7 +86,7 @@ public class SolutionServiceImpl implements SolutionService {
     @Override
     public SolutionDto getById(Long id) {
         Solution solution = solutionRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Solution not found with ID: " + id));
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.SLN_404.getCode(), SOLUTION_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         return solutionMapper.modelToDto(solution);
     }
 
