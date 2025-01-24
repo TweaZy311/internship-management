@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.example.internship.annotation.UsernameMatches;
 import org.example.internship.dto.request.NewUserDto;
 import org.example.internship.dto.response.UserDto;
+import org.example.internship.exception.ErrorCode;
+import org.example.internship.exception.ServiceException;
 import org.example.internship.service.user.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -80,7 +82,7 @@ public class UserController {
     public ResponseEntity<UserDto> getByParam(@RequestParam(required = false) String username,
                                               @RequestParam(required = false) String email) {
         if (username != null && email != null) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.ITS_400.getCode(), "Wrong param input");
         }
         UserDto user;
         if (username != null) {
@@ -88,7 +90,7 @@ public class UserController {
         } else if (email != null) {
             user = userService.getByEmail(email);
         } else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.ITS_400.getCode(), "Wrong param input");
         }
         return new ResponseEntity<>(user, HttpStatus.OK);
     }

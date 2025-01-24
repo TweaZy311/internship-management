@@ -13,7 +13,9 @@ import org.example.internship.dto.request.application.ApplicationStatusDto;
 import org.example.internship.dto.request.application.NewApplicationDto;
 import org.example.internship.dto.response.application.ApplicationDto;
 import org.example.internship.dto.response.internship.PublicInternshipDto;
+import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ExceptionResponse;
+import org.example.internship.exception.ServiceException;
 import org.example.internship.service.application.ApplicationService;
 import org.example.internship.service.internship.InternshipService;
 import org.example.internship.utils.Validator;
@@ -58,19 +60,15 @@ public class ApplicationController {
     public ResponseEntity<ExceptionResponse> createApplication(
             @RequestBody NewApplicationDto application) {
         PublicInternshipDto internshipDto = internshipService.getById(application.getInternshipId());
-        ExceptionResponse exceptionResponse;
 
         if (internshipDto.getRegistrationEndDate().isBefore(LocalDate.now())) {
-            exceptionResponse = new ExceptionResponse("Registration for the internship is closed");
-            return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
+            throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.APL_400.getCode(), "Registration for the internship is closed");
         }
         if (!validator.emailIsValid(application.getEmail())) {
-            exceptionResponse = new ExceptionResponse("Wrong e-mail format");
-            return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
+            throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.APL_400.getCode(), "Wrong e-mail format");
         }
         if (!validator.phoneNumberIsValid(application.getPhoneNumber())) {
-            exceptionResponse = new ExceptionResponse("Wrong phone number format");
-            return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
+            throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.APL_400.getCode(), "Wrong phone number format");
         }
         applicationService.save(application);
         return new ResponseEntity<>(HttpStatus.CREATED);

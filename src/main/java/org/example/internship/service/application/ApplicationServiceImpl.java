@@ -4,15 +4,16 @@ import lombok.RequiredArgsConstructor;
 import org.example.internship.dto.request.application.ApplicationStatusDto;
 import org.example.internship.dto.request.application.NewApplicationDto;
 import org.example.internship.dto.response.application.ApplicationDto;
+import org.example.internship.exception.ErrorCode;
+import org.example.internship.exception.ServiceException;
 import org.example.internship.mapper.ApplicationMapper;
 import org.example.internship.model.application.Application;
 import org.example.internship.model.application.ApplicationStatus;
 import org.example.internship.model.internship.InternshipStatus;
 import org.example.internship.repository.ApplicationRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityExistsException;
-import javax.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,7 +24,11 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
+
 public class ApplicationServiceImpl implements ApplicationService {
+    private final String APPLICATION_WITH_SUCH_ID_COULD_NOT_BE_FOUND = "Application with such ID could not be found";
+
+
     private final ApplicationRepository applicationRepository;
     private final ApplicationMapper applicationMapper;
 
@@ -31,7 +36,7 @@ public class ApplicationServiceImpl implements ApplicationService {
      * {@inheritDoc}
      *
      * @param application информация о новой заявке
-     * @throws EntityExistsException если заявка на указанную стажировку от этого человека уже есть
+     * @throws ServiceException если заявка на указанную стажировку от этого человека уже есть
      */
 
     @Override
@@ -51,9 +56,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                 existingApplication.setId(id);
                 applicationRepository.save(existingApplication);
             } else {
-                throw new EntityExistsException(String.format("Application to internship with id %s from person with number %s already exists",
-                        application.getInternshipId(),
-                        application.getPhoneNumber()));
+                throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.APL_400.getCode(), "Application for this internship from user with such phone number already exists");
             }
         } else {
             applicationRepository.saveAndFlush(applicationMapper.toModel(application));
@@ -64,12 +67,12 @@ public class ApplicationServiceImpl implements ApplicationService {
      * {@inheritDoc}
      *
      * @param statusDto объект, содержащий идентификатор заявки и новый статус
-     * @throws EntityNotFoundException если заявка с указанным идентификатором не найдена
+     * @throws ServiceException если заявка с указанным идентификатором не найдена
      */
     @Override
     public void changeStatus(ApplicationStatusDto statusDto) {
         Application application = applicationRepository.findById(statusDto.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Application not found with ID:" + statusDto.getId()));
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.APL_404.getCode(), APPLICATION_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         ApplicationStatus status = ApplicationStatus.valueOf(statusDto.getStatus().toUpperCase());
         application.setStatus(status);
         applicationRepository.saveAndFlush(application);
@@ -93,12 +96,12 @@ public class ApplicationServiceImpl implements ApplicationService {
      *
      * @param id идентификатор заявки
      * @return информация о заявке с указанным идентификатором
-     * @throws EntityNotFoundException если заявка с указанным идентификатором не найдена
+     * @throws ServiceException если заявка с указанным идентификатором не найдена
      */
     @Override
     public ApplicationDto getById(Long id) {
         Application application = applicationRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Application not found with ID:" + id));
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.APL_404.getCode(), APPLICATION_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         return applicationMapper.toDto(application);
     }
 

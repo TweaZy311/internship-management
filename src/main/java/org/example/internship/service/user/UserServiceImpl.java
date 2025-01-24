@@ -3,6 +3,8 @@ package org.example.internship.service.user;
 import lombok.RequiredArgsConstructor;
 import org.example.internship.dto.request.NewUserDto;
 import org.example.internship.dto.response.UserDto;
+import org.example.internship.exception.ErrorCode;
+import org.example.internship.exception.ServiceException;
 import org.example.internship.mapper.UserMapper;
 import org.example.internship.model.user.Role;
 import org.example.internship.model.user.User;
@@ -10,6 +12,7 @@ import org.example.internship.repository.UserRepository;
 import org.example.internship.service.gitlab.GitlabService;
 import org.example.internship.service.solution.SolutionService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +27,8 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
+    private final String USER_NOT_FOUND_WITH = "User with such %s could not be found";
+
     private final UserRepository userRepository;
     private final SolutionService solutionService;
     private final UserMapper userMapper;
@@ -44,13 +49,13 @@ public class UserServiceImpl implements UserService {
      *
      * @param email адрес электронной почты пользователя
      * @return информация о пользователе
-     * @throws EntityNotFoundException если пользователь с указанным email не найден
+     * @throws ServiceException если пользователь с указанным email не найден
      */
     @Override
     public UserDto getByEmail(String email) {
         User user = userRepository.findByEmail(email);
         if (user == null) {
-            throw new EntityNotFoundException("User not found with email: " + email);
+            throw new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "e-mail"));
         }
         return userMapper.modelToDto(user);
     }
@@ -66,7 +71,7 @@ public class UserServiceImpl implements UserService {
     public UserDto getByUsername(String username) {
         User user = userRepository.findByUsername(username);
         if (user == null) {
-            throw new EntityNotFoundException("User not found with username: " + username);
+            throw new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username"));
         }
         return userMapper.modelToDto(user);
     }
@@ -93,7 +98,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto getById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with ID:" + id));
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "ID")));
         return userMapper.modelToDto(user);
     }
 
@@ -119,7 +124,7 @@ public class UserServiceImpl implements UserService {
     public void archiveUser(String username) {
         User user = userRepository.findByUsername(username);
         if (user == null) {
-            throw new EntityNotFoundException("User not found with username: " + username);
+            throw new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username"));
         }
         user.setRole(Role.ARCHIVED);
         solutionService.archiveSolutions(user.getId());

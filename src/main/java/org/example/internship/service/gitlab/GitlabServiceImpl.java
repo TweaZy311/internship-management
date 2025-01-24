@@ -1,11 +1,14 @@
 package org.example.internship.service.gitlab;
 
 import org.example.internship.dto.request.NewUserDto;
-import org.example.internship.exception.GitlabException;
+import org.example.internship.exception.ErrorCode;
+import org.example.internship.exception.ServiceException;
+import org.example.internship.exception.ServiceException;
 import org.gitlab4j.api.*;
 import org.gitlab4j.api.models.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -44,7 +47,7 @@ public class GitlabServiceImpl implements GitlabService {
      * @param repositoryName название репозитория
      * @param description    описание репозитория
      * @return созданный проект в GitLab
-     * @throws GitlabException если произошла ошибка при взаимодействии с GitLab API
+     * @throws ServiceException если произошла ошибка при взаимодействии с GitLab API
      */
     @Override
     public Project createRepository(String repositoryName, String description) {
@@ -53,7 +56,7 @@ public class GitlabServiceImpl implements GitlabService {
         try {
             project = projectApi.createProject(repositoryName);
         } catch (GitLabApiException e) {
-            throw new GitlabException(e.getMessage());
+            throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.GLB_500.getCode(), "Unable to create project");
         }
         CommitsApi commitsApi = gitlabApi.getCommitsApi();
         CommitPayload commitPayload = new CommitPayload();
@@ -70,9 +73,8 @@ public class GitlabServiceImpl implements GitlabService {
         try {
             commitsApi.createCommit(project.getId(), commitPayload);
         } catch (GitLabApiException e) {
-            throw new GitlabException(e.getMessage());
+            throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.GLB_500.getCode(), "Unable to create initial commit");
         }
-
 
         return project;
     }
@@ -82,7 +84,7 @@ public class GitlabServiceImpl implements GitlabService {
      *
      * @param repositoryId    идентификатор репозитория, который необходимо форкнуть
      * @param targetNamespace пространство имен, в котором создается форк
-     * @throws GitlabException если произошла ошибка при взаимодействии с GitLab API
+     * @throws ServiceException если произошла ошибка при взаимодействии с GitLab API
      */
     @Override
     public void forkRepository(Long repositoryId, String targetNamespace) {
@@ -90,7 +92,7 @@ public class GitlabServiceImpl implements GitlabService {
         try {
             projectApi.forkProject(repositoryId, targetNamespace);
         } catch (GitLabApiException e) {
-            throw new GitlabException(e.getMessage());
+            throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.GLB_500.getCode(), "Unable to fork project");
         }
     }
 
@@ -98,7 +100,7 @@ public class GitlabServiceImpl implements GitlabService {
      * {@inheritDoc}
      *
      * @param newUserDto информация о новом пользователе
-     * @throws GitlabException если произошла ошибка при взаимодействии с GitLab API
+     * @throws ServiceException если произошла ошибка при взаимодействии с GitLab API
      */
     @Override
     public void createUser(NewUserDto newUserDto) {
@@ -110,7 +112,7 @@ public class GitlabServiceImpl implements GitlabService {
         try {
             userApi.createUser(user, "SimplePass123#", false);
         } catch (GitLabApiException e) {
-            throw new GitlabException(e.getMessage());
+            throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.GLB_500.getCode(), "Unable to create user in GitLab");
         }
     }
 
@@ -119,7 +121,7 @@ public class GitlabServiceImpl implements GitlabService {
      *
      * @param projectId идентификатор проекта
      * @return true, если проект был форкнут, иначе false
-     * @throws GitlabException если произошла ошибка при взаимодействии с GitLab API
+     * @throws ServiceException если произошла ошибка при взаимодействии с GitLab API
      */
     @Override
     public boolean isForkedRepository(Long projectId) {
@@ -128,8 +130,9 @@ public class GitlabServiceImpl implements GitlabService {
         try {
             project = projectApi.getProject(projectId);
         } catch (GitLabApiException e) {
-            throw new GitlabException(e.getMessage());
+            throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.GLB_500.getCode(), "Unable to check if project exists");
         }
+
         return project.getForkedFromProject() != null;
     }
 
@@ -147,7 +150,7 @@ public class GitlabServiceImpl implements GitlabService {
             //блокировка тк при удалении пропадают все репо
             userApi.blockUser(user.getId());
         } catch (GitLabApiException e){
-            throw new GitlabException(e.getMessage());
+            throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.GLB_500.getCode(), "Unable to block user");
         }
     }
 
@@ -155,7 +158,7 @@ public class GitlabServiceImpl implements GitlabService {
     /**
      * Добавление системного хука для обработки событий GitLab.
      *
-     * @throws GitlabException если произошла ошибка при взаимодействии с GitLab API
+     * @throws ServiceException если произошла ошибка при взаимодействии с GitLab API
      */
     @PostConstruct
     private void addSystemHook() {
@@ -172,7 +175,7 @@ public class GitlabServiceImpl implements GitlabService {
                 systemHooksApi.addSystemHook(HOOK_URL, hookToken, systemHook);
             }
         } catch (GitLabApiException e) {
-            throw new GitlabException(e.getMessage());
+            throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.GLB_500.getCode(), "Unable to add system hook");
         }
     }
 }
