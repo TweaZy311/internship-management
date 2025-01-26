@@ -1,13 +1,13 @@
 package org.example.internship.service.gitlab;
 
+
+import org.example.internship.config.properties.AdminProperties;
+import org.example.internship.config.properties.GitlabProperties;
 import org.example.internship.dto.request.NewUserDto;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
-import org.example.internship.exception.ServiceException;
 import org.gitlab4j.api.*;
 import org.gitlab4j.api.models.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -18,27 +18,19 @@ import java.util.List;
  * Реализация сервиса для взаимодействия с GitLab.
  */
 @Service
+
 public class GitlabServiceImpl implements GitlabService {
     private final GitLabApi gitlabApi;
-
-    @Value("${gitlab.system.hook.token}")
-    private String hookToken;
-
-    @Value("${user.password}")
-    private String userPassword;
+    private final GitlabProperties gitlabProperties = new GitlabProperties();
+    private final AdminProperties adminProperties = new AdminProperties();
 
     private final String HOOK_URL = "http://backend:8080/api/solution/add";
 
     /**
      * Конструктор для инициализации GitLab API.
-     *
-     * @param gitlabUrl           URL-адрес GitLab
-     * @param personalAccessToken персональный токен доступа
      */
-    @Autowired
-    public GitlabServiceImpl(@Value("${gitlab.url}") String gitlabUrl,
-                             @Value("${gitlab.access.token}") String personalAccessToken) {
-        this.gitlabApi = new GitLabApi(gitlabUrl, personalAccessToken);
+    public GitlabServiceImpl() {
+        this.gitlabApi = new GitLabApi(gitlabProperties.getUrl(), gitlabProperties.getPersonalAccessToken());
     }
 
     /**
@@ -69,7 +61,7 @@ public class GitlabServiceImpl implements GitlabService {
         commitPayload.withAction(commitAction)
                 .withBranch("main")
                 .withCommitMessage("initial commit")
-                .withAuthorName("admin");
+                .withAuthorName(adminProperties.getUsername());
         try {
             commitsApi.createCommit(project.getId(), commitPayload);
         } catch (GitLabApiException e) {
@@ -110,7 +102,7 @@ public class GitlabServiceImpl implements GitlabService {
         user.setEmail(newUserDto.getEmail());
         user.setName(newUserDto.getName());
         try {
-            userApi.createUser(user, "SimplePass123#", false);
+            userApi.createUser(user, gitlabProperties.getUserPassword(), false);
         } catch (GitLabApiException e) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.GLB_500.getCode(), "Unable to create user in GitLab");
         }
@@ -172,7 +164,7 @@ public class GitlabServiceImpl implements GitlabService {
                 SystemHook systemHook = new SystemHook().withPushEvents(true)
                         .withUrl(HOOK_URL)
                         .withRepositoryUpdateEvents(false);
-                systemHooksApi.addSystemHook(HOOK_URL, hookToken, systemHook);
+                systemHooksApi.addSystemHook(HOOK_URL, gitlabProperties.getSystemHookToken(), systemHook);
             }
         } catch (GitLabApiException e) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.GLB_500.getCode(), "Unable to add system hook");
