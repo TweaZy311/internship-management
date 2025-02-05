@@ -1,6 +1,7 @@
 package org.example.internship.service.user;
 
 import lombok.RequiredArgsConstructor;
+import org.example.internship.config.properties.AdminProperties;
 import org.example.internship.dto.request.NewUserDto;
 import org.example.internship.dto.response.UserDto;
 import org.example.internship.exception.ErrorCode;
@@ -11,7 +12,6 @@ import org.example.internship.model.user.User;
 import org.example.internship.repository.UserRepository;
 import org.example.internship.service.gitlab.GitlabService;
 import org.example.internship.service.solution.SolutionService;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -31,18 +31,12 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final SolutionService solutionService;
-    private final UserMapper userMapper;
-    private final PasswordEncoder passwordEncoder;
     private final GitlabService gitlabService;
 
-    @Value("${admin.username}")
-    private String adminUsername;
-    @Value("${admin.email}")
-    private String adminEmail;
-    @Value("${admin.name}")
-    private String adminName;
-    @Value("${admin.password}")
-    private String adminPassword;
+    private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
+    private final AdminProperties adminProperties;
+
 
     /**
      * {@inheritDoc}
@@ -137,12 +131,12 @@ public class UserServiceImpl implements UserService {
      */
     @PostConstruct
     private void createAdmin() {
-        if (userRepository.findByUsername(adminUsername) == null) {
+        if (userRepository.findByUsername(adminProperties.getUsername()) == null) {
             User user = User.builder()
-                    .email(adminEmail)
-                    .name(adminName)
-                    .username(adminUsername)
-                    .password(passwordEncoder.encode(adminPassword))
+                    .email(adminProperties.getEmail())
+                    .name(adminProperties.getName())
+                    .username(adminProperties.getUsername())
+                    .password(passwordEncoder.encode(adminProperties.getPassword()))
                     .role(Role.ADMIN)
                     .build();
             userRepository.saveAndFlush(user);
