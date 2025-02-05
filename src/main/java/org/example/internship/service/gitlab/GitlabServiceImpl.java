@@ -1,6 +1,7 @@
 package org.example.internship.service.gitlab;
 
 
+import lombok.RequiredArgsConstructor;
 import org.example.internship.config.properties.AdminProperties;
 import org.example.internship.config.properties.GitlabProperties;
 import org.example.internship.dto.request.NewUserDto;
@@ -18,20 +19,13 @@ import java.util.List;
  * Реализация сервиса для взаимодействия с GitLab.
  */
 @Service
-
+@RequiredArgsConstructor
 public class GitlabServiceImpl implements GitlabService {
-    private final GitLabApi gitlabApi;
-    private final GitlabProperties gitlabProperties = new GitlabProperties();
-    private final AdminProperties adminProperties = new AdminProperties();
+    private GitLabApi gitlabApi;
+    private final GitlabProperties gitlabProperties;
+    private final AdminProperties adminProperties;
 
     private final String HOOK_URL = "http://backend:8080/api/solution/add";
-
-    /**
-     * Конструктор для инициализации GitLab API.
-     */
-    public GitlabServiceImpl() {
-        this.gitlabApi = new GitLabApi(gitlabProperties.getUrl(), gitlabProperties.getPersonalAccessToken());
-    }
 
     /**
      * {@inheritDoc}
@@ -146,13 +140,17 @@ public class GitlabServiceImpl implements GitlabService {
         }
     }
 
+    @PostConstruct
+    private void initGitlabApi() {
+        this.gitlabApi = new GitLabApi(gitlabProperties.getUrl(), gitlabProperties.getPersonalAccessToken());
+        addSystemHook();
+    }
 
     /**
      * Добавление системного хука для обработки событий GitLab.
      *
      * @throws ServiceException если произошла ошибка при взаимодействии с GitLab API
      */
-    @PostConstruct
     private void addSystemHook() {
         SystemHooksApi systemHooksApi = gitlabApi.getSystemHooksApi();
         try {
