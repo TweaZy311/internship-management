@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.internship.model.Status;
 import org.example.internship.model.internship.Internship;
 
 import javax.persistence.*;
@@ -113,9 +114,9 @@ public class Application {
     /**
      * Статус заявки.
      */
-    @Column(name = "status", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private ApplicationStatus status;
+    @ManyToOne
+    @JoinColumn(name = "status_id")
+    private Status status;
 
     /**
      * Стажировка, на которую подана заявка.

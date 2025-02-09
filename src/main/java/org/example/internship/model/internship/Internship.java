@@ -5,6 +5,7 @@ import javax.persistence.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.example.internship.model.Lesson;
+import org.example.internship.model.Status;
 import org.example.internship.model.user.User;
 
 import java.time.LocalDate;
@@ -64,9 +65,9 @@ public class Internship {
     /**
      * Статус стажировки.
      */
-    @Column(name = "status", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private InternshipStatus status;
+    @ManyToOne
+    @JoinColumn(name = "status_id")
+    private Status status;
 
     /**
      * Список пользователей, привязанных к стажировке.

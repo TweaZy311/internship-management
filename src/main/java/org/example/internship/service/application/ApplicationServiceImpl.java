@@ -7,10 +7,13 @@ import org.example.internship.dto.response.application.ApplicationDto;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.mapper.ApplicationMapper;
+import org.example.internship.model.Status;
+import org.example.internship.model.StatusType;
 import org.example.internship.model.application.Application;
 import org.example.internship.model.application.ApplicationStatus;
 import org.example.internship.model.internship.InternshipStatus;
 import org.example.internship.repository.ApplicationRepository;
+import org.example.internship.repository.StatusRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +33,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
 
     private final ApplicationRepository applicationRepository;
+    private final StatusRepository statusRepository;
     private final ApplicationMapper applicationMapper;
 
     /**
@@ -45,21 +49,23 @@ public class ApplicationServiceImpl implements ApplicationService {
                 findByPhoneNumberAndInternshipId(application.getPhoneNumber(),
                         application.getInternshipId());
 
-        if (existingApplication != null) {
-            LocalDate internshipRegStartDate = existingApplication.getInternship().getRegistrationStartDate();
-            InternshipStatus internshipStatus = existingApplication.getInternship().getStatus();
-
-            if (internshipStatus.equals(InternshipStatus.OPEN) &&
-                    existingApplication.getCreationDate().isBefore(internshipRegStartDate)) {
-                Long id = existingApplication.getId();
-                existingApplication = applicationMapper.toModel(application);
-                existingApplication.setId(id);
-                applicationRepository.save(existingApplication);
-            } else {
-                throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.APL_400.getCode(), "Application for this internship from user with such phone number already exists");
-            }
-        } else {
+        if (existingApplication == null) {
             applicationRepository.saveAndFlush(applicationMapper.toModel(application));
+            return;
+        }
+
+        LocalDate internshipRegStartDate = existingApplication.getInternship().getRegistrationStartDate();
+        Status internshipStatus = existingApplication.getInternship().getStatus();
+
+        //todo fix comparing status
+        if (internshipStatus.getName().equals("OPEN") &&
+                existingApplication.getCreationDate().isBefore(internshipRegStartDate)) {
+            Long id = existingApplication.getId();
+            existingApplication = applicationMapper.toModel(application);
+            existingApplication.setId(id);
+            applicationRepository.save(existingApplication);
+        } else {
+            throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.APL_400.getCode(), "Application for this internship from user with such phone number already exists");
         }
     }
 
@@ -73,7 +79,8 @@ public class ApplicationServiceImpl implements ApplicationService {
     public void changeStatus(ApplicationStatusDto statusDto) {
         Application application = applicationRepository.findById(statusDto.getId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.APL_404.getCode(), APPLICATION_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
-        ApplicationStatus status = ApplicationStatus.valueOf(statusDto.getStatus().toUpperCase());
+        Status status = statusRepository.findByTypeAndNameContaining(StatusType.APPLICATION, statusDto.getStatus());
+
         application.setStatus(status);
         applicationRepository.saveAndFlush(application);
     }

@@ -6,11 +6,14 @@ import org.example.internship.dto.response.solution.SolutionDto;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.mapper.SolutionMapper;
+import org.example.internship.model.Status;
+import org.example.internship.model.StatusType;
 import org.example.internship.model.task.Solution;
 import org.example.internship.model.task.SolutionStatus;
 import org.example.internship.model.task.Task;
 import org.example.internship.model.user.User;
 import org.example.internship.repository.SolutionRepository;
+import org.example.internship.repository.StatusRepository;
 import org.example.internship.repository.TaskRepository;
 import org.example.internship.repository.UserRepository;
 import org.gitlab4j.api.systemhooks.PushSystemHookEvent;
@@ -33,6 +36,7 @@ public class SolutionServiceImpl implements SolutionService {
     private final SolutionRepository solutionRepository;
     private final UserRepository userRepository;
     private final TaskRepository taskRepository;
+    private final StatusRepository statusRepository;
     private final SolutionMapper solutionMapper;
 
     /**
@@ -48,7 +52,8 @@ public class SolutionServiceImpl implements SolutionService {
         if (existingSolution != null) {
             existingSolution.setLastCommitTime(solution.getLastCommitTime());
             existingSolution.setLastCommitUrl(solution.getLastCommitUrl());
-            existingSolution.setStatus(SolutionStatus.SENT);
+            //todo fix status
+            existingSolution.setStatus(new Status());
             solutionRepository.saveAndFlush(existingSolution);
         } else {
             User user = userRepository.findByUsername(pushEvent.getUserUsername());
@@ -69,8 +74,8 @@ public class SolutionServiceImpl implements SolutionService {
     public void updateStatus(SolutionStatusDto solutionStatusDto) {
         Solution solution = solutionRepository.findById(solutionStatusDto.getId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.SLN_404.getCode(), SOLUTION_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
-        String status = solutionStatusDto.getStatus().toUpperCase();
-        solution.setStatus(SolutionStatus.valueOf(status));
+        Status status = statusRepository.findByTypeAndNameContaining(StatusType.SOLUTION, solutionStatusDto.getStatus());
+        solution.setStatus(status);
         solution.setCheckedTime(LocalDateTime.now());
         solutionRepository.save(solution);
     }

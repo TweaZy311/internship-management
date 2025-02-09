@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.internship.model.Status;
 import org.example.internship.model.user.User;
 
 import javax.persistence.*;
@@ -79,7 +80,7 @@ public class Solution {
     /**
      * Статус решения.
      */
-    @Column(name = "status", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private SolutionStatus status;
+    @ManyToOne
+    @JoinColumn(name = "status_id")
+    private Status status;
 }
