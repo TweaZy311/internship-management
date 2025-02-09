@@ -26,7 +26,8 @@ public class Lesson {
      * ID занятия.
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @SequenceGenerator(name = "lesson_seq", sequenceName = "lesson_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "lesson_seq")
     private Long id;
 
     /**

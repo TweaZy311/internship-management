@@ -1,2 +1,2 @@
-ALTER TABLE application
-    DROP CONSTRAINT application_username_uk;
+alter table application
+    drop constraint application_username_uk;

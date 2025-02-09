@@ -24,7 +24,8 @@ public class Solution {
      * ID решения.
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @SequenceGenerator(name = "solution_seq", sequenceName = "solution_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "solution_seq")
     private Long id;
 
     /**

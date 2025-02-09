@@ -114,9 +114,9 @@ public class TaskServiceImpl implements TaskService {
      * {@inheritDoc}
      *
      * @param id идентификатор задания
-     * @throws ServiceException   если задание не найдено
-     * @throws ServiceException     если занятие, к которому относится
-     *                                   это задание еще не опубликовано
+     * @throws ServiceException если задание не найдено
+     * @throws ServiceException если занятие, к которому относится
+     *                          это задание еще не опубликовано
      * @throws ServiceException если задание уже было ранее опубликовано
      */
     @Override

@@ -24,7 +24,8 @@ public class Message {
      * ID сообщения.
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @SequenceGenerator(name = "message_seq", sequenceName = "message_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "message_seq")
     private Long id;
 
     /**

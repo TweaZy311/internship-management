@@ -25,7 +25,8 @@ public class Internship {
      * ID стажировки.
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @SequenceGenerator(name = "internship_seq", sequenceName = "internship_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "internship_seq")
     private Long id;
 
     /**

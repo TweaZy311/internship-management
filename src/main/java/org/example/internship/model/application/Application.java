@@ -24,7 +24,8 @@ public class Application {
      * ID заявки.
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @SequenceGenerator(name = "application_seq", sequenceName = "application_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "application_seq")
     private Long id;
 
     /**
