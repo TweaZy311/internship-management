@@ -1,8 +1,8 @@
 package org.example.internship.service.lesson;
 
-import org.example.internship.dto.request.lesson.NewLessonDto;
-import org.example.internship.dto.response.lesson.AdminLessonDto;
-import org.example.internship.dto.response.lesson.UserLessonDto;
+import org.example.internship.model.request.lesson.NewLessonDto;
+import org.example.internship.model.response.lesson.AdminLessonDto;
+import org.example.internship.model.response.lesson.UserLessonDto;
 
 import java.util.List;
 

@@ -1,8 +1,8 @@
 package org.example.internship.service.task;
 
-import org.example.internship.dto.request.task.NewTaskDto;
-import org.example.internship.dto.request.task.UpdateTaskDto;
-import org.example.internship.dto.response.task.TaskDto;
+import org.example.internship.model.request.task.NewTaskDto;
+import org.example.internship.model.request.task.UpdateTaskDto;
+import org.example.internship.model.response.task.TaskDto;
 
 import java.util.List;
 

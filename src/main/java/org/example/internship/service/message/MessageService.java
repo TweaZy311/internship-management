@@ -1,7 +1,7 @@
 package org.example.internship.service.message;
 
-import org.example.internship.dto.request.NewMessageDto;
-import org.example.internship.dto.response.MessageDto;
+import org.example.internship.model.request.NewMessageDto;
+import org.example.internship.model.response.MessageDto;
 
 import java.util.List;
 

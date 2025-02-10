@@ -1,11 +1,11 @@
 package org.example.internship.service.internship;
 
-import org.example.internship.dto.request.internship.InternshipStatusDto;
-import org.example.internship.dto.request.internship.NewInternshipDto;
-import org.example.internship.dto.request.internship.UpdateInternshipDto;
-import org.example.internship.dto.response.ReportDto;
-import org.example.internship.dto.response.internship.AdminInternshipDto;
-import org.example.internship.dto.response.internship.PublicInternshipDto;
+import org.example.internship.model.request.internship.InternshipStatusDto;
+import org.example.internship.model.request.internship.NewInternshipDto;
+import org.example.internship.model.request.internship.UpdateInternshipDto;
+import org.example.internship.model.response.ReportDto;
+import org.example.internship.model.response.internship.AdminInternshipDto;
+import org.example.internship.model.response.internship.PublicInternshipDto;
 
 import java.util.List;
 

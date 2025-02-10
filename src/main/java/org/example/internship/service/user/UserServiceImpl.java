@@ -2,13 +2,13 @@ package org.example.internship.service.user;
 
 import lombok.RequiredArgsConstructor;
 import org.example.internship.config.properties.AdminProperties;
-import org.example.internship.dto.request.NewUserDto;
-import org.example.internship.dto.response.UserDto;
+import org.example.internship.model.request.NewUserDto;
+import org.example.internship.model.response.UserDto;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.mapper.UserMapper;
-import org.example.internship.model.user.Role;
-import org.example.internship.model.user.User;
+import org.example.internship.entity.user.Role;
+import org.example.internship.entity.user.UserEntity;
 import org.example.internship.repository.UserRepository;
 import org.example.internship.service.gitlab.GitlabService;
 import org.example.internship.service.solution.SolutionService;
@@ -47,7 +47,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserDto getByEmail(String email) {
-        User user = userRepository.findByEmail(email);
+        UserEntity user = userRepository.findByEmail(email);
         if (user == null) {
             throw new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "e-mail"));
         }
@@ -63,7 +63,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserDto getByUsername(String username) {
-        User user = userRepository.findByUsername(username);
+        UserEntity user = userRepository.findByUsername(username);
         if (user == null) {
             throw new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username"));
         }
@@ -77,7 +77,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public void create(NewUserDto newUserDto) {
-        User user = userMapper.newDtoToModel(newUserDto);
+        UserEntity user = userMapper.newDtoToModel(newUserDto);
         userRepository.saveAndFlush(user);
         gitlabService.createUser(newUserDto);
     }
@@ -91,7 +91,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserDto getById(Long id) {
-        User user = userRepository.findById(id)
+        UserEntity user = userRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "ID")));
         return userMapper.modelToDto(user);
     }
@@ -103,7 +103,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public List<UserDto> getAllUsers() {
-        List<User> users = userRepository.findAll();
+        List<UserEntity> users = userRepository.findAll();
         return users.stream()
                 .map(userMapper::modelToDto)
                 .collect(Collectors.toList());
@@ -116,7 +116,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public void archiveUser(String username) {
-        User user = userRepository.findByUsername(username);
+        UserEntity user = userRepository.findByUsername(username);
         if (user == null) {
             throw new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username"));
         }
@@ -132,7 +132,7 @@ public class UserServiceImpl implements UserService {
     @PostConstruct
     private void createAdmin() {
         if (userRepository.findByUsername(adminProperties.getUsername()) == null) {
-            User user = User.builder()
+            UserEntity user = UserEntity.builder()
                     .email(adminProperties.getEmail())
                     .name(adminProperties.getName())
                     .username(adminProperties.getUsername())

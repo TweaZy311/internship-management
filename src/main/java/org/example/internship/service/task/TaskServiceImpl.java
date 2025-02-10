@@ -1,16 +1,16 @@
 package org.example.internship.service.task;
 
 import lombok.RequiredArgsConstructor;
-import org.example.internship.dto.request.task.NewTaskDto;
-import org.example.internship.dto.request.task.UpdateTaskDto;
-import org.example.internship.dto.response.task.TaskDto;
+import org.example.internship.model.request.task.NewTaskDto;
+import org.example.internship.model.request.task.UpdateTaskDto;
+import org.example.internship.model.response.task.TaskDto;
+import org.example.internship.entity.LessonEntity;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.mapper.TaskMapper;
-import org.example.internship.model.Lesson;
-import org.example.internship.model.task.Task;
-import org.example.internship.model.user.Role;
-import org.example.internship.model.user.User;
+import org.example.internship.entity.task.TaskEntity;
+import org.example.internship.entity.user.Role;
+import org.example.internship.entity.user.UserEntity;
 import org.example.internship.repository.TaskRepository;
 import org.example.internship.repository.UserRepository;
 import org.example.internship.service.gitlab.GitlabService;
@@ -44,7 +44,7 @@ public class TaskServiceImpl implements TaskService {
      */
     @Override
     public void save(NewTaskDto taskDto) {
-        Task task = taskMapper.newDtoToModel(taskDto);
+        TaskEntity task = taskMapper.newDtoToModel(taskDto);
 
         Project project = gitlabService.createRepository(taskDto.getName(), taskDto.getDescription());
         String url = project.getWebUrl();
@@ -62,7 +62,7 @@ public class TaskServiceImpl implements TaskService {
      */
     @Override
     public List<TaskDto> getAllPublished() {
-        List<Task> tasks = taskRepository.findAllByPublishDateLessThanEqual(LocalDate.now());
+        List<TaskEntity> tasks = taskRepository.findAllByPublishDateLessThanEqual(LocalDate.now());
         return tasks.stream()
                 .map(taskMapper::modelToDto)
                 .collect(Collectors.toList());
@@ -77,7 +77,7 @@ public class TaskServiceImpl implements TaskService {
      */
     @Override
     public TaskDto getById(Long id) {
-        Task task = taskRepository.findById(id)
+        TaskEntity task = taskRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.TSK_404.getCode(), TASK_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         return taskMapper.modelToDto(task);
     }
@@ -90,7 +90,7 @@ public class TaskServiceImpl implements TaskService {
      */
     @Override
     public void update(UpdateTaskDto taskDto) {
-        Task existingTask = taskRepository.findById(taskDto.getId())
+        TaskEntity existingTask = taskRepository.findById(taskDto.getId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.TSK_404.getCode(), TASK_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
 
         taskMapper.updateDtoToModel(existingTask, taskDto);
@@ -104,7 +104,7 @@ public class TaskServiceImpl implements TaskService {
      */
     @Override
     public List<TaskDto> getAll() {
-        List<Task> tasks = taskRepository.findAll();
+        List<TaskEntity> tasks = taskRepository.findAll();
         return tasks.stream()
                 .map(taskMapper::modelToDto)
                 .collect(Collectors.toList());
@@ -121,10 +121,10 @@ public class TaskServiceImpl implements TaskService {
      */
     @Override
     public void publishById(Long id) {
-        Task task = taskRepository.findById(id)
+        TaskEntity task = taskRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.TSK_404.getCode(), TASK_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
 
-        Lesson lesson = task.getLesson();
+        LessonEntity lesson = task.getLesson();
         if (!lesson.getIsPublished()) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.TSK_400.getCode(), LESSON_WITH_TASKS_NOT_PUBLISHED_YET);
         }
@@ -133,12 +133,12 @@ public class TaskServiceImpl implements TaskService {
         }
 
         task.setPublishDate(LocalDate.now());
-        List<User> users = userRepository.findAllByInternshipIdAndRole(task.getLesson().getInternship().getId(), Role.USER);
+        List<UserEntity> users = userRepository.findAllByInternshipIdAndRole(task.getLesson().getInternship().getId(), Role.USER);
         //todo возможно стоит убрать
         if (users.isEmpty()) {
             throw new EntityNotFoundException("Users not found");
         }
-        for (User user : users) {
+        for (UserEntity user : users) {
             gitlabService.forkRepository(task.getRepositoryId(), user.getUsername());
         }
         taskRepository.saveAndFlush(task);
@@ -146,25 +146,25 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public void publishByLessonId(Long lessonId) {
-        List<Task> tasks = taskRepository.findAllByLessonIdAndPublishDateIsNull(lessonId);
+        List<TaskEntity> tasks = taskRepository.findAllByLessonIdAndPublishDateIsNull(lessonId);
 
         if (tasks.isEmpty()) {
             throw new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.TSK_404.getCode(), "Tasks not found for lesson with such ID");
         }
-        Lesson lesson = tasks.get(0).getLesson();
+        LessonEntity lesson = tasks.get(0).getLesson();
         if (!lesson.getIsPublished()) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.TSK_400.getCode(), LESSON_WITH_TASKS_NOT_PUBLISHED_YET);
         }
 
-        List<User> users = userRepository.findAllByInternshipIdAndRole(lesson.getInternship().getId(), Role.USER);
+        List<UserEntity> users = userRepository.findAllByInternshipIdAndRole(lesson.getInternship().getId(), Role.USER);
         //todo возможно стоит убрать
         if (users.isEmpty()) {
             throw new EntityNotFoundException("Users not found");
         }
-        for (Task task : tasks) {
+        for (TaskEntity task : tasks) {
             task.setPublishDate(LocalDate.now());
             taskRepository.saveAndFlush(task);
-            for (User user : users) {
+            for (UserEntity user : users) {
                 gitlabService.forkRepository(task.getRepositoryId(), user.getUsername());
             }
         }

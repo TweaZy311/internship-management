@@ -1,8 +1,8 @@
 package org.example.internship.service.application;
 
-import org.example.internship.dto.request.application.ApplicationStatusDto;
-import org.example.internship.dto.request.application.NewApplicationDto;
-import org.example.internship.dto.response.application.ApplicationInfo;
+import org.example.internship.model.request.application.ApplicationStatusDto;
+import org.example.internship.model.request.application.NewApplicationDto;
+import org.example.internship.model.response.application.ApplicationInfo;
 
 import java.util.List;
 

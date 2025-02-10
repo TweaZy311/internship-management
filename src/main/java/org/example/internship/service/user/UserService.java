@@ -1,7 +1,7 @@
 package org.example.internship.service.user;
 
-import org.example.internship.dto.request.NewUserDto;
-import org.example.internship.dto.response.UserDto;
+import org.example.internship.model.request.NewUserDto;
+import org.example.internship.model.response.UserDto;
 
 import java.util.List;
 /**

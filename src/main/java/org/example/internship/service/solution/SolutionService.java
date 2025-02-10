@@ -1,7 +1,7 @@
 package org.example.internship.service.solution;
 
-import org.example.internship.dto.request.solution.SolutionStatusDto;
-import org.example.internship.dto.response.solution.SolutionDto;
+import org.example.internship.model.request.solution.SolutionStatusDto;
+import org.example.internship.model.response.solution.SolutionDto;
 import org.gitlab4j.api.systemhooks.PushSystemHookEvent;
 
 import java.util.List;

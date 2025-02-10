@@ -1,6 +1,6 @@
 package org.example.internship.service.gitlab;
 
-import org.example.internship.dto.request.NewUserDto;
+import org.example.internship.model.request.NewUserDto;
 import org.gitlab4j.api.models.Project;
 
 /**

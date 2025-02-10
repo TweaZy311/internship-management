@@ -4,7 +4,7 @@ package org.example.internship.service.gitlab;
 import lombok.RequiredArgsConstructor;
 import org.example.internship.config.properties.AdminProperties;
 import org.example.internship.config.properties.GitlabProperties;
-import org.example.internship.dto.request.NewUserDto;
+import org.example.internship.model.request.NewUserDto;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.gitlab4j.api.*;
