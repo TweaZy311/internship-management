@@ -3,7 +3,7 @@ package org.example.internship.service.application;
 import lombok.RequiredArgsConstructor;
 import org.example.internship.dto.request.application.ApplicationStatusDto;
 import org.example.internship.dto.request.application.NewApplicationDto;
-import org.example.internship.dto.response.application.ApplicationDto;
+import org.example.internship.dto.response.application.ApplicationInfo;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.mapper.ApplicationMapper;
@@ -11,7 +11,6 @@ import org.example.internship.model.Status;
 import org.example.internship.model.StatusType;
 import org.example.internship.model.application.Application;
 import org.example.internship.model.application.ApplicationStatus;
-import org.example.internship.model.internship.InternshipStatus;
 import org.example.internship.repository.ApplicationRepository;
 import org.example.internship.repository.StatusRepository;
 import org.springframework.http.HttpStatus;
@@ -91,7 +90,7 @@ public class ApplicationServiceImpl implements ApplicationService {
      * @return список всех заявок
      */
     @Override
-    public List<ApplicationDto> getAll() {
+    public List<ApplicationInfo> getAll() {
         List<Application> applications = applicationRepository.findAll();
         return applications.stream()
                 .map(applicationMapper::toDto)
@@ -106,7 +105,7 @@ public class ApplicationServiceImpl implements ApplicationService {
      * @throws ServiceException если заявка с указанным идентификатором не найдена
      */
     @Override
-    public ApplicationDto getById(Long id) {
+    public ApplicationInfo getById(Long id) {
         Application application = applicationRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.APL_404.getCode(), APPLICATION_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         return applicationMapper.toDto(application);
@@ -119,7 +118,7 @@ public class ApplicationServiceImpl implements ApplicationService {
      * @return список заявок с указанным статусом
      */
     @Override
-    public List<ApplicationDto> getByStatus(String status) {
+    public List<ApplicationInfo> getByStatus(String status) {
         List<Application> applications = applicationRepository
                 .findAllByStatus(ApplicationStatus.valueOf(status.toUpperCase()));
         return applications.stream()
@@ -134,7 +133,7 @@ public class ApplicationServiceImpl implements ApplicationService {
      * @return список заявок, оставленных на указанную стажировку
      */
     @Override
-    public List<ApplicationDto> getAllByInternshipId(Long internshipId) {
+    public List<ApplicationInfo> getAllByInternshipId(Long internshipId) {
         List<Application> applications = applicationRepository.findAllByInternshipId(internshipId);
         return applications.stream()
                 .map(applicationMapper::toDto)
@@ -149,7 +148,7 @@ public class ApplicationServiceImpl implements ApplicationService {
      * @return список заявок, оставленных на указанную стажировку с указанным статусом
      */
     @Override
-    public List<ApplicationDto> getAllByInternshipIdAndStatus(Long internshipId, String status) {
+    public List<ApplicationInfo> getAllByInternshipIdAndStatus(Long internshipId, String status) {
         List<Application> applications = applicationRepository
                 .findAllByInternshipIdAndStatus(internshipId, ApplicationStatus.valueOf(status.toUpperCase()));
         return applications.stream()

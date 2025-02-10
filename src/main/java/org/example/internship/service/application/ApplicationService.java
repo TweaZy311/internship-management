@@ -2,7 +2,7 @@ package org.example.internship.service.application;
 
 import org.example.internship.dto.request.application.ApplicationStatusDto;
 import org.example.internship.dto.request.application.NewApplicationDto;
-import org.example.internship.dto.response.application.ApplicationDto;
+import org.example.internship.dto.response.application.ApplicationInfo;
 
 import java.util.List;
 
@@ -29,7 +29,7 @@ public interface ApplicationService {
      *
      * @return список всех заявок
      */
-    List<ApplicationDto> getAll();
+    List<ApplicationInfo> getAll();
 
     /**
      * Получение заявки по её идентификатору.
@@ -37,7 +37,7 @@ public interface ApplicationService {
      * @param id идентификатор заявки
      * @return информация о заявке с указанным идентификатором
      */
-    ApplicationDto getById(Long id);
+    ApplicationInfo getById(Long id);
 
     /**
      * Получение списка заявок по статусу.
@@ -45,7 +45,7 @@ public interface ApplicationService {
      * @param status статус заявки
      * @return список заявок с указанным статусом
      */
-    List<ApplicationDto> getByStatus(String status);
+    List<ApplicationInfo> getByStatus(String status);
 
 
     /**
@@ -54,7 +54,7 @@ public interface ApplicationService {
      * @param internshipId идентификатор стажировки
      * @return список заявок, оставленных на указанную стажировку
      */
-    List<ApplicationDto> getAllByInternshipId(Long internshipId);
+    List<ApplicationInfo> getAllByInternshipId(Long internshipId);
 
     /**
      * Получение списка заявок по идентификатору стажировки и статусу.
@@ -63,5 +63,5 @@ public interface ApplicationService {
      * @param status       статус заявки
      * @return список заявок, оставленных на указанную стажировку с указанным статусом
      */
-    List<ApplicationDto> getAllByInternshipIdAndStatus(Long internshipId, String status);
+    List<ApplicationInfo> getAllByInternshipIdAndStatus(Long internshipId, String status);
 }

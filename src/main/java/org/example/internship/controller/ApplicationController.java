@@ -11,7 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.internship.dto.request.application.ApplicationStatusDto;
 import org.example.internship.dto.request.application.NewApplicationDto;
-import org.example.internship.dto.response.application.ApplicationDto;
+import org.example.internship.dto.response.application.ApplicationInfo;
 import org.example.internship.dto.response.internship.PublicInternshipDto;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ExceptionResponse;
@@ -118,9 +118,9 @@ public class ApplicationController {
             @Parameter(name = "status", description = "Статус заявки для получения заявок с определенным статусом"),
             @Parameter(name = "internshipId", description = "Идентификатор стажировки, на которую была оставлена заявка")
     })
-    public ResponseEntity<List<ApplicationDto>> getAllApplications(@RequestParam(required = false) String status,
-                                                                   @RequestParam(required = false) Long internshipId) {
-        List<ApplicationDto> applications;
+    public ResponseEntity<List<ApplicationInfo>> getAllApplications(@RequestParam(required = false) String status,
+                                                                    @RequestParam(required = false) Long internshipId) {
+        List<ApplicationInfo> applications;
         if (status == null && internshipId == null) {
             applications = applicationService.getAll();
         } else if (status != null && internshipId == null) {
@@ -155,8 +155,8 @@ public class ApplicationController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @Parameter(name = "id", description = "Идентификатор заявки")
-    public ResponseEntity<ApplicationDto> getApplicationById(@PathVariable Long id) {
-        ApplicationDto application = applicationService.getById(id);
+    public ResponseEntity<ApplicationInfo> getApplicationById(@PathVariable Long id) {
+        ApplicationInfo application = applicationService.getById(id);
         return new ResponseEntity<>(application, HttpStatus.OK);
     }
 }

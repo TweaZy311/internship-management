@@ -1,7 +1,7 @@
 package org.example.internship.mapper;
 
 import org.example.internship.dto.request.application.NewApplicationDto;
-import org.example.internship.dto.response.application.ApplicationDto;
+import org.example.internship.dto.response.application.ApplicationInfo;
 import org.example.internship.model.application.Application;
 import org.example.internship.model.internship.Internship;
 import org.example.internship.repository.InternshipRepository;
@@ -43,7 +43,7 @@ public abstract class ApplicationMapper {
      * @return DTO для ответа
      */
     @Mapping(target = "internshipId", source = "internship", qualifiedByName = "getInternshipId")
-    public abstract ApplicationDto toDto(Application application);
+    public abstract ApplicationInfo toDto(Application application);
 
     /**
      * Получение сущности Internship по ID.
