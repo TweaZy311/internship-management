@@ -1,9 +1,9 @@
 package org.example.internship.service.lesson;
 
 import lombok.RequiredArgsConstructor;
-import org.example.internship.model.request.lesson.NewLessonDto;
-import org.example.internship.model.response.lesson.AdminLessonDto;
-import org.example.internship.model.response.lesson.UserLessonDto;
+import org.example.internship.model.request.lesson.CreateLessonRequest;
+import org.example.internship.model.response.lesson.AdminLessonInfo;
+import org.example.internship.model.response.lesson.UserLessonInfo;
 import org.example.internship.entity.LessonEntity;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
@@ -29,11 +29,11 @@ public class LessonServiceImpl implements LessonService {
     /**
      * {@inheritDoc}
      *
-     * @param newLessonDto информация о новом занятии
+     * @param createLessonRequest информация о новом занятии
      */
     @Override
-    public void save(NewLessonDto newLessonDto) {
-        LessonEntity lesson = lessonMapper.newLessonDtoToModel(newLessonDto);
+    public void save(CreateLessonRequest createLessonRequest) {
+        LessonEntity lesson = lessonMapper.newLessonDtoToModel(createLessonRequest);
         lessonRepository.save(lesson);
     }
 
@@ -45,7 +45,7 @@ public class LessonServiceImpl implements LessonService {
      * @throws ServiceException если занятие не найдено
      */
     @Override
-    public UserLessonDto getById(Long id) {
+    public UserLessonInfo getById(Long id) {
         LessonEntity lesson = lessonRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.LSN_404.getCode(), LESSON_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         return lessonMapper.modelToUserDto(lesson);
@@ -57,7 +57,7 @@ public class LessonServiceImpl implements LessonService {
      * @return список всех занятий
      */
     @Override
-    public List<AdminLessonDto> getAll() {
+    public List<AdminLessonInfo> getAll() {
         List<LessonEntity> lessonEntities = lessonRepository.findAll();
         return lessonEntities.stream()
                 .map(lessonMapper::modelToAdminDto)
@@ -71,7 +71,7 @@ public class LessonServiceImpl implements LessonService {
      * @return список опубликованных занятий
      */
     @Override
-    public List<UserLessonDto> getAllPublishedByInternshipId(Long internshipId) {
+    public List<UserLessonInfo> getAllPublishedByInternshipId(Long internshipId) {
         List<LessonEntity> publishedLessonEntities = lessonRepository.findByIsPublishedTrueAndInternshipId(internshipId);
         return publishedLessonEntities.stream()
                 .map(lessonMapper::modelToUserDto)

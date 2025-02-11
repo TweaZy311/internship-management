@@ -11,7 +11,7 @@ import java.time.LocalDate;
  */
 @Data
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class NewApplicationDto {
+public class CreateApplicationRequest {
     private String fullName;
     private String email;
     private String phoneNumber;

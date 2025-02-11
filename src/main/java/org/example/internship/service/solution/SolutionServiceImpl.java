@@ -1,8 +1,8 @@
 package org.example.internship.service.solution;
 
 import lombok.RequiredArgsConstructor;
-import org.example.internship.model.request.solution.SolutionStatusDto;
-import org.example.internship.model.response.solution.SolutionDto;
+import org.example.internship.model.request.solution.UpdateSolutionStatusRequest;
+import org.example.internship.model.response.solution.Solution;
 import org.example.internship.entity.StatusEntity;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
@@ -67,14 +67,14 @@ public class SolutionServiceImpl implements SolutionService {
     /**
      * {@inheritDoc}
      *
-     * @param solutionStatusDto информация о решении и его новом статусе
+     * @param updateSolutionStatusRequest информация о решении и его новом статусе
      * @throws EntityNotFoundException если решение не найдено
      */
     @Override
-    public void updateStatus(SolutionStatusDto solutionStatusDto) {
-        SolutionEntity solution = solutionRepository.findById(solutionStatusDto.getId())
+    public void updateStatus(UpdateSolutionStatusRequest updateSolutionStatusRequest) {
+        SolutionEntity solution = solutionRepository.findById(updateSolutionStatusRequest.getId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.SLN_404.getCode(), SOLUTION_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
-        StatusEntity status = statusRepository.findByTypeAndNameContaining(StatusType.SOLUTION, solutionStatusDto.getStatus());
+        StatusEntity status = statusRepository.findByTypeAndNameContaining(StatusType.SOLUTION, updateSolutionStatusRequest.getStatus());
         solution.setStatus(status);
         solution.setCheckedTime(LocalDateTime.now());
         solutionRepository.save(solution);
@@ -88,7 +88,7 @@ public class SolutionServiceImpl implements SolutionService {
      * @throws EntityNotFoundException если решение не найдено
      */
     @Override
-    public SolutionDto getById(Long id) {
+    public Solution getById(Long id) {
         SolutionEntity solution = solutionRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.SLN_404.getCode(), SOLUTION_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         return solutionMapper.modelToDto(solution);
@@ -100,7 +100,7 @@ public class SolutionServiceImpl implements SolutionService {
      * @return список всех решений
      */
     @Override
-    public List<SolutionDto> getAll() {
+    public List<Solution> getAll() {
         List<SolutionEntity> solutions = solutionRepository.findAll();
         return solutions.stream()
                 .map(solutionMapper::modelToDto)
@@ -114,7 +114,7 @@ public class SolutionServiceImpl implements SolutionService {
      * @return список решений с указанным статусом
      */
     @Override
-    public List<SolutionDto> getAllByStatus(String status) {
+    public List<Solution> getAllByStatus(String status) {
         SolutionStatus solutionStatus = SolutionStatus.valueOf(status.toUpperCase());
         List<SolutionEntity> solutions = solutionRepository.findAllByStatusAndIsArchivedFalse(solutionStatus);
         return solutions.stream()
@@ -129,7 +129,7 @@ public class SolutionServiceImpl implements SolutionService {
      * @return список объектов SolutionDto, представляющих решения задания
      */
     @Override
-    public List<SolutionDto> getAllByTaskId(Long taskId) {
+    public List<Solution> getAllByTaskId(Long taskId) {
         List<SolutionEntity> solutions = solutionRepository.findAllByTaskIdAndIsArchivedFalse(taskId);
         return solutions.stream()
                 .map(solutionMapper::modelToDto)

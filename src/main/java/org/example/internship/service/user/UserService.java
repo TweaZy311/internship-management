@@ -1,7 +1,7 @@
 package org.example.internship.service.user;
 
-import org.example.internship.model.request.NewUserDto;
-import org.example.internship.model.response.UserDto;
+import org.example.internship.model.request.CreateUserRequest;
+import org.example.internship.model.response.User;
 
 import java.util.List;
 /**
@@ -15,7 +15,7 @@ public interface UserService {
      * @param email адрес электронной почты пользователя
      * @return информация о пользователе
      */
-    UserDto getByEmail(String email);
+    User getByEmail(String email);
 
     /**
      * Получение информации о пользователе по его идентификатору.
@@ -23,7 +23,7 @@ public interface UserService {
      * @param id идентификатор пользователя
      * @return информация о пользователе
      */
-    UserDto getById(Long id);
+    User getById(Long id);
 
     /**
      * Получение информации о пользователе по его username.
@@ -31,21 +31,21 @@ public interface UserService {
      * @param username имя пользователя
      * @return информация о пользователе
      */
-    UserDto getByUsername(String username);
+    User getByUsername(String username);
 
     /**
      * Получение списка всех пользователей.
      *
      * @return список пользователей
      */
-    List<UserDto> getAllUsers();
+    List<User> getAllUsers();
 
     /**
      * Создание нового пользователя.
      *
      * @param user информация о новом пользователе
      */
-    void create(NewUserDto user);
+    void create(CreateUserRequest user);
 
     /**
      * Архивирование данных пользователя.

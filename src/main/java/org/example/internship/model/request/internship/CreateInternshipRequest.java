@@ -6,12 +6,14 @@ import lombok.Data;
 
 import java.time.LocalDate;
 
+/**
+ * DTO для создания новой стажировки.
+ */
 @Data
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class UpdateInternshipDto {
-    private Long id;
+public class CreateInternshipRequest {
+    private String name;
     private String description;
-    private LocalDate registrationStartDate;
     private LocalDate registrationEndDate;
     private LocalDate startDate;
     private LocalDate endDate;

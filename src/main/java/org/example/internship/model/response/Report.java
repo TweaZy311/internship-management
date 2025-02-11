@@ -13,7 +13,7 @@ import java.util.Map;
 @Data
 @AllArgsConstructor
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class ReportDto {
+public class Report {
     private String username;
     private Map<String, String> taskStatuses;
 }

@@ -3,7 +3,7 @@ package org.example.internship.model.response.internship;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
-import org.example.internship.model.response.lesson.InternshipLessonDto;
+import org.example.internship.model.response.lesson.InternshipLessonInfo;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.List;
  */
 @Data
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class AdminInternshipDto {
+public class PrivateInternshipInfo {
     private Long id;
     private String name;
     private String description;
@@ -21,5 +21,5 @@ public class AdminInternshipDto {
     private LocalDate registrationEndDate;
     private LocalDate startDate;
     private LocalDate endDate;
-    private List<InternshipLessonDto> lessons;
+    private List<InternshipLessonInfo> lessons;
 }

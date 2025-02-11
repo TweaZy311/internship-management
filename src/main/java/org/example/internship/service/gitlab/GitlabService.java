@@ -1,6 +1,6 @@
 package org.example.internship.service.gitlab;
 
-import org.example.internship.model.request.NewUserDto;
+import org.example.internship.model.request.CreateUserRequest;
 import org.gitlab4j.api.models.Project;
 
 /**
@@ -30,7 +30,7 @@ public interface GitlabService {
      *
      * @param newUserDto информация о новом пользователе
      */
-    void createUser(NewUserDto newUserDto);
+    void createUser(CreateUserRequest newUserDto);
 
     /**
      * Проверка, был ли репозиторий клонирован.

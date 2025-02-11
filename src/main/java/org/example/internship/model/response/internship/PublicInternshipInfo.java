@@ -11,7 +11,7 @@ import java.time.LocalDate;
  */
 @Data
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class PublicInternshipDto {
+public class PublicInternshipInfo {
     private Long id;
     private String name;
     private String description;

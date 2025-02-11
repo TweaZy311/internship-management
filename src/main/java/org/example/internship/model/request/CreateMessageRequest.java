@@ -5,13 +5,12 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
 
 /**
- * DTO для создания нового пользователя.
+ * DTO для создания нового сообщения.
  */
 @Data
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class NewUserDto {
-    private String username;
-    private String name;
-    private String email;
-    private Long internshipId;
+public class CreateMessageRequest {
+    private String text;
+    private Long senderId;
+    private Long receiverId;
 }

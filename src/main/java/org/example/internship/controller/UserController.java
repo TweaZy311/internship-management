@@ -10,8 +10,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.internship.annotation.UsernameMatches;
-import org.example.internship.model.request.NewUserDto;
-import org.example.internship.model.response.UserDto;
+import org.example.internship.model.request.CreateUserRequest;
+import org.example.internship.model.response.User;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.service.user.UserService;
@@ -51,7 +51,7 @@ public class UserController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Данные нового пользователя", required = true)
-    public ResponseEntity<Void> create(@RequestBody NewUserDto user) {
+    public ResponseEntity<Void> create(@RequestBody CreateUserRequest user) {
         userService.create(user);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
@@ -79,12 +79,12 @@ public class UserController {
             @Parameter(name = "username", description = "Имя пользователя"),
             @Parameter(name = "email", description = "Email пользователя")
     })
-    public ResponseEntity<UserDto> getByParam(@RequestParam(required = false) String username,
-                                              @RequestParam(required = false) String email) {
+    public ResponseEntity<User> getByParam(@RequestParam(required = false) String username,
+                                           @RequestParam(required = false) String email) {
         if (username != null && email != null) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.ITS_400.getCode(), "Wrong param input");
         }
-        UserDto user;
+        User user;
         if (username != null) {
             user = userService.getByUsername(username);
         } else if (email != null) {
@@ -112,8 +112,8 @@ public class UserController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
 
     })
-    public ResponseEntity<List<UserDto>> getAll() {
-        List<UserDto> users = userService.getAllUsers();
+    public ResponseEntity<List<User>> getAll() {
+        List<User> users = userService.getAllUsers();
         if (users.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
@@ -137,7 +137,7 @@ public class UserController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @Parameter(name = "id", description = "Идентификатор пользователя", required = true)
-    public ResponseEntity<UserDto> getById(@PathVariable Long id) {
+    public ResponseEntity<User> getById(@PathVariable Long id) {
         return new ResponseEntity<>(userService.getById(id), HttpStatus.OK);
     }
 

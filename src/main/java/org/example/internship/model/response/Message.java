@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class MessageDto {
+public class Message {
     private String text;
     private Long receiverId;
     private Long senderId;

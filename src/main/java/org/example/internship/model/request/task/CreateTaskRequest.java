@@ -1,16 +1,16 @@
-package org.example.internship.model.request.lesson;
+package org.example.internship.model.request.task;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
 
 /**
- * DTO для создания нового занятия.
+ * DTO для создания нового задания.
  */
 @Data
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class NewLessonDto {
+public class CreateTaskRequest {
     private String name;
     private String description;
-    private Long internshipId;
+    private Long lessonId;
 }

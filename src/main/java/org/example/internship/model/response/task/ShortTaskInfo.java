@@ -1,15 +1,16 @@
-package org.example.internship.model.request.solution;
+package org.example.internship.model.response.task;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
 
 /**
- * DTO для обновления статуса решения.
+ * DTO для получения краткой информации о задании.
  */
 @Data
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class SolutionStatusDto {
+public class ShortTaskInfo {
     private Long id;
-    private String status;
+    private String name;
+    private String description;
 }

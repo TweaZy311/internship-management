@@ -1,9 +1,9 @@
 package org.example.internship.service.task;
 
 import lombok.RequiredArgsConstructor;
-import org.example.internship.model.request.task.NewTaskDto;
-import org.example.internship.model.request.task.UpdateTaskDto;
-import org.example.internship.model.response.task.TaskDto;
+import org.example.internship.model.request.task.CreateTaskRequest;
+import org.example.internship.model.request.task.UpdateTaskRequest;
+import org.example.internship.model.response.task.Task;
 import org.example.internship.entity.LessonEntity;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
@@ -43,7 +43,7 @@ public class TaskServiceImpl implements TaskService {
      * @param taskDto данные нового задания
      */
     @Override
-    public void save(NewTaskDto taskDto) {
+    public void save(CreateTaskRequest taskDto) {
         TaskEntity task = taskMapper.newDtoToModel(taskDto);
 
         Project project = gitlabService.createRepository(taskDto.getName(), taskDto.getDescription());
@@ -61,7 +61,7 @@ public class TaskServiceImpl implements TaskService {
      * @return список всех опубликованных заданий
      */
     @Override
-    public List<TaskDto> getAllPublished() {
+    public List<Task> getAllPublished() {
         List<TaskEntity> tasks = taskRepository.findAllByPublishDateLessThanEqual(LocalDate.now());
         return tasks.stream()
                 .map(taskMapper::modelToDto)
@@ -76,7 +76,7 @@ public class TaskServiceImpl implements TaskService {
      * @throws ServiceException если задание не найдено
      */
     @Override
-    public TaskDto getById(Long id) {
+    public Task getById(Long id) {
         TaskEntity task = taskRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.TSK_404.getCode(), TASK_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         return taskMapper.modelToDto(task);
@@ -89,7 +89,7 @@ public class TaskServiceImpl implements TaskService {
      * @throws ServiceException если задание не найдено
      */
     @Override
-    public void update(UpdateTaskDto taskDto) {
+    public void update(UpdateTaskRequest taskDto) {
         TaskEntity existingTask = taskRepository.findById(taskDto.getId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.TSK_404.getCode(), TASK_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
 
@@ -103,7 +103,7 @@ public class TaskServiceImpl implements TaskService {
      * @return список всех заданий
      */
     @Override
-    public List<TaskDto> getAll() {
+    public List<Task> getAll() {
         List<TaskEntity> tasks = taskRepository.findAll();
         return tasks.stream()
                 .map(taskMapper::modelToDto)

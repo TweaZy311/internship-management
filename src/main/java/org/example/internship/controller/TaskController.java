@@ -8,9 +8,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.example.internship.model.request.task.NewTaskDto;
-import org.example.internship.model.request.task.UpdateTaskDto;
-import org.example.internship.model.response.task.TaskDto;
+import org.example.internship.model.request.task.CreateTaskRequest;
+import org.example.internship.model.request.task.UpdateTaskRequest;
+import org.example.internship.model.response.task.Task;
 import org.example.internship.service.task.TaskService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,7 +46,7 @@ public class TaskController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация о новом задании", required = true)
-    public ResponseEntity<Void> createTask(@RequestBody NewTaskDto task) {
+    public ResponseEntity<Void> createTask(@RequestBody CreateTaskRequest task) {
         taskService.save(task);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
@@ -67,8 +67,8 @@ public class TaskController {
             @ApiResponse(responseCode = "204", description = "Опубликованные задания не найдены"),
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
-    public ResponseEntity<List<TaskDto>> getAllPublishedTasks() {
-        List<TaskDto> tasks = taskService.getAllPublished();
+    public ResponseEntity<List<Task>> getAllPublishedTasks() {
+        List<Task> tasks = taskService.getAllPublished();
         if (tasks.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
@@ -137,8 +137,8 @@ public class TaskController {
             @ApiResponse(responseCode = "204", description = "Список заданий пуст"),
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
-    public ResponseEntity<List<TaskDto>> getAllTasks() {
-        List<TaskDto> tasks = taskService.getAll();
+    public ResponseEntity<List<Task>> getAllTasks() {
+        List<Task> tasks = taskService.getAll();
         if (tasks.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
@@ -162,7 +162,7 @@ public class TaskController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация об обновленном задании", required = true)
-    public ResponseEntity<Void> updateTask(@RequestBody UpdateTaskDto task) {
+    public ResponseEntity<Void> updateTask(@RequestBody UpdateTaskRequest task) {
         taskService.update(task);
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -185,7 +185,7 @@ public class TaskController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @Parameter(name = "id", description = "Идентификатор задания", required = true)
-    public ResponseEntity<TaskDto> getTaskById(@PathVariable Long id) {
+    public ResponseEntity<Task> getTaskById(@PathVariable Long id) {
         return new ResponseEntity<>(taskService.getById(id), HttpStatus.OK);
     }
 }

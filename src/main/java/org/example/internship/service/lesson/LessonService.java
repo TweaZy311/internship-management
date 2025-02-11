@@ -1,8 +1,8 @@
 package org.example.internship.service.lesson;
 
-import org.example.internship.model.request.lesson.NewLessonDto;
-import org.example.internship.model.response.lesson.AdminLessonDto;
-import org.example.internship.model.response.lesson.UserLessonDto;
+import org.example.internship.model.request.lesson.CreateLessonRequest;
+import org.example.internship.model.response.lesson.AdminLessonInfo;
+import org.example.internship.model.response.lesson.UserLessonInfo;
 
 import java.util.List;
 
@@ -14,9 +14,9 @@ public interface LessonService {
     /**
      * Сохранение нового занятия.
      *
-     * @param newLessonDto информация о новом занятии
+     * @param createLessonRequest информация о новом занятии
      */
-    void save(NewLessonDto newLessonDto);
+    void save(CreateLessonRequest createLessonRequest);
 
     /**
      * Получение информации о занятии по его идентификатору.
@@ -24,7 +24,7 @@ public interface LessonService {
      * @param id идентификатор занятия
      * @return информация о занятии
      */
-    UserLessonDto getById(Long id);
+    UserLessonInfo getById(Long id);
 
     /**
      * Публикация занятия по его идентификатору.
@@ -39,12 +39,12 @@ public interface LessonService {
      * @param id идентификатор стажировки
      * @return список опубликованных занятий
      */
-    List<UserLessonDto> getAllPublishedByInternshipId(Long id);
+    List<UserLessonInfo> getAllPublishedByInternshipId(Long id);
 
     /**
      * Получение списка всех занятий.
      *
      * @return список всех занятий
      */
-    List<AdminLessonDto> getAll();
+    List<AdminLessonInfo> getAll();
 }

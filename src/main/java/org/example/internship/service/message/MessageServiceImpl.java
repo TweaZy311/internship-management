@@ -1,8 +1,8 @@
 package org.example.internship.service.message;
 
 import lombok.RequiredArgsConstructor;
-import org.example.internship.model.request.NewMessageDto;
-import org.example.internship.model.response.MessageDto;
+import org.example.internship.model.request.CreateMessageRequest;
+import org.example.internship.model.response.Message;
 import org.example.internship.entity.MessageEntity;
 import org.example.internship.mapper.MessageMapper;
 import org.example.internship.repository.MessageRepository;
@@ -26,7 +26,7 @@ public class MessageServiceImpl implements MessageService {
      * @param message данные нового сообщения
      */
     @Override
-    public void create(NewMessageDto message) {
+    public void create(CreateMessageRequest message) {
         MessageEntity newMessageEntity = messageMapper.newDtoToModel(message);
         messageRepository.save(newMessageEntity);
     }
@@ -38,7 +38,7 @@ public class MessageServiceImpl implements MessageService {
      * @return список сообщений
      */
     @Override
-    public List<MessageDto> getByReceiverIdOrSenderId(Long id) {
+    public List<Message> getByReceiverIdOrSenderId(Long id) {
         List<MessageEntity> messageEntities = messageRepository.findBySenderIdOrReceiverId(id);
         return messageEntities.stream()
                 .map(messageMapper::modelToDto)

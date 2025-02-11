@@ -9,8 +9,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.internship.annotation.GitlabTokenRequired;
-import org.example.internship.model.request.solution.SolutionStatusDto;
-import org.example.internship.model.response.solution.SolutionDto;
+import org.example.internship.model.request.solution.UpdateSolutionStatusRequest;
+import org.example.internship.model.response.solution.Solution;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.service.gitlab.GitlabService;
@@ -76,7 +76,7 @@ public class SolutionController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация для обновления статуса решения", required = true)
-    public ResponseEntity<Void> updateSolutionStatus(@RequestBody SolutionStatusDto dto) {
+    public ResponseEntity<Void> updateSolutionStatus(@RequestBody UpdateSolutionStatusRequest dto) {
         solutionService.updateStatus(dto);
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -98,8 +98,8 @@ public class SolutionController {
             @ApiResponse(responseCode = "404", description = "Решение не найдено"),
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
-    public ResponseEntity<SolutionDto> getSolutionById(@PathVariable Long id) {
-        SolutionDto solution = solutionService.getById(id);
+    public ResponseEntity<Solution> getSolutionById(@PathVariable Long id) {
+        Solution solution = solutionService.getById(id);
         return new ResponseEntity<>(solution, HttpStatus.OK);
     }
 
@@ -127,12 +127,12 @@ public class SolutionController {
             @Parameter(name = "status", description = "Статус решения"),
             @Parameter(name = "taskId", description = "Идентификатор задания, которому соответствуют решения")
     })
-    public ResponseEntity<List<SolutionDto>> getAllSolutions(@RequestParam(required = false) String status,
-                                                             @RequestParam(required = false) Long taskId) {
+    public ResponseEntity<List<Solution>> getAllSolutions(@RequestParam(required = false) String status,
+                                                          @RequestParam(required = false) Long taskId) {
         if (status != null && taskId != null) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.SLN_400.getCode(), "Wrong param values");
         }
-        List<SolutionDto> solutions;
+        List<Solution> solutions;
         if (status != null) {
             solutions = solutionService.getAllByStatus(status);
         } else if (taskId != null) {

@@ -9,10 +9,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.example.internship.model.request.application.ApplicationStatusDto;
-import org.example.internship.model.request.application.NewApplicationDto;
-import org.example.internship.model.response.application.ApplicationInfo;
-import org.example.internship.model.response.internship.PublicInternshipDto;
+import org.example.internship.model.request.application.UpdateApplicationStatusRequest;
+import org.example.internship.model.request.application.CreateApplicationRequest;
+import org.example.internship.model.response.application.Application;
+import org.example.internship.model.response.internship.PublicInternshipInfo;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ExceptionResponse;
 import org.example.internship.exception.ServiceException;
@@ -58,8 +58,8 @@ public class ApplicationController {
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Данные новой заявки", required = true)
     public ResponseEntity<ExceptionResponse> createApplication(
-            @RequestBody NewApplicationDto application) {
-        PublicInternshipDto internshipDto = internshipService.getById(application.getInternshipId());
+            @RequestBody CreateApplicationRequest application) {
+        PublicInternshipInfo internshipDto = internshipService.getById(application.getInternshipId());
 
         if (internshipDto.getRegistrationEndDate().isBefore(LocalDate.now())) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.APL_400.getCode(), "Registration for the internship is closed");
@@ -91,7 +91,7 @@ public class ApplicationController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Идентификатор заявки и новый статус", required = true)
-    public ResponseEntity<Void> changeApplicationStatus(@RequestBody ApplicationStatusDto statusDto) {
+    public ResponseEntity<Void> changeApplicationStatus(@RequestBody UpdateApplicationStatusRequest statusDto) {
         applicationService.changeStatus(statusDto);
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -118,9 +118,9 @@ public class ApplicationController {
             @Parameter(name = "status", description = "Статус заявки для получения заявок с определенным статусом"),
             @Parameter(name = "internshipId", description = "Идентификатор стажировки, на которую была оставлена заявка")
     })
-    public ResponseEntity<List<ApplicationInfo>> getAllApplications(@RequestParam(required = false) String status,
-                                                                    @RequestParam(required = false) Long internshipId) {
-        List<ApplicationInfo> applications;
+    public ResponseEntity<List<Application>> getAllApplications(@RequestParam(required = false) String status,
+                                                                @RequestParam(required = false) Long internshipId) {
+        List<Application> applications;
         if (status == null && internshipId == null) {
             applications = applicationService.getAll();
         } else if (status != null && internshipId == null) {
@@ -155,8 +155,8 @@ public class ApplicationController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @Parameter(name = "id", description = "Идентификатор заявки")
-    public ResponseEntity<ApplicationInfo> getApplicationById(@PathVariable Long id) {
-        ApplicationInfo application = applicationService.getById(id);
+    public ResponseEntity<Application> getApplicationById(@PathVariable Long id) {
+        Application application = applicationService.getById(id);
         return new ResponseEntity<>(application, HttpStatus.OK);
     }
 }

@@ -8,8 +8,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.internship.annotation.UserIdMatches;
-import org.example.internship.model.request.NewMessageDto;
-import org.example.internship.model.response.MessageDto;
+import org.example.internship.model.request.CreateMessageRequest;
+import org.example.internship.model.response.Message;
 import org.example.internship.service.message.MessageService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,7 +45,7 @@ public class MessageController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Данные нового сообщения", required = true)
-    public ResponseEntity<Void> sendMessage(@RequestBody NewMessageDto message) {
+    public ResponseEntity<Void> sendMessage(@RequestBody CreateMessageRequest message) {
         messageService.create(message);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
@@ -72,8 +72,8 @@ public class MessageController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @Parameter(name = "id", description = "ID пользователя (отправителя или получателя)", required = true)
-    public ResponseEntity<List<MessageDto>> getMessagesById(@RequestParam Long id){
-        List<MessageDto> messages = messageService.getByReceiverIdOrSenderId(id);
+    public ResponseEntity<List<Message>> getMessagesById(@RequestParam Long id){
+        List<Message> messages = messageService.getByReceiverIdOrSenderId(id);
         if (messages.isEmpty()){
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }

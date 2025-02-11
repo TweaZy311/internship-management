@@ -7,7 +7,7 @@ import org.example.internship.entity.StatusType;
 
 @Getter
 @Setter
-public class StatusDto {
+public class Status {
     private Long id;
     private String name;
     private StatusType type;

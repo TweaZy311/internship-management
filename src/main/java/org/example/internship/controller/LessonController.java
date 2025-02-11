@@ -7,9 +7,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.example.internship.model.request.lesson.NewLessonDto;
-import org.example.internship.model.response.lesson.AdminLessonDto;
-import org.example.internship.model.response.lesson.UserLessonDto;
+import org.example.internship.model.request.lesson.CreateLessonRequest;
+import org.example.internship.model.response.lesson.AdminLessonInfo;
+import org.example.internship.model.response.lesson.UserLessonInfo;
 import org.example.internship.service.lesson.LessonService;
 import org.example.internship.service.task.TaskService;
 import org.springframework.http.HttpStatus;
@@ -47,7 +47,7 @@ public class LessonController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация о новом занятии", required = true)
-    public ResponseEntity<Void> createLesson(@RequestBody NewLessonDto lesson) {
+    public ResponseEntity<Void> createLesson(@RequestBody CreateLessonRequest lesson) {
         lessonService.save(lesson);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
@@ -69,7 +69,7 @@ public class LessonController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @Parameter(name = "id", description = "Идентификатор занятия", required = true)
-    public ResponseEntity<UserLessonDto> getLessonById(@PathVariable Long id) {
+    public ResponseEntity<UserLessonInfo> getLessonById(@PathVariable Long id) {
         return new ResponseEntity<>(lessonService.getById(id), HttpStatus.OK);
     }
 
@@ -89,8 +89,8 @@ public class LessonController {
             @ApiResponse(responseCode = "204", description = "Список занятий пуст"),
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
-    public ResponseEntity<List<AdminLessonDto>> getAllLessons() {
-        List<AdminLessonDto> lessons = lessonService.getAll();
+    public ResponseEntity<List<AdminLessonInfo>> getAllLessons() {
+        List<AdminLessonInfo> lessons = lessonService.getAll();
         if (lessons.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
@@ -115,8 +115,8 @@ public class LessonController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @Parameter(name = "internshipId", description = "Идентификатор стажировки", required = true)
-    public ResponseEntity<List<UserLessonDto>> getPublishedLessons(@RequestParam Long internshipId) {
-        List<UserLessonDto> lessons = lessonService.getAllPublishedByInternshipId(internshipId);
+    public ResponseEntity<List<UserLessonInfo>> getPublishedLessons(@RequestParam Long internshipId) {
+        List<UserLessonInfo> lessons = lessonService.getAllPublishedByInternshipId(internshipId);
         if (lessons.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }

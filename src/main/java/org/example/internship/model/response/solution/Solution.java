@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class SolutionDto {
+public class Solution {
     private Long id;
     private String repositoryUrl;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")

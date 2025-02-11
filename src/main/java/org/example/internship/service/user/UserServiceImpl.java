@@ -2,8 +2,8 @@ package org.example.internship.service.user;
 
 import lombok.RequiredArgsConstructor;
 import org.example.internship.config.properties.AdminProperties;
-import org.example.internship.model.request.NewUserDto;
-import org.example.internship.model.response.UserDto;
+import org.example.internship.model.request.CreateUserRequest;
+import org.example.internship.model.response.User;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.mapper.UserMapper;
@@ -46,7 +46,7 @@ public class UserServiceImpl implements UserService {
      * @throws ServiceException если пользователь с указанным email не найден
      */
     @Override
-    public UserDto getByEmail(String email) {
+    public User getByEmail(String email) {
         UserEntity user = userRepository.findByEmail(email);
         if (user == null) {
             throw new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "e-mail"));
@@ -62,7 +62,7 @@ public class UserServiceImpl implements UserService {
      * @throws EntityNotFoundException если пользователь с указанным именем не найден
      */
     @Override
-    public UserDto getByUsername(String username) {
+    public User getByUsername(String username) {
         UserEntity user = userRepository.findByUsername(username);
         if (user == null) {
             throw new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username"));
@@ -76,7 +76,7 @@ public class UserServiceImpl implements UserService {
      * @param newUserDto информация о новом пользователе
      */
     @Override
-    public void create(NewUserDto newUserDto) {
+    public void create(CreateUserRequest newUserDto) {
         UserEntity user = userMapper.newDtoToModel(newUserDto);
         userRepository.saveAndFlush(user);
         gitlabService.createUser(newUserDto);
@@ -90,7 +90,7 @@ public class UserServiceImpl implements UserService {
      * @throws EntityNotFoundException если пользователь с указанным идентификатором не найден
      */
     @Override
-    public UserDto getById(Long id) {
+    public User getById(Long id) {
         UserEntity user = userRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "ID")));
         return userMapper.modelToDto(user);
@@ -102,7 +102,7 @@ public class UserServiceImpl implements UserService {
      * @return список пользователей
      */
     @Override
-    public List<UserDto> getAllUsers() {
+    public List<User> getAllUsers() {
         List<UserEntity> users = userRepository.findAll();
         return users.stream()
                 .map(userMapper::modelToDto)
