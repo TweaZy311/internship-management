@@ -1,10 +1,10 @@
 package org.example.internship.service.message;
 
 import lombok.RequiredArgsConstructor;
-import org.example.internship.dto.request.NewMessageDto;
-import org.example.internship.dto.response.MessageDto;
+import org.example.internship.model.request.CreateMessageRequest;
+import org.example.internship.model.response.Message;
+import org.example.internship.entity.MessageEntity;
 import org.example.internship.mapper.MessageMapper;
-import org.example.internship.model.Message;
 import org.example.internship.repository.MessageRepository;
 import org.springframework.stereotype.Service;
 
@@ -26,9 +26,9 @@ public class MessageServiceImpl implements MessageService {
      * @param message данные нового сообщения
      */
     @Override
-    public void create(NewMessageDto message) {
-        Message newMessage = messageMapper.newDtoToModel(message);
-        messageRepository.save(newMessage);
+    public void create(CreateMessageRequest message) {
+        MessageEntity newMessageEntity = messageMapper.newDtoToModel(message);
+        messageRepository.save(newMessageEntity);
     }
 
     /**
@@ -38,9 +38,9 @@ public class MessageServiceImpl implements MessageService {
      * @return список сообщений
      */
     @Override
-    public List<MessageDto> getByReceiverIdOrSenderId(Long id) {
-        List<Message> messages = messageRepository.findBySenderIdOrReceiverId(id);
-        return messages.stream()
+    public List<Message> getByReceiverIdOrSenderId(Long id) {
+        List<MessageEntity> messageEntities = messageRepository.findBySenderIdOrReceiverId(id);
+        return messageEntities.stream()
                 .map(messageMapper::modelToDto)
                 .collect(Collectors.toList());
     }

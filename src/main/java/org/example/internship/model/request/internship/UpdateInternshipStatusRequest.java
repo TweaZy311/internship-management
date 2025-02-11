@@ -1,0 +1,15 @@
+package org.example.internship.model.request.internship;
+
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import lombok.Data;
+
+/**
+ * DTO для обновления статуса стажировки.
+ */
+@Data
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+public class UpdateInternshipStatusRequest {
+    private Long id;
+    private String status;
+}

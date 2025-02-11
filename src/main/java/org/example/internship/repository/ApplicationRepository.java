@@ -1,7 +1,7 @@
 package org.example.internship.repository;
 
-import org.example.internship.model.application.Application;
-import org.example.internship.model.application.ApplicationStatus;
+import org.example.internship.entity.application.ApplicationEntity;
+import org.example.internship.entity.application.ApplicationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,7 +11,7 @@ import java.util.List;
  * Репозиторий для работы с заявками на стажировку.
  */
 @Repository
-public interface ApplicationRepository extends JpaRepository<Application, Long> {
+public interface ApplicationRepository extends JpaRepository<ApplicationEntity, Long> {
     /**
      * Поиск заявки по номеру телефона человека и идентификатору стажировки.
      *
@@ -19,7 +19,7 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
      * @param internshipId идентификатор стажировки
      * @return найденная заявка или null, если заявка не найдена
      */
-    Application findByPhoneNumberAndInternshipId(String phoneNumber, Long internshipId);
+    ApplicationEntity findByPhoneNumberAndInternshipId(String phoneNumber, Long internshipId);
 
     /**
      * Поиск заявок по статусу.
@@ -27,7 +27,7 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
      * @param status статус заявки
      * @return список заявок с указанным статусом
      */
-    List<Application> findAllByStatus(ApplicationStatus status);
+    List<ApplicationEntity> findAllByStatus(ApplicationStatus status);
 
     /**
      * Поиск заявок по идентификатору стажировки.
@@ -35,7 +35,7 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
      * @param internshipId идентификатор стажировки
      * @return список заявок оставленных на указанную стажировку
      */
-    List<Application> findAllByInternshipId(Long internshipId);
+    List<ApplicationEntity> findAllByInternshipId(Long internshipId);
 
     /**
      * Поиск заявок по статусу и идентификатору стажировки.
@@ -44,5 +44,5 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
      * @param status       статус заявки
      * @return список заявок с указанным статусом и оставленных на указанную стажировку
      */
-    List<Application> findAllByInternshipIdAndStatus(Long internshipId, ApplicationStatus status);
+    List<ApplicationEntity> findAllByInternshipIdAndStatus(Long internshipId, ApplicationStatus status);
 }

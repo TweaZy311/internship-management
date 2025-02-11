@@ -1,7 +1,7 @@
 package org.example.internship.service.message;
 
-import org.example.internship.dto.request.NewMessageDto;
-import org.example.internship.dto.response.MessageDto;
+import org.example.internship.model.request.CreateMessageRequest;
+import org.example.internship.model.response.Message;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ public interface MessageService {
      *
      * @param message данные нового сообщения
      */
-    void create(NewMessageDto message);
+    void create(CreateMessageRequest message);
 
     /**
      * Получение списка сообщений, которые получил или отправил пользователь с указанным ID.
@@ -23,5 +23,5 @@ public interface MessageService {
      * @param id ID получателя или отправителя
      * @return список сообщений
      */
-    List<MessageDto> getByReceiverIdOrSenderId(Long id);
+    List<Message> getByReceiverIdOrSenderId(Long id);
 }

@@ -1,24 +1,23 @@
 package org.example.internship.service.internship;
 
 import lombok.RequiredArgsConstructor;
-import org.example.internship.dto.request.internship.InternshipStatusDto;
-import org.example.internship.dto.request.internship.NewInternshipDto;
-import org.example.internship.dto.request.internship.UpdateInternshipDto;
-import org.example.internship.dto.response.ReportDto;
-import org.example.internship.dto.response.internship.AdminInternshipDto;
-import org.example.internship.dto.response.internship.PublicInternshipDto;
+import org.example.internship.model.request.internship.UpdateInternshipStatusRequest;
+import org.example.internship.model.request.internship.CreateInternshipRequest;
+import org.example.internship.model.request.internship.UpdateInternshipRequest;
+import org.example.internship.model.response.Report;
+import org.example.internship.model.response.internship.PrivateInternshipInfo;
+import org.example.internship.model.response.internship.PublicInternshipInfo;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.mapper.InternshipMapper;
-import org.example.internship.model.Status;
-import org.example.internship.model.StatusType;
-import org.example.internship.model.task.Task;
-import org.example.internship.model.internship.Internship;
-import org.example.internship.model.internship.InternshipStatus;
-import org.example.internship.model.task.Solution;
-import org.example.internship.model.task.SolutionStatus;
-import org.example.internship.model.user.Role;
-import org.example.internship.model.user.User;
+import org.example.internship.entity.StatusEntity;
+import org.example.internship.entity.StatusType;
+import org.example.internship.entity.task.TaskEntity;
+import org.example.internship.entity.internship.InternshipEntity;
+import org.example.internship.entity.internship.InternshipStatus;
+import org.example.internship.entity.task.SolutionEntity;
+import org.example.internship.entity.user.Role;
+import org.example.internship.entity.user.UserEntity;
 import org.example.internship.repository.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -47,11 +46,11 @@ public class InternshipServiceImpl implements InternshipService {
     /**
      * {@inheritDoc}
      *
-     * @param newInternshipDto информация о новой стажировке
+     * @param createInternshipRequest информация о новой стажировке
      */
     @Override
-    public void save(NewInternshipDto newInternshipDto) {
-        internshipRepository.saveAndFlush(internshipMapper.newDtoToToModel(newInternshipDto));
+    public void save(CreateInternshipRequest createInternshipRequest) {
+        internshipRepository.saveAndFlush(internshipMapper.newDtoToToModel(createInternshipRequest));
     }
 
     /**
@@ -60,10 +59,10 @@ public class InternshipServiceImpl implements InternshipService {
      * @param statusDto информация о статусе стажировки
      */
     @Override
-    public void changeStatus(InternshipStatusDto statusDto) {
-        Internship internship = internshipRepository.findById(statusDto.getId())
+    public void changeStatus(UpdateInternshipStatusRequest statusDto) {
+        InternshipEntity internship = internshipRepository.findById(statusDto.getId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), INTERNSHIP_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
-        Status status = statusRepository.findByTypeAndNameContaining(StatusType.INTERNSHIP, statusDto.getStatus());
+        StatusEntity status = statusRepository.findByTypeAndNameContaining(StatusType.INTERNSHIP, statusDto.getStatus());
         internship.setStatus(status);
         internshipRepository.saveAndFlush(internship);
     }
@@ -75,8 +74,8 @@ public class InternshipServiceImpl implements InternshipService {
      * @throws ServiceException если стажировка не найдена
      */
     @Override
-    public void update(UpdateInternshipDto internshipDto) {
-        Internship internship = internshipRepository.findById(internshipDto.getId())
+    public void update(UpdateInternshipRequest internshipDto) {
+        InternshipEntity internship = internshipRepository.findById(internshipDto.getId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), INTERNSHIP_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         internshipMapper.updateDtoToModel(internship, internshipDto);
         internshipRepository.saveAndFlush(internship);
@@ -90,8 +89,8 @@ public class InternshipServiceImpl implements InternshipService {
      * @throws ServiceException если стажировка не найдена
      */
     @Override
-    public PublicInternshipDto getById(Long id) {
-        Internship internship = internshipRepository.findById(id)
+    public PublicInternshipInfo getById(Long id) {
+        InternshipEntity internship = internshipRepository.findById(id)
                 .orElseThrow(() ->  new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), INTERNSHIP_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
 
         //todo
@@ -107,8 +106,8 @@ public class InternshipServiceImpl implements InternshipService {
      * @return список всех стажировок
      */
     @Override
-    public List<AdminInternshipDto> getAll() {
-        List<Internship> internships = internshipRepository.findAll();
+    public List<PrivateInternshipInfo> getAll() {
+        List<InternshipEntity> internships = internshipRepository.findAll();
         return internships.stream()
                 .map(internshipMapper::modelToAdminDto)
                 .collect(Collectors.toList());
@@ -120,8 +119,8 @@ public class InternshipServiceImpl implements InternshipService {
      * @return список открытых стажировок
      */
     @Override
-    public List<PublicInternshipDto> getOpened() {
-        List<Internship> internships = internshipRepository.findByStatus(InternshipStatus.OPEN);
+    public List<PublicInternshipInfo> getOpened() {
+        List<InternshipEntity> internships = internshipRepository.findByStatus(InternshipStatus.OPEN);
         return internships.stream()
                 .map(internshipMapper::modelToPublicDto)
                 .collect(Collectors.toList());
@@ -134,9 +133,9 @@ public class InternshipServiceImpl implements InternshipService {
      * @return список стажировок с указанным статусом
      */
     @Override
-    public List<AdminInternshipDto> getByStatus(String status) {
+    public List<PrivateInternshipInfo> getByStatus(String status) {
         InternshipStatus internshipStatus = InternshipStatus.valueOf(status.toUpperCase());
-        List<Internship> internships = internshipRepository.findByStatus(internshipStatus);
+        List<InternshipEntity> internships = internshipRepository.findByStatus(internshipStatus);
         return internships.stream()
                 .map(internshipMapper::modelToAdminDto)
                 .collect(Collectors.toList());
@@ -150,11 +149,11 @@ public class InternshipServiceImpl implements InternshipService {
      * @throws ServiceException если стажировка не найдена
      */
     @Override
-    public List<ReportDto> createReport(Long internshipId) {
+    public List<Report> createReport(Long internshipId) {
         internshipRepository.findById(internshipId)
                 .orElseThrow(() ->  new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), INTERNSHIP_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
-        List<User> users = userRepository.findAllByInternshipIdAndRole(internshipId, Role.USER);
-        List<Task> tasks = taskRepository.findAllByLesson_InternshipId(internshipId);
+        List<UserEntity> users = userRepository.findAllByInternshipIdAndRole(internshipId, Role.USER);
+        List<TaskEntity> tasks = taskRepository.findAllByLesson_InternshipId(internshipId);
         //todo возможно здесь не нужны exception
         if (users.isEmpty()) {
             throw new EntityNotFoundException("No users found for internship with ID: " + internshipId);
@@ -163,12 +162,12 @@ public class InternshipServiceImpl implements InternshipService {
             throw new EntityNotFoundException("No tasks found for internship with ID:" + internshipId);
         }
 
-        List<ReportDto> reportDtos = new ArrayList<>();
-        for (User user : users) {
+        List<Report> reports = new ArrayList<>();
+        for (UserEntity user : users) {
             Map<String, String> taskStatuses = getSolutionByUserAndTasks(user, tasks);
-            reportDtos.add(new ReportDto(user.getUsername(), taskStatuses));
+            reports.add(new Report(user.getUsername(), taskStatuses));
         }
-        return reportDtos;
+        return reports;
     }
 
     /**
@@ -178,11 +177,11 @@ public class InternshipServiceImpl implements InternshipService {
      * @param tasks задачи
      * @return статус задачи
      */
-    private Map<String, String> getSolutionByUserAndTasks(User user, List<Task> tasks) {
-        List<Solution> solutions = solutionRepository.findAllByUserAndTaskIn(user, tasks);
+    private Map<String, String> getSolutionByUserAndTasks(UserEntity user, List<TaskEntity> tasks) {
+        List<SolutionEntity> solutions = solutionRepository.findAllByUserAndTaskIn(user, tasks);
         return tasks.stream()
                 .collect(Collectors.toMap(
-                        Task::getName,
+                        TaskEntity::getName,
                         task -> getTaskStatus(solutions, task).toString()
                 ));
     }
@@ -194,11 +193,11 @@ public class InternshipServiceImpl implements InternshipService {
      * @param task      задача
      * @return статус задачи
      */
-    private Status getTaskStatus(List<Solution> solutions, Task task) {
+    private StatusEntity getTaskStatus(List<SolutionEntity> solutions, TaskEntity task) {
         return solutions.stream()
                 .filter(solution -> solution.getTask().equals(task))
                 .findFirst()
-                .map(Solution::getStatus)
+                .map(SolutionEntity::getStatus)
                 .get();
     }
 }

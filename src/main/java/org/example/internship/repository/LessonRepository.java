@@ -1,6 +1,6 @@
 package org.example.internship.repository;
 
-import org.example.internship.model.Lesson;
+import org.example.internship.entity.LessonEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -10,14 +10,14 @@ import java.util.List;
  * Репозиторий для работы с занятиями.
  */
 @Repository
-public interface LessonRepository extends JpaRepository<Lesson, Long> {
+public interface LessonRepository extends JpaRepository<LessonEntity, Long> {
 
     /**
      * Поиск опубликованных занятий.
      *
      * @return список опубликованных занятий
      */
-    List<Lesson> findByIsPublishedTrue();
+    List<LessonEntity> findByIsPublishedTrue();
 
     /**
      * Поиск опубликованных занятий по идентификатору стажировки.
@@ -25,5 +25,5 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
      * @param internshipId идентификатор стажировки
      * @return список опубликованных занятий для указанной стажировки
      */
-    List<Lesson> findByIsPublishedTrueAndInternshipId(Long internshipId);
+    List<LessonEntity> findByIsPublishedTrueAndInternshipId(Long internshipId);
 }

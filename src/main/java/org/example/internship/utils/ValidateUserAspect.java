@@ -6,8 +6,8 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.example.internship.annotation.UserIdMatches;
 import org.example.internship.annotation.UsernameMatches;
-import org.example.internship.model.user.Role;
-import org.example.internship.model.user.User;
+import org.example.internship.entity.user.Role;
+import org.example.internship.entity.user.UserEntity;
 import org.example.internship.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -45,7 +45,7 @@ public class ValidateUserAspect {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        User user = userRepository.findByUsername(username);
+        UserEntity user = userRepository.findByUsername(username);
 
         if (!id.equals(user.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: User ID mismatch");
@@ -65,7 +65,7 @@ public class ValidateUserAspect {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        User user = userRepository.findByUsername(username);
+        UserEntity user = userRepository.findByUsername(username);
 
         if (!user.getRole().equals(Role.ADMIN) && (usernameInParam == null || usernameInParam.isEmpty()
                 || !usernameInParam.equals(username))) {

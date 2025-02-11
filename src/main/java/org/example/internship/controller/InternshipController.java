@@ -8,12 +8,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.example.internship.dto.request.internship.InternshipStatusDto;
-import org.example.internship.dto.request.internship.NewInternshipDto;
-import org.example.internship.dto.request.internship.UpdateInternshipDto;
-import org.example.internship.dto.response.ReportDto;
-import org.example.internship.dto.response.internship.AdminInternshipDto;
-import org.example.internship.dto.response.internship.PublicInternshipDto;
+import org.example.internship.model.request.internship.UpdateInternshipStatusRequest;
+import org.example.internship.model.request.internship.CreateInternshipRequest;
+import org.example.internship.model.request.internship.UpdateInternshipRequest;
+import org.example.internship.model.response.Report;
+import org.example.internship.model.response.internship.PrivateInternshipInfo;
+import org.example.internship.model.response.internship.PublicInternshipInfo;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ExceptionResponse;
 import org.example.internship.exception.ServiceException;
@@ -56,7 +56,7 @@ public class InternshipController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Данные новой стажировки", required = true)
-    public ResponseEntity<ExceptionResponse> createInternship(@RequestBody NewInternshipDto internship) {
+    public ResponseEntity<ExceptionResponse> createInternship(@RequestBody CreateInternshipRequest internship) {
         if (!validator.dateIsValid(internship.getStartDate(),
                 internship.getEndDate(),
                 internship.getRegistrationEndDate())) {
@@ -84,7 +84,7 @@ public class InternshipController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Идентификатор и статус стажировки", required = true)
-    public ResponseEntity<Void> changeInternshipStatus(@RequestBody InternshipStatusDto statusDto) {
+    public ResponseEntity<Void> changeInternshipStatus(@RequestBody UpdateInternshipStatusRequest statusDto) {
         internshipService.changeStatus(statusDto);
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -108,8 +108,8 @@ public class InternshipController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @Parameter(name = "status", description = "Статус стажировки")
-    public ResponseEntity<List<AdminInternshipDto>> getAllInternships(@RequestParam(required = false) String status) {
-        List<AdminInternshipDto> internships;
+    public ResponseEntity<List<PrivateInternshipInfo>> getAllInternships(@RequestParam(required = false) String status) {
+        List<PrivateInternshipInfo> internships;
         if (status != null) {
             internships = internshipService.getByStatus(status);
         } else {
@@ -134,8 +134,8 @@ public class InternshipController {
             @ApiResponse(responseCode = "200", description = "Список открытых стажировок"),
             @ApiResponse(responseCode = "204", description = "Список пуст"),
     })
-    public ResponseEntity<List<PublicInternshipDto>> getAllOpenedInternships() {
-        List<PublicInternshipDto> internships = internshipService.getOpened();
+    public ResponseEntity<List<PublicInternshipInfo>> getAllOpenedInternships() {
+        List<PublicInternshipInfo> internships = internshipService.getOpened();
         if (internships.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
@@ -156,8 +156,8 @@ public class InternshipController {
             @ApiResponse(responseCode = "404", description = "Стажировка не найдена")
     })
     @Parameter(name = "id", description = "Идентификатор стажировки", required = true)
-    public ResponseEntity<PublicInternshipDto> getInternshipById(@PathVariable Long id) {
-        PublicInternshipDto internship = internshipService.getById(id);
+    public ResponseEntity<PublicInternshipInfo> getInternshipById(@PathVariable Long id) {
+        PublicInternshipInfo internship = internshipService.getById(id);
         return new ResponseEntity<>(internship, HttpStatus.OK);
     }
 
@@ -181,7 +181,7 @@ public class InternshipController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация об обновленной стажировке", required = true)
-    public ResponseEntity<ExceptionResponse> updateInternship(@RequestBody UpdateInternshipDto dto) {
+    public ResponseEntity<ExceptionResponse> updateInternship(@RequestBody UpdateInternshipRequest dto) {
         if (!validator.dateIsValid(dto.getStartDate(), dto.getEndDate(),
                 dto.getRegistrationStartDate(), dto.getRegistrationEndDate())) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.ITS_400.getCode(), "Wrong date input");
@@ -208,8 +208,8 @@ public class InternshipController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @Parameter(name = "id", description = "Идентификатор стажировки", required = true)
-    public ResponseEntity<List<ReportDto>> getReport(@PathVariable Long id) {
-        List<ReportDto> report = internshipService.createReport(id);
+    public ResponseEntity<List<Report>> getReport(@PathVariable Long id) {
+        List<Report> report = internshipService.createReport(id);
         return new ResponseEntity<>(report, HttpStatus.OK);
     }
 }

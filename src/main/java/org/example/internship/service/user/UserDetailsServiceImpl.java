@@ -1,7 +1,7 @@
 package org.example.internship.service.user;
 
 import lombok.RequiredArgsConstructor;
-import org.example.internship.model.user.User;
+import org.example.internship.entity.user.UserEntity;
 import org.example.internship.repository.UserRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,7 +29,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username);
+        UserEntity user = userRepository.findByUsername(username);
         if (user == null) {
             throw new UsernameNotFoundException("User not found with username: " + username);
         }

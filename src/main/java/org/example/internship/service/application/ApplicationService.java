@@ -1,8 +1,8 @@
 package org.example.internship.service.application;
 
-import org.example.internship.dto.request.application.ApplicationStatusDto;
-import org.example.internship.dto.request.application.NewApplicationDto;
-import org.example.internship.dto.response.application.ApplicationInfo;
+import org.example.internship.model.request.application.UpdateApplicationStatusRequest;
+import org.example.internship.model.request.application.CreateApplicationRequest;
+import org.example.internship.model.response.application.Application;
 
 import java.util.List;
 
@@ -15,21 +15,21 @@ public interface ApplicationService {
      *
      * @param application информация о новой заявке
      */
-    void save(NewApplicationDto application);
+    void save(CreateApplicationRequest application);
 
     /**
      * Изменение статуса заявки.
      *
      * @param statusDto объект, содержащий идентификатор заявки и новый статус
      */
-    void changeStatus(ApplicationStatusDto statusDto);
+    void changeStatus(UpdateApplicationStatusRequest statusDto);
 
     /**
      * Получение всех заявок.
      *
      * @return список всех заявок
      */
-    List<ApplicationInfo> getAll();
+    List<Application> getAll();
 
     /**
      * Получение заявки по её идентификатору.
@@ -37,7 +37,7 @@ public interface ApplicationService {
      * @param id идентификатор заявки
      * @return информация о заявке с указанным идентификатором
      */
-    ApplicationInfo getById(Long id);
+    Application getById(Long id);
 
     /**
      * Получение списка заявок по статусу.
@@ -45,7 +45,7 @@ public interface ApplicationService {
      * @param status статус заявки
      * @return список заявок с указанным статусом
      */
-    List<ApplicationInfo> getByStatus(String status);
+    List<Application> getByStatus(String status);
 
 
     /**
@@ -54,7 +54,7 @@ public interface ApplicationService {
      * @param internshipId идентификатор стажировки
      * @return список заявок, оставленных на указанную стажировку
      */
-    List<ApplicationInfo> getAllByInternshipId(Long internshipId);
+    List<Application> getAllByInternshipId(Long internshipId);
 
     /**
      * Получение списка заявок по идентификатору стажировки и статусу.
@@ -63,5 +63,5 @@ public interface ApplicationService {
      * @param status       статус заявки
      * @return список заявок, оставленных на указанную стажировку с указанным статусом
      */
-    List<ApplicationInfo> getAllByInternshipIdAndStatus(Long internshipId, String status);
+    List<Application> getAllByInternshipIdAndStatus(Long internshipId, String status);
 }

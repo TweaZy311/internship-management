@@ -1,17 +1,17 @@
 package org.example.internship.service.solution;
 
 import lombok.RequiredArgsConstructor;
-import org.example.internship.dto.request.solution.SolutionStatusDto;
-import org.example.internship.dto.response.solution.SolutionDto;
+import org.example.internship.model.request.solution.UpdateSolutionStatusRequest;
+import org.example.internship.model.response.solution.Solution;
+import org.example.internship.entity.StatusEntity;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.mapper.SolutionMapper;
-import org.example.internship.model.Status;
-import org.example.internship.model.StatusType;
-import org.example.internship.model.task.Solution;
-import org.example.internship.model.task.SolutionStatus;
-import org.example.internship.model.task.Task;
-import org.example.internship.model.user.User;
+import org.example.internship.entity.StatusType;
+import org.example.internship.entity.task.SolutionEntity;
+import org.example.internship.entity.task.SolutionStatus;
+import org.example.internship.entity.task.TaskEntity;
+import org.example.internship.entity.user.UserEntity;
 import org.example.internship.repository.SolutionRepository;
 import org.example.internship.repository.StatusRepository;
 import org.example.internship.repository.TaskRepository;
@@ -46,18 +46,18 @@ public class SolutionServiceImpl implements SolutionService {
      */
     @Override
     public void add(PushSystemHookEvent pushEvent) {
-        Solution solution = solutionMapper.pushEventToModel(pushEvent);
+        SolutionEntity solution = solutionMapper.pushEventToModel(pushEvent);
 
-        Solution existingSolution = solutionRepository.findByRepositoryUrl(solution.getRepositoryUrl());
+        SolutionEntity existingSolution = solutionRepository.findByRepositoryUrl(solution.getRepositoryUrl());
         if (existingSolution != null) {
             existingSolution.setLastCommitTime(solution.getLastCommitTime());
             existingSolution.setLastCommitUrl(solution.getLastCommitUrl());
             //todo fix status
-            existingSolution.setStatus(new Status());
+            existingSolution.setStatus(new StatusEntity());
             solutionRepository.saveAndFlush(existingSolution);
         } else {
-            User user = userRepository.findByUsername(pushEvent.getUserUsername());
-            Task task = taskRepository.findByName(pushEvent.getProject().getName());
+            UserEntity user = userRepository.findByUsername(pushEvent.getUserUsername());
+            TaskEntity task = taskRepository.findByName(pushEvent.getProject().getName());
             solution.setUser(user);
             solution.setTask(task);
             solutionRepository.saveAndFlush(solution);
@@ -67,14 +67,14 @@ public class SolutionServiceImpl implements SolutionService {
     /**
      * {@inheritDoc}
      *
-     * @param solutionStatusDto информация о решении и его новом статусе
+     * @param updateSolutionStatusRequest информация о решении и его новом статусе
      * @throws EntityNotFoundException если решение не найдено
      */
     @Override
-    public void updateStatus(SolutionStatusDto solutionStatusDto) {
-        Solution solution = solutionRepository.findById(solutionStatusDto.getId())
+    public void updateStatus(UpdateSolutionStatusRequest updateSolutionStatusRequest) {
+        SolutionEntity solution = solutionRepository.findById(updateSolutionStatusRequest.getId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.SLN_404.getCode(), SOLUTION_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
-        Status status = statusRepository.findByTypeAndNameContaining(StatusType.SOLUTION, solutionStatusDto.getStatus());
+        StatusEntity status = statusRepository.findByTypeAndNameContaining(StatusType.SOLUTION, updateSolutionStatusRequest.getStatus());
         solution.setStatus(status);
         solution.setCheckedTime(LocalDateTime.now());
         solutionRepository.save(solution);
@@ -88,8 +88,8 @@ public class SolutionServiceImpl implements SolutionService {
      * @throws EntityNotFoundException если решение не найдено
      */
     @Override
-    public SolutionDto getById(Long id) {
-        Solution solution = solutionRepository.findById(id)
+    public Solution getById(Long id) {
+        SolutionEntity solution = solutionRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.SLN_404.getCode(), SOLUTION_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         return solutionMapper.modelToDto(solution);
     }
@@ -100,8 +100,8 @@ public class SolutionServiceImpl implements SolutionService {
      * @return список всех решений
      */
     @Override
-    public List<SolutionDto> getAll() {
-        List<Solution> solutions = solutionRepository.findAll();
+    public List<Solution> getAll() {
+        List<SolutionEntity> solutions = solutionRepository.findAll();
         return solutions.stream()
                 .map(solutionMapper::modelToDto)
                 .collect(Collectors.toList());
@@ -114,9 +114,9 @@ public class SolutionServiceImpl implements SolutionService {
      * @return список решений с указанным статусом
      */
     @Override
-    public List<SolutionDto> getAllByStatus(String status) {
+    public List<Solution> getAllByStatus(String status) {
         SolutionStatus solutionStatus = SolutionStatus.valueOf(status.toUpperCase());
-        List<Solution> solutions = solutionRepository.findAllByStatusAndIsArchivedFalse(solutionStatus);
+        List<SolutionEntity> solutions = solutionRepository.findAllByStatusAndIsArchivedFalse(solutionStatus);
         return solutions.stream()
                 .map(solutionMapper::modelToDto)
                 .collect(Collectors.toList());
@@ -129,8 +129,8 @@ public class SolutionServiceImpl implements SolutionService {
      * @return список объектов SolutionDto, представляющих решения задания
      */
     @Override
-    public List<SolutionDto> getAllByTaskId(Long taskId) {
-        List<Solution> solutions = solutionRepository.findAllByTaskIdAndIsArchivedFalse(taskId);
+    public List<Solution> getAllByTaskId(Long taskId) {
+        List<SolutionEntity> solutions = solutionRepository.findAllByTaskIdAndIsArchivedFalse(taskId);
         return solutions.stream()
                 .map(solutionMapper::modelToDto)
                 .collect(Collectors.toList());
@@ -143,7 +143,7 @@ public class SolutionServiceImpl implements SolutionService {
      */
     @Override
     public void archiveSolutions(Long userId) {
-        List<Solution> solutions = solutionRepository.findAllByUserId(userId);
+        List<SolutionEntity> solutions = solutionRepository.findAllByUserId(userId);
         solutions.forEach(solution -> solution.setIsArchived(true));
         solutionRepository.saveAllAndFlush(solutions);
     }

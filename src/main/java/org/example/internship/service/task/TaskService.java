@@ -1,8 +1,8 @@
 package org.example.internship.service.task;
 
-import org.example.internship.dto.request.task.NewTaskDto;
-import org.example.internship.dto.request.task.UpdateTaskDto;
-import org.example.internship.dto.response.task.TaskDto;
+import org.example.internship.model.request.task.CreateTaskRequest;
+import org.example.internship.model.request.task.UpdateTaskRequest;
+import org.example.internship.model.response.task.Task;
 
 import java.util.List;
 
@@ -16,14 +16,14 @@ public interface TaskService {
      *
      * @param taskDto данные нового задания
      */
-    void save(NewTaskDto taskDto);
+    void save(CreateTaskRequest taskDto);
 
     /**
      * Получение списка всех опубликованных заданий.
      *
      * @return список всех опубликованных заданий
      */
-    List<TaskDto> getAllPublished();
+    List<Task> getAllPublished();
 
     /**
      * Получение информации о задании по его идентификатору.
@@ -31,21 +31,21 @@ public interface TaskService {
      * @param id идентификатор задания
      * @return информация о задании
      */
-    TaskDto getById(Long id);
+    Task getById(Long id);
 
     /**
      * Обновление информацию о задании.
      *
      * @param taskDto данные обновленного задания
      */
-    void update(UpdateTaskDto taskDto);
+    void update(UpdateTaskRequest taskDto);
 
     /**
      * Получение списка всех заданий.
      *
      * @return список всех заданий
      */
-    List<TaskDto> getAll();
+    List<Task> getAll();
 
     /**
      * Публикация задания по его идентификатору.

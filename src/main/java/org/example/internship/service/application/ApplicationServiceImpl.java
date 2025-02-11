@@ -1,16 +1,16 @@
 package org.example.internship.service.application;
 
 import lombok.RequiredArgsConstructor;
-import org.example.internship.dto.request.application.ApplicationStatusDto;
-import org.example.internship.dto.request.application.NewApplicationDto;
-import org.example.internship.dto.response.application.ApplicationInfo;
+import org.example.internship.model.request.application.UpdateApplicationStatusRequest;
+import org.example.internship.model.request.application.CreateApplicationRequest;
+import org.example.internship.model.response.application.Application;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.mapper.ApplicationMapper;
-import org.example.internship.model.Status;
-import org.example.internship.model.StatusType;
-import org.example.internship.model.application.Application;
-import org.example.internship.model.application.ApplicationStatus;
+import org.example.internship.entity.StatusEntity;
+import org.example.internship.entity.StatusType;
+import org.example.internship.entity.application.ApplicationEntity;
+import org.example.internship.entity.application.ApplicationStatus;
 import org.example.internship.repository.ApplicationRepository;
 import org.example.internship.repository.StatusRepository;
 import org.springframework.http.HttpStatus;
@@ -43,8 +43,8 @@ public class ApplicationServiceImpl implements ApplicationService {
      */
 
     @Override
-    public void save(NewApplicationDto application) {
-        Application existingApplication = applicationRepository.
+    public void save(CreateApplicationRequest application) {
+        ApplicationEntity existingApplication = applicationRepository.
                 findByPhoneNumberAndInternshipId(application.getPhoneNumber(),
                         application.getInternshipId());
 
@@ -54,7 +54,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         }
 
         LocalDate internshipRegStartDate = existingApplication.getInternship().getRegistrationStartDate();
-        Status internshipStatus = existingApplication.getInternship().getStatus();
+        StatusEntity internshipStatus = existingApplication.getInternship().getStatus();
 
         //todo fix comparing status
         if (internshipStatus.getName().equals("OPEN") &&
@@ -75,10 +75,10 @@ public class ApplicationServiceImpl implements ApplicationService {
      * @throws ServiceException если заявка с указанным идентификатором не найдена
      */
     @Override
-    public void changeStatus(ApplicationStatusDto statusDto) {
-        Application application = applicationRepository.findById(statusDto.getId())
+    public void changeStatus(UpdateApplicationStatusRequest statusDto) {
+        ApplicationEntity application = applicationRepository.findById(statusDto.getId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.APL_404.getCode(), APPLICATION_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
-        Status status = statusRepository.findByTypeAndNameContaining(StatusType.APPLICATION, statusDto.getStatus());
+        StatusEntity status = statusRepository.findByTypeAndNameContaining(StatusType.APPLICATION, statusDto.getStatus());
 
         application.setStatus(status);
         applicationRepository.saveAndFlush(application);
@@ -90,8 +90,8 @@ public class ApplicationServiceImpl implements ApplicationService {
      * @return список всех заявок
      */
     @Override
-    public List<ApplicationInfo> getAll() {
-        List<Application> applications = applicationRepository.findAll();
+    public List<Application> getAll() {
+        List<ApplicationEntity> applications = applicationRepository.findAll();
         return applications.stream()
                 .map(applicationMapper::toDto)
                 .collect(Collectors.toList());
@@ -105,8 +105,8 @@ public class ApplicationServiceImpl implements ApplicationService {
      * @throws ServiceException если заявка с указанным идентификатором не найдена
      */
     @Override
-    public ApplicationInfo getById(Long id) {
-        Application application = applicationRepository.findById(id)
+    public Application getById(Long id) {
+        ApplicationEntity application = applicationRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.APL_404.getCode(), APPLICATION_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         return applicationMapper.toDto(application);
     }
@@ -118,8 +118,8 @@ public class ApplicationServiceImpl implements ApplicationService {
      * @return список заявок с указанным статусом
      */
     @Override
-    public List<ApplicationInfo> getByStatus(String status) {
-        List<Application> applications = applicationRepository
+    public List<Application> getByStatus(String status) {
+        List<ApplicationEntity> applications = applicationRepository
                 .findAllByStatus(ApplicationStatus.valueOf(status.toUpperCase()));
         return applications.stream()
                 .map(applicationMapper::toDto)
@@ -133,8 +133,8 @@ public class ApplicationServiceImpl implements ApplicationService {
      * @return список заявок, оставленных на указанную стажировку
      */
     @Override
-    public List<ApplicationInfo> getAllByInternshipId(Long internshipId) {
-        List<Application> applications = applicationRepository.findAllByInternshipId(internshipId);
+    public List<Application> getAllByInternshipId(Long internshipId) {
+        List<ApplicationEntity> applications = applicationRepository.findAllByInternshipId(internshipId);
         return applications.stream()
                 .map(applicationMapper::toDto)
                 .collect(Collectors.toList());
@@ -148,8 +148,8 @@ public class ApplicationServiceImpl implements ApplicationService {
      * @return список заявок, оставленных на указанную стажировку с указанным статусом
      */
     @Override
-    public List<ApplicationInfo> getAllByInternshipIdAndStatus(Long internshipId, String status) {
-        List<Application> applications = applicationRepository
+    public List<Application> getAllByInternshipIdAndStatus(Long internshipId, String status) {
+        List<ApplicationEntity> applications = applicationRepository
                 .findAllByInternshipIdAndStatus(internshipId, ApplicationStatus.valueOf(status.toUpperCase()));
         return applications.stream()
                 .map(applicationMapper::toDto)
