@@ -140,11 +140,11 @@ public class GitlabServiceImpl implements GitlabService {
         }
     }
 
-    @PostConstruct
-    private void initGitlabApi() {
-        this.gitlabApi = new GitLabApi(gitlabProperties.getUrl(), gitlabProperties.getPersonalAccessToken());
-        addSystemHook();
-    }
+//    @PostConstruct
+//    private void initGitlabApi() {
+//        this.gitlabApi = new GitLabApi(gitlabProperties.getUrl(), gitlabProperties.getPersonalAccessToken());
+//        addSystemHook();
+//    }
 
     /**
      * Добавление системного хука для обработки событий GitLab.

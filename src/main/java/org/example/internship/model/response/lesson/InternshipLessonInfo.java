@@ -9,7 +9,7 @@ import lombok.Data;
  */
 @Data
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class InternshipLessonDto {
+public class InternshipLessonInfo {
     private Long id;
     private String name;
     private String description;

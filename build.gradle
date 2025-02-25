@@ -30,7 +30,7 @@ dependencies {
     // https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-annotations
     implementation 'org.springdoc:springdoc-openapi-ui:1.6.3'
     implementation 'org.hibernate.validator:hibernate-validator'
-    implementation 'ma.glasnost.orika:orika-core:1.5.4'
+    implementation 'ma.glasnost.orika:orika-core:1.4.6'
 
     implementation 'org.mapstruct:mapstruct:1.5.5.Final'
     compileOnly 'org.projectlombok:lombok'

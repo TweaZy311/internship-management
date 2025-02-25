@@ -1,16 +1,17 @@
 package org.example.internship.service.task;
 
 import lombok.RequiredArgsConstructor;
+import org.example.internship.mapper.Mapper;
 import org.example.internship.model.request.task.CreateTaskRequest;
 import org.example.internship.model.request.task.UpdateTaskRequest;
 import org.example.internship.model.response.task.Task;
 import org.example.internship.entity.LessonEntity;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
-import org.example.internship.mapper.TaskMapper;
 import org.example.internship.entity.task.TaskEntity;
 import org.example.internship.entity.user.Role;
 import org.example.internship.entity.user.UserEntity;
+import org.example.internship.repository.LessonRepository;
 import org.example.internship.repository.TaskRepository;
 import org.example.internship.repository.UserRepository;
 import org.example.internship.service.gitlab.GitlabService;
@@ -21,7 +22,6 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Реализация сервиса для работы с заданиями.
@@ -35,24 +35,28 @@ public class TaskServiceImpl implements TaskService {
     private final TaskRepository taskRepository;
     private final GitlabService gitlabService;
     private final UserRepository userRepository;
-    private final TaskMapper taskMapper;
+    private final LessonRepository lessonRepository;
+    private final Mapper mapper;
 
     /**
      * {@inheritDoc}
      *
-     * @param taskDto данные нового задания
+     * @param createTaskRequest данные нового задания
      */
     @Override
-    public void save(CreateTaskRequest taskDto) {
-        TaskEntity task = taskMapper.newDtoToModel(taskDto);
+    public void save(CreateTaskRequest createTaskRequest) {
+        TaskEntity taskEntity = mapper.map(createTaskRequest, TaskEntity.class);
+        taskEntity.setLesson(lessonRepository.findById(createTaskRequest.getLessonId()).orElseThrow(
+                () -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.LSN_404.getCode(), "Lesson with such ID has not been found")
+        ));
 
-        Project project = gitlabService.createRepository(taskDto.getName(), taskDto.getDescription());
+        Project project = gitlabService.createRepository(createTaskRequest.getName(), createTaskRequest.getDescription());
         String url = project.getWebUrl();
         Long projectId = project.getId();
 
-        task.setRepository(url);
-        task.setRepositoryId(projectId);
-        taskRepository.saveAndFlush(task);
+        taskEntity.setRepository(url);
+        taskEntity.setRepositoryId(projectId);
+        taskRepository.saveAndFlush(taskEntity);
     }
 
     /**
@@ -63,9 +67,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public List<Task> getAllPublished() {
         List<TaskEntity> tasks = taskRepository.findAllByPublishDateLessThanEqual(LocalDate.now());
-        return tasks.stream()
-                .map(taskMapper::modelToDto)
-                .collect(Collectors.toList());
+        return mapper.mapAsList(tasks, Task.class);
     }
 
     /**
@@ -79,21 +81,22 @@ public class TaskServiceImpl implements TaskService {
     public Task getById(Long id) {
         TaskEntity task = taskRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.TSK_404.getCode(), TASK_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
-        return taskMapper.modelToDto(task);
+        return mapper.map(task, Task.class);
     }
 
     /**
      * {@inheritDoc}
      *
-     * @param taskDto данные обновленного задания
+     * @param updateTaskRequest данные обновленного задания
      * @throws ServiceException если задание не найдено
      */
     @Override
-    public void update(UpdateTaskRequest taskDto) {
-        TaskEntity existingTask = taskRepository.findById(taskDto.getId())
+    public void update(UpdateTaskRequest updateTaskRequest) {
+        TaskEntity existingTask = taskRepository.findById(updateTaskRequest.getId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.TSK_404.getCode(), TASK_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
 
-        taskMapper.updateDtoToModel(existingTask, taskDto);
+        //todo
+        mapper.map(updateTaskRequest, existingTask);
         taskRepository.saveAndFlush(existingTask);
     }
 
@@ -105,9 +108,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public List<Task> getAll() {
         List<TaskEntity> tasks = taskRepository.findAll();
-        return tasks.stream()
-                .map(taskMapper::modelToDto)
-                .collect(Collectors.toList());
+        return mapper.mapAsList(tasks, Task.class);
     }
 
     /**
@@ -133,7 +134,7 @@ public class TaskServiceImpl implements TaskService {
         }
 
         task.setPublishDate(LocalDate.now());
-        List<UserEntity> users = userRepository.findAllByInternshipIdAndRole(task.getLesson().getInternship().getId(), Role.USER);
+        List<UserEntity> users = userRepository.findAllByInternshipIdAndRole(lesson.getInternship().getId(), Role.USER);
         //todo возможно стоит убрать
         if (users.isEmpty()) {
             throw new EntityNotFoundException("Users not found");
@@ -151,7 +152,9 @@ public class TaskServiceImpl implements TaskService {
         if (tasks.isEmpty()) {
             throw new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.TSK_404.getCode(), "Tasks not found for lesson with such ID");
         }
-        LessonEntity lesson = tasks.get(0).getLesson();
+        LessonEntity lesson = lessonRepository.findById(lessonId)
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.LSN_404.getCode(), "Lesson with such ID has not been found"));
+
         if (!lesson.getIsPublished()) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.TSK_400.getCode(), LESSON_WITH_TASKS_NOT_PUBLISHED_YET);
         }

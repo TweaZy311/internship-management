@@ -17,7 +17,7 @@ public interface LessonRepository extends JpaRepository<LessonEntity, Long> {
      *
      * @return список опубликованных занятий
      */
-    List<LessonEntity> findByIsPublishedTrue();
+    List<LessonEntity> findByIsPublished(boolean isPublished);
 
     /**
      * Поиск опубликованных занятий по идентификатору стажировки.
@@ -25,5 +25,5 @@ public interface LessonRepository extends JpaRepository<LessonEntity, Long> {
      * @param internshipId идентификатор стажировки
      * @return список опубликованных занятий для указанной стажировки
      */
-    List<LessonEntity> findByIsPublishedTrueAndInternshipId(Long internshipId);
+    List<LessonEntity> findByIsPublishedAndInternshipId(boolean isPublished, Long internshipId);
 }

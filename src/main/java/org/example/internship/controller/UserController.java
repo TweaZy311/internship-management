@@ -14,6 +14,7 @@ import org.example.internship.model.request.CreateUserRequest;
 import org.example.internship.model.response.User;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
+import org.example.internship.service.gitlab.GitlabService;
 import org.example.internship.service.user.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +34,7 @@ import java.util.List;
 @Tag(name = "Управление пользователями")
 public class UserController {
     private final UserService userService;
+    private final GitlabService gitlabService;
 
     /**
      * Создание нового пользователя.
@@ -53,6 +55,7 @@ public class UserController {
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Данные нового пользователя", required = true)
     public ResponseEntity<Void> create(@RequestBody CreateUserRequest user) {
         userService.create(user);
+        gitlabService.createUser(user);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 

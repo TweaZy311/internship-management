@@ -1,15 +1,14 @@
 package org.example.internship.service.message;
 
 import lombok.RequiredArgsConstructor;
+import org.example.internship.mapper.Mapper;
 import org.example.internship.model.request.CreateMessageRequest;
 import org.example.internship.model.response.Message;
 import org.example.internship.entity.MessageEntity;
-import org.example.internship.mapper.MessageMapper;
 import org.example.internship.repository.MessageRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Реализация сервиса для работы с сообщениями.
@@ -18,7 +17,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MessageServiceImpl implements MessageService {
     private final MessageRepository messageRepository;
-    private final MessageMapper messageMapper;
+    private final Mapper mapper;
 
     /**
      * {@inheritDoc}
@@ -27,7 +26,7 @@ public class MessageServiceImpl implements MessageService {
      */
     @Override
     public void create(CreateMessageRequest message) {
-        MessageEntity newMessageEntity = messageMapper.newDtoToModel(message);
+        MessageEntity newMessageEntity = mapper.map(message, MessageEntity.class);
         messageRepository.save(newMessageEntity);
     }
 
@@ -40,8 +39,6 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public List<Message> getByReceiverIdOrSenderId(Long id) {
         List<MessageEntity> messageEntities = messageRepository.findBySenderIdOrReceiverId(id);
-        return messageEntities.stream()
-                .map(messageMapper::modelToDto)
-                .collect(Collectors.toList());
+        return mapper.mapAsList(messageEntities, Message.class);
     }
 }

@@ -16,8 +16,10 @@ public interface InternshipRepository extends JpaRepository<InternshipEntity, Lo
     /**
      * Поиск стажировок по статусу.
      *
-     * @param status статус стажировки
+     * @param statusId ID статуса стажировки
      * @return список стажировок с указанным статусом
      */
-    List<InternshipEntity> findByStatus(InternshipStatus status);
+    List<InternshipEntity> findByStatusId(Long statusId);
+
+    List<InternshipEntity> findByIsOpen(Boolean isOpen);
 }

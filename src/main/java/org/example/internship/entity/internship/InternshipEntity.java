@@ -60,8 +60,15 @@ public class InternshipEntity {
     @Column(name = "registration_end_date", nullable = false)
     private LocalDate registrationEndDate;
 
+    /**
+     * Дата начала регистрации  на стажировку.
+     */
     @Column(name = "registration_start_date", nullable = false)
     private LocalDate registrationStartDate;
+
+    @Column(name = "is_open", nullable = false)
+    private Boolean isOpen;
+
     /**
      * Статус стажировки.
      */

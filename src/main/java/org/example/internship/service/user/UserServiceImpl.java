@@ -2,11 +2,12 @@ package org.example.internship.service.user;
 
 import lombok.RequiredArgsConstructor;
 import org.example.internship.config.properties.AdminProperties;
+import org.example.internship.config.properties.GitlabProperties;
+import org.example.internship.mapper.Mapper;
 import org.example.internship.model.request.CreateUserRequest;
 import org.example.internship.model.response.User;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
-import org.example.internship.mapper.UserMapper;
 import org.example.internship.entity.user.Role;
 import org.example.internship.entity.user.UserEntity;
 import org.example.internship.repository.UserRepository;
@@ -33,9 +34,10 @@ public class UserServiceImpl implements UserService {
     private final SolutionService solutionService;
     private final GitlabService gitlabService;
 
-    private final UserMapper userMapper;
+    private final Mapper mapper;
     private final PasswordEncoder passwordEncoder;
     private final AdminProperties adminProperties;
+    private final GitlabProperties gitlabProperties;
 
 
     /**
@@ -51,7 +53,7 @@ public class UserServiceImpl implements UserService {
         if (user == null) {
             throw new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "e-mail"));
         }
-        return userMapper.modelToDto(user);
+        return mapper.map(user, User.class);
     }
 
     /**
@@ -67,19 +69,19 @@ public class UserServiceImpl implements UserService {
         if (user == null) {
             throw new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username"));
         }
-        return userMapper.modelToDto(user);
+        return mapper.map(user, User.class);
     }
 
     /**
      * {@inheritDoc}
      *
-     * @param newUserDto информация о новом пользователе
+     * @param createUserRequest информация о новом пользователе
      */
     @Override
-    public void create(CreateUserRequest newUserDto) {
-        UserEntity user = userMapper.newDtoToModel(newUserDto);
+    public void create(CreateUserRequest createUserRequest) {
+        UserEntity user = mapper.map(createUserRequest, UserEntity.class);
+        user.setPassword(passwordEncoder.encode(gitlabProperties.getUserPassword()));
         userRepository.saveAndFlush(user);
-        gitlabService.createUser(newUserDto);
     }
 
     /**
@@ -93,7 +95,7 @@ public class UserServiceImpl implements UserService {
     public User getById(Long id) {
         UserEntity user = userRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "ID")));
-        return userMapper.modelToDto(user);
+        return mapper.map(user, User.class);
     }
 
     /**
@@ -104,9 +106,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> getAllUsers() {
         List<UserEntity> users = userRepository.findAll();
-        return users.stream()
-                .map(userMapper::modelToDto)
-                .collect(Collectors.toList());
+        return mapper.mapAsList(users, User.class);
     }
 
     /**

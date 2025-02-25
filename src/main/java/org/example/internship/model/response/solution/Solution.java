@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
 import org.example.internship.entity.task.SolutionStatus;
+import org.example.internship.model.Status;
 
 import java.time.LocalDateTime;
 
@@ -21,5 +22,5 @@ public class Solution {
     private String lastCommitUrl;
     private Long taskId;
     private Long userId;
-    private SolutionStatus status;
+    private Status status;
 }

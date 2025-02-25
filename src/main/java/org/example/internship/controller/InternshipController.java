@@ -8,9 +8,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.example.internship.model.request.internship.CreateUpdateInternshipRequest;
 import org.example.internship.model.request.internship.UpdateInternshipStatusRequest;
-import org.example.internship.model.request.internship.CreateInternshipRequest;
-import org.example.internship.model.request.internship.UpdateInternshipRequest;
 import org.example.internship.model.response.Report;
 import org.example.internship.model.response.internship.PrivateInternshipInfo;
 import org.example.internship.model.response.internship.PublicInternshipInfo;
@@ -56,7 +55,8 @@ public class InternshipController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Данные новой стажировки", required = true)
-    public ResponseEntity<ExceptionResponse> createInternship(@RequestBody CreateInternshipRequest internship) {
+    public ResponseEntity<ExceptionResponse> createInternship(@RequestBody CreateUpdateInternshipRequest internship) {
+        //todo add validation to registration start date
         if (!validator.dateIsValid(internship.getStartDate(),
                 internship.getEndDate(),
                 internship.getRegistrationEndDate())) {
@@ -134,8 +134,9 @@ public class InternshipController {
             @ApiResponse(responseCode = "200", description = "Список открытых стажировок"),
             @ApiResponse(responseCode = "204", description = "Список пуст"),
     })
+    //todo переделать с параметром true/false?
     public ResponseEntity<List<PublicInternshipInfo>> getAllOpenedInternships() {
-        List<PublicInternshipInfo> internships = internshipService.getOpened();
+        List<PublicInternshipInfo> internships = internshipService.getByIsOpen(true);
         if (internships.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
@@ -169,7 +170,7 @@ public class InternshipController {
      * @return HTTP-ответ с кодом состояния 200 OK в случае успешного изменения статуса,
      * или соответствующий HTTP-ответ с кодом состояния 400 BAD REQUEST в случае неверного ввода данных
      */
-    @PatchMapping("/update")
+    @PatchMapping("/update/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Обновить стажировку по идентификатору",
             description = "Обновляет информацию о стажировке. Доступно только администраторам")
@@ -181,12 +182,13 @@ public class InternshipController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация об обновленной стажировке", required = true)
-    public ResponseEntity<ExceptionResponse> updateInternship(@RequestBody UpdateInternshipRequest dto) {
+    public ResponseEntity<ExceptionResponse> updateInternship(@PathVariable Long id,
+            @RequestBody CreateUpdateInternshipRequest dto) {
         if (!validator.dateIsValid(dto.getStartDate(), dto.getEndDate(),
                 dto.getRegistrationStartDate(), dto.getRegistrationEndDate())) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.ITS_400.getCode(), "Wrong date input");
         }
-        internshipService.update(dto);
+        internshipService.update(id, dto);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

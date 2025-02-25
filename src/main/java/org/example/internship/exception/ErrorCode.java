@@ -27,6 +27,8 @@ public enum ErrorCode {
     //user
     USR_404("USR-404"),
     USR_400("USR-400"),
+    //status
+    STS_404("STS-404"),
     ;
 
     private final String code;

@@ -5,8 +5,33 @@ import lombok.RequiredArgsConstructor;
 import ma.glasnost.orika.MapperFactory;
 import ma.glasnost.orika.converter.builtin.PassThroughConverter;
 import ma.glasnost.orika.impl.ConfigurableMapper;
+import org.example.internship.entity.LessonEntity;
+import org.example.internship.entity.MessageEntity;
+import org.example.internship.entity.StatusEntity;
+import org.example.internship.entity.internship.InternshipEntity;
+import org.example.internship.entity.task.SolutionEntity;
+import org.example.internship.entity.task.TaskEntity;
+import org.example.internship.entity.user.UserEntity;
+import org.example.internship.model.Status;
+import org.example.internship.model.request.CreateUserRequest;
 import org.example.internship.model.request.application.CreateApplicationRequest;
 import org.example.internship.entity.application.ApplicationEntity;
+import org.example.internship.model.request.internship.CreateUpdateInternshipRequest;
+import org.example.internship.model.request.lesson.CreateLessonRequest;
+import org.example.internship.model.request.task.CreateTaskRequest;
+import org.example.internship.model.request.task.UpdateTaskRequest;
+import org.example.internship.model.response.Message;
+import org.example.internship.model.response.User;
+import org.example.internship.model.response.application.Application;
+import org.example.internship.model.response.internship.PrivateInternshipInfo;
+import org.example.internship.model.response.internship.PublicInternshipInfo;
+import org.example.internship.model.response.lesson.AdminLessonInfo;
+import org.example.internship.model.response.lesson.InternshipLessonInfo;
+import org.example.internship.model.response.lesson.UserLessonInfo;
+import org.example.internship.model.response.solution.Solution;
+import org.example.internship.model.response.task.ShortTaskInfo;
+import org.example.internship.model.response.task.Task;
+import org.gitlab4j.api.systemhooks.PushSystemHookEvent;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -21,11 +46,83 @@ public class Mapper extends ConfigurableMapper {
     protected void configure(MapperFactory factory) {
         factory.getConverterFactory().registerConverter(new PassThroughConverter(LocalDateTime.class));
         factory.getConverterFactory().registerConverter(new PassThroughConverter(LocalDate.class));
+        factory.getConverterFactory().registerConverter(new LocalDateConverter());
 
         factory.classMap(CreateApplicationRequest.class, ApplicationEntity.class)
                 .byDefault()
                 .register();
 
+        factory.classMap(ApplicationEntity.class, Application.class)
+                .field("status", "applicationStatus")
+                .byDefault()
+                .register();
 
+        factory.classMap(CreateUpdateInternshipRequest.class, InternshipEntity.class)
+                .byDefault()
+                .register();
+
+        factory.classMap(InternshipEntity.class, PrivateInternshipInfo.class)
+                .byDefault()
+                .register();
+
+        factory.classMap(InternshipEntity.class, PublicInternshipInfo.class)
+                .byDefault()
+                .register();
+
+        factory.classMap(CreateLessonRequest.class, LessonEntity.class)
+                .byDefault()
+                .register();
+
+        factory.classMap(LessonEntity.class, AdminLessonInfo.class)
+                .byDefault()
+                .register();
+
+        factory.classMap(LessonEntity.class, InternshipLessonInfo.class)
+                .byDefault()
+                .register();
+
+        factory.classMap(LessonEntity.class, UserLessonInfo.class)
+                .byDefault()
+                .register();
+
+        factory.classMap(PushSystemHookEvent.class, SolutionEntity.class)
+                .customize(new PushEventSolutionCustomMapper())
+                .register();
+
+        factory.classMap(SolutionEntity.class, Solution.class)
+                .byDefault()
+                .register();
+
+        factory.classMap(StatusEntity.class, Status.class)
+                .byDefault()
+                .register();
+
+        factory.classMap(CreateTaskRequest.class, TaskEntity.class)
+                .byDefault()
+                .register();
+
+        factory.classMap(TaskEntity.class, Task.class)
+                .byDefault()
+                .register();
+
+        factory.classMap(TaskEntity.class, ShortTaskInfo.class)
+                .byDefault()
+                .register();
+
+        factory.classMap(UpdateTaskRequest.class, TaskEntity.class)
+                .byDefault()
+                .register();
+
+        factory.classMap(CreateUserRequest.class, UserEntity.class)
+                .byDefault()
+                .register();
+
+        factory.classMap(UserEntity.class, User.class)
+                .byDefault()
+                .register();
+
+        factory.classMap(Message.class, MessageEntity.class)
+                .byDefault()
+                .register();
     }
 }

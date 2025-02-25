@@ -1,8 +1,7 @@
 package org.example.internship.service.internship;
 
 import org.example.internship.model.request.internship.UpdateInternshipStatusRequest;
-import org.example.internship.model.request.internship.CreateInternshipRequest;
-import org.example.internship.model.request.internship.UpdateInternshipRequest;
+import org.example.internship.model.request.internship.CreateUpdateInternshipRequest;
 import org.example.internship.model.response.Report;
 import org.example.internship.model.response.internship.PrivateInternshipInfo;
 import org.example.internship.model.response.internship.PublicInternshipInfo;
@@ -17,9 +16,9 @@ public interface InternshipService {
     /**
      * Сохранение новой стажировки.
      *
-     * @param createInternshipRequest информация о новой стажировке
+     * @param createUpdateInternshipRequest информация о новой стажировке
      */
-    void save(CreateInternshipRequest createInternshipRequest);
+    void save(CreateUpdateInternshipRequest createUpdateInternshipRequest);
 
     /**
      * Изменение статуса стажировки.
@@ -31,9 +30,9 @@ public interface InternshipService {
     /**
      * Изменение данных о стажировке.
      *
-     * @param internshipDto обновленная информация о стажировке
+     * @param createUpdateInternshipRequest обновленная информация о стажировке
      */
-    void update(UpdateInternshipRequest internshipDto);
+    void update(Long id, CreateUpdateInternshipRequest createUpdateInternshipRequest);
 
     /**
      * Получение публичной информации о стажировке по идентификатору.
@@ -48,7 +47,7 @@ public interface InternshipService {
      *
      * @return список открытых стажировок
      */
-    List<PublicInternshipInfo> getOpened();
+    List<PublicInternshipInfo> getByIsOpen(Boolean isOpen);
 
     /**
      * Получение списка стажировок по заданному статусу.

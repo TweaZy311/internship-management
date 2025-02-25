@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.internship.entity.StatusEntity;
 import org.example.internship.entity.internship.InternshipEntity;
+import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -47,11 +48,6 @@ public class ApplicationEntity {
     @Column(name = "phone_number", nullable = false)
     private String phoneNumber;
 
-    /**
-     * Имя пользователя.
-     */
-    @Column(name = "username", nullable = false)
-    private String username;
 
     /**
      * ID Telegram заявителя.
@@ -81,13 +77,13 @@ public class ApplicationEntity {
      * Статус образования заявителя.
      */
     //todo
-    @Column(name = "education_status", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private EducationStatus educationStatus;
+//    @Column(name = "education_status", nullable = false)
+//    @Enumerated(EnumType.STRING)
+//    private EducationStatus educationStatus;
 
-//    @ManyToOne
-//    @JoinColumn(name = "education_status_id")
-//    private StatusEntity educationStatus;
+    @ManyToOne
+    @JoinColumn(name = "education_status_id")
+    private StatusEntity educationStatus;
 
     /**
      * Университет заявителя.
@@ -105,15 +101,18 @@ public class ApplicationEntity {
      * Специальность заявителя.
      */
     @Column(name = "specialty")
+    //todo rename to specialization
     private String specialty;
 
     /**
      * Курс обучения заявителя.
      */
     @Column(name = "course")
+    //todo rename to year of study
     private Integer course;
 
     @Column(name = "creation_date", nullable = false)
+    @CreationTimestamp
     private LocalDate creationDate;
 
     /**
