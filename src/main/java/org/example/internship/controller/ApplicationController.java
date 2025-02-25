@@ -118,18 +118,19 @@ public class ApplicationController {
             @Parameter(name = "status", description = "Статус заявки для получения заявок с определенным статусом"),
             @Parameter(name = "internshipId", description = "Идентификатор стажировки, на которую была оставлена заявка")
     })
-    public ResponseEntity<List<Application>> getAllApplications(@RequestParam(required = false) String status,
+    public ResponseEntity<List<Application>> getAllApplications(@RequestParam(required = false) Long statusId,
                                                                 @RequestParam(required = false) Long internshipId) {
         List<Application> applications;
-        if (status == null && internshipId == null) {
+        if (statusId == null && internshipId == null) {
             applications = applicationService.getAll();
-        } else if (status != null && internshipId == null) {
-            applications = applicationService.getByStatus(status);
-        } else if (status == null) {
-            applications = applicationService.getAllByInternshipId(internshipId);
+        } else if (statusId != null && internshipId == null) {
+            applications = applicationService.getByStatus(statusId);
+        } else if (statusId == null) {
+            applications = applicationService.getAllByInternship(internshipId);
         } else {
-            applications = applicationService.getAllByInternshipIdAndStatus(internshipId, status);
+            applications = applicationService.getAllByInternshipAndStatus(internshipId, statusId);
         }
+
         if (applications.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }

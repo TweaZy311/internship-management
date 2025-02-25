@@ -24,10 +24,10 @@ public interface ApplicationRepository extends JpaRepository<ApplicationEntity, 
     /**
      * Поиск заявок по статусу.
      *
-     * @param status статус заявки
+     * @param statusId идентификатор статуса заявки
      * @return список заявок с указанным статусом
      */
-    List<ApplicationEntity> findAllByStatus(ApplicationStatus status);
+    List<ApplicationEntity> findAllByStatusId(Long statusId);
 
     /**
      * Поиск заявок по идентификатору стажировки.
@@ -41,8 +41,8 @@ public interface ApplicationRepository extends JpaRepository<ApplicationEntity, 
      * Поиск заявок по статусу и идентификатору стажировки.
      *
      * @param internshipId идентификатор стажировки
-     * @param status       статус заявки
+     * @param statusId     идентификатор статуса заявки
      * @return список заявок с указанным статусом и оставленных на указанную стажировку
      */
-    List<ApplicationEntity> findAllByInternshipIdAndStatus(Long internshipId, ApplicationStatus status);
+    List<ApplicationEntity> findAllByInternshipIdAndStatusId(Long internshipId, Long statusId);
 }

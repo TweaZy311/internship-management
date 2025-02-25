@@ -42,10 +42,10 @@ public interface ApplicationService {
     /**
      * Получение списка заявок по статусу.
      *
-     * @param status статус заявки
+     * @param statusId идентификатор статуса заявки
      * @return список заявок с указанным статусом
      */
-    List<Application> getByStatus(String status);
+    List<Application> getByStatus(Long statusId);
 
 
     /**
@@ -54,14 +54,14 @@ public interface ApplicationService {
      * @param internshipId идентификатор стажировки
      * @return список заявок, оставленных на указанную стажировку
      */
-    List<Application> getAllByInternshipId(Long internshipId);
+    List<Application> getAllByInternship(Long internshipId);
 
     /**
      * Получение списка заявок по идентификатору стажировки и статусу.
      *
      * @param internshipId идентификатор стажировки
-     * @param status       статус заявки
+     * @param statusId     идентификатор статуса заявки
      * @return список заявок, оставленных на указанную стажировку с указанным статусом
      */
-    List<Application> getAllByInternshipIdAndStatus(Long internshipId, String status);
+    List<Application> getAllByInternshipAndStatus(Long internshipId, Long statusId);
 }

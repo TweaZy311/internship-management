@@ -30,7 +30,7 @@ import java.util.List;
 
 public class ApplicationServiceImpl implements ApplicationService {
     private final String APPLICATION_WITH_SUCH_ID_COULD_NOT_BE_FOUND = "Application with such ID could not be found";
-    //todo возможно стоит вынести в пропертис
+    //todo стоит вынести в пропертис
     private final Long DEFAULT_STATUS_ID = 100L;
 
     private final ApplicationRepository applicationRepository;
@@ -127,13 +127,13 @@ public class ApplicationServiceImpl implements ApplicationService {
     /**
      * {@inheritDoc}
      *
-     * @param status статус заявки
+     * @param statusId идентификатор статуса заявки
      * @return список заявок с указанным статусом
      */
     @Override
-    public List<Application> getByStatus(String status) {
+    public List<Application> getByStatus(Long statusId) {
         List<ApplicationEntity> applications = applicationRepository
-                .findAllByStatus(ApplicationStatus.valueOf(status.toUpperCase()));
+                .findAllByStatusId(statusId);
         return mapper.mapAsList(applications, Application.class);
     }
 
@@ -144,7 +144,7 @@ public class ApplicationServiceImpl implements ApplicationService {
      * @return список заявок, оставленных на указанную стажировку
      */
     @Override
-    public List<Application> getAllByInternshipId(Long internshipId) {
+    public List<Application> getAllByInternship(Long internshipId) {
         List<ApplicationEntity> applications = applicationRepository.findAllByInternshipId(internshipId);
         return mapper.mapAsList(applications, Application.class);
     }
@@ -153,13 +153,13 @@ public class ApplicationServiceImpl implements ApplicationService {
      * {@inheritDoc}
      *
      * @param internshipId идентификатор стажировки
-     * @param status       статус заявки
+     * @param statusId     идентификатор статуса заявки
      * @return список заявок, оставленных на указанную стажировку с указанным статусом
      */
     @Override
-    public List<Application> getAllByInternshipIdAndStatus(Long internshipId, String status) {
+    public List<Application> getAllByInternshipAndStatus(Long internshipId, Long statusId) {
         List<ApplicationEntity> applications = applicationRepository
-                .findAllByInternshipIdAndStatus(internshipId, ApplicationStatus.valueOf(status.toUpperCase()));
+                .findAllByInternshipIdAndStatusId(internshipId, statusId);
         return mapper.mapAsList(applications, Application.class);
     }
 }
