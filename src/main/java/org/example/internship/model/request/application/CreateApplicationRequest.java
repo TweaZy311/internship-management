@@ -22,7 +22,6 @@ public class CreateApplicationRequest {
     private String about;
     private LocalDate birthDate;
     private String city;
-    //todo status
     private Long educationStatusId;
     private String university;
     private String faculty;

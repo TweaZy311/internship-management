@@ -65,13 +65,8 @@ public class ApplicationServiceImpl implements ApplicationService {
             return;
         }
 
-        LocalDate internshipRegStartDate = existingApplication.getInternship().getRegistrationStartDate();
-        StatusEntity internshipStatus = existingApplication.getInternship().getStatus();
-
-        //todo fix comparing status (добавить флаг в internship isOpened)
         //todo что здесь вообще происходит
-        if (internshipStatus.getName().equals("OPEN") &&
-                existingApplication.getCreationDate().isBefore(internshipRegStartDate)) {
+        if (existingApplication.getInternship().getIsOpen()) {
             Long id = existingApplication.getId();
             existingApplication = mapper.map(application, ApplicationEntity.class);
             existingApplication.setId(id);

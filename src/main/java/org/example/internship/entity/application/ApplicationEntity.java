@@ -76,11 +76,6 @@ public class ApplicationEntity {
     /**
      * Статус образования заявителя.
      */
-    //todo
-//    @Column(name = "education_status", nullable = false)
-//    @Enumerated(EnumType.STRING)
-//    private EducationStatus educationStatus;
-
     @ManyToOne
     @JoinColumn(name = "education_status_id")
     private StatusEntity educationStatus;
