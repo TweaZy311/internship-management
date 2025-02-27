@@ -26,9 +26,12 @@ public enum ErrorCode {
     TSK_400("TSK-400"),
     //user
     USR_404("USR-404"),
+    USR_403("USR-403"),
     USR_400("USR-400"),
     //status
     STS_404("STS-404"),
+    //message
+    MSG_403("MSG-403"),
     ;
 
     private final String code;

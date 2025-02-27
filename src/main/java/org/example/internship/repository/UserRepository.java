@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Репозиторий для работы с пользователями.
@@ -19,7 +20,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
      * @param username имя пользователя
      * @return пользователь с указанным username
      */
-    UserEntity findByUsername(String username);
+    Optional<UserEntity> findByUsername(String username);
 
     /**
      * Поиск пользователя по адресу электронной почты.
@@ -27,7 +28,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
      * @param email адрес электронной почты
      * @return пользователь с указанным адресом электронной почты
      */
-    UserEntity findByEmail(String email);
+    Optional<UserEntity> findByEmail(String email);
 
     /**
      * Поиск всех пользователей с указанной ролью для указанной стажировки.

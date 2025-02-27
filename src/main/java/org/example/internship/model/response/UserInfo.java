@@ -4,16 +4,11 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Getter;
 import lombok.Setter;
+import org.example.internship.model.response.internship.Internship;
 
-/**
- * DTO для получения информации о пользователе.
- */
 @Getter
 @Setter
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class User {
-    private Long id;
-    private String name;
-    private String username;
-    private String email;
+public class UserInfo extends User {
+    private Internship internship;
 }

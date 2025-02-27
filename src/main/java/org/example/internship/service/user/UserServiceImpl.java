@@ -3,6 +3,7 @@ package org.example.internship.service.user;
 import lombok.RequiredArgsConstructor;
 import org.example.internship.config.properties.AdminProperties;
 import org.example.internship.config.properties.GitlabProperties;
+import org.example.internship.entity.internship.InternshipEntity;
 import org.example.internship.mapper.Mapper;
 import org.example.internship.model.request.CreateUserRequest;
 import org.example.internship.model.response.User;
@@ -10,6 +11,8 @@ import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.entity.user.Role;
 import org.example.internship.entity.user.UserEntity;
+import org.example.internship.model.response.UserInfo;
+import org.example.internship.repository.InternshipRepository;
 import org.example.internship.repository.UserRepository;
 import org.example.internship.service.gitlab.GitlabService;
 import org.example.internship.service.solution.SolutionService;
@@ -31,6 +34,7 @@ public class UserServiceImpl implements UserService {
     private final String USER_NOT_FOUND_WITH = "User with such %s could not be found";
 
     private final UserRepository userRepository;
+    private final InternshipRepository internshipRepository;
     private final SolutionService solutionService;
     private final GitlabService gitlabService;
 
@@ -49,11 +53,9 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public User getByEmail(String email) {
-        UserEntity user = userRepository.findByEmail(email);
-        if (user == null) {
-            throw new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "e-mail"));
-        }
-        return mapper.map(user, User.class);
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "e-mail")));
+        return mapper.map(user, UserInfo.class);
     }
 
     /**
@@ -65,10 +67,9 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public User getByUsername(String username) {
-        UserEntity user = userRepository.findByUsername(username);
-        if (user == null) {
-            throw new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username"));
-        }
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username")));;
+
         return mapper.map(user, User.class);
     }
 
@@ -80,6 +81,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public void create(CreateUserRequest createUserRequest) {
         UserEntity user = mapper.map(createUserRequest, UserEntity.class);
+        user.setRole(Role.USER);
+        InternshipEntity internship = internshipRepository.findById(createUserRequest.getInternshipId())
+                        .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), "Internship with such ID could not be found"));
+        user.setInternship(internship);
         user.setPassword(passwordEncoder.encode(gitlabProperties.getUserPassword()));
         userRepository.saveAndFlush(user);
     }
@@ -116,10 +121,9 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public void archiveUser(String username) {
-        UserEntity user = userRepository.findByUsername(username);
-        if (user == null) {
-            throw new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username"));
-        }
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username")));;
+
         user.setRole(Role.ARCHIVED);
         solutionService.archiveSolutions(user.getId());
         gitlabService.blockUser(username);

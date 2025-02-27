@@ -61,7 +61,8 @@ public class SolutionServiceImpl implements SolutionService {
             return;
         }
 
-        UserEntity user = userRepository.findByUsername(pushEvent.getUserUsername());
+        UserEntity user = userRepository.findByUsername(pushEvent.getUserUsername())
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), "User with such username could not be found"));
         TaskEntity task = taskRepository.findByName(pushEvent.getProject().getName());
         solution.setUser(user);
         solution.setTask(task);
