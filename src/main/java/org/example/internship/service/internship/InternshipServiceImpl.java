@@ -5,6 +5,8 @@ import org.example.internship.mapper.Mapper;
 import org.example.internship.model.request.internship.UpdateInternshipStatusRequest;
 import org.example.internship.model.request.internship.CreateUpdateInternshipRequest;
 import org.example.internship.model.response.Report;
+import org.example.internship.model.response.User;
+import org.example.internship.model.response.internship.Internship;
 import org.example.internship.model.response.internship.PrivateInternshipInfo;
 import org.example.internship.model.response.internship.PublicInternshipInfo;
 import org.example.internship.exception.ErrorCode;
@@ -12,7 +14,6 @@ import org.example.internship.exception.ServiceException;
 import org.example.internship.entity.StatusEntity;
 import org.example.internship.entity.task.TaskEntity;
 import org.example.internship.entity.internship.InternshipEntity;
-import org.example.internship.entity.internship.InternshipStatus;
 import org.example.internship.entity.task.SolutionEntity;
 import org.example.internship.entity.user.Role;
 import org.example.internship.entity.user.UserEntity;
@@ -49,6 +50,9 @@ public class InternshipServiceImpl implements InternshipService {
     @Override
     public void save(CreateUpdateInternshipRequest createUpdateInternshipRequest) {
         InternshipEntity internshipEntity = mapper.map(createUpdateInternshipRequest, InternshipEntity.class);
+        StatusEntity status = statusRepository.findById(createUpdateInternshipRequest.getStatusId())
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.STS_404.getCode(), "Status with such ID could not be found"));
+        internshipEntity.setStatus(status);
         internshipRepository.saveAndFlush(internshipEntity);
     }
 
@@ -58,6 +62,7 @@ public class InternshipServiceImpl implements InternshipService {
      * @param updateInternshipStatusRequest информация о статусе стажировки
      */
     @Override
+    //todo remove
     public void changeStatus(UpdateInternshipStatusRequest updateInternshipStatusRequest) {
         InternshipEntity internship = internshipRepository.findById(updateInternshipStatusRequest.getId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), INTERNSHIP_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
@@ -89,13 +94,18 @@ public class InternshipServiceImpl implements InternshipService {
      * @throws ServiceException если стажировка не найдена
      */
     @Override
-    public PublicInternshipInfo getById(Long id) {
+    public Internship getById(Long id, Boolean isPrivate) {
         InternshipEntity internship = internshipRepository.findById(id)
                 .orElseThrow(() ->  new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), INTERNSHIP_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
+        if (isPrivate) {
+            List<UserEntity> participants = userRepository.findAllByInternshipIdAndRole(id, Role.USER);
+            PrivateInternshipInfo internshipInfo =  mapper.map(internship, PrivateInternshipInfo.class);
+            internshipInfo.setParticipants(mapper.mapAsList(participants, User.class));
+            return internshipInfo;
+        }
 
-        //todo
-        if (!internship.getStatus().getName().equals("OPEN")) {
-            throw new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), "Internship is not opened");
+        if (!internship.getIsOpen()) {
+            throw new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), "Internship is closed");
         }
         return mapper.map(internship, PublicInternshipInfo.class);
     }
@@ -106,9 +116,9 @@ public class InternshipServiceImpl implements InternshipService {
      * @return список всех стажировок
      */
     @Override
-    public List<PrivateInternshipInfo> getAll() {
+    public List<Internship> getAll() {
         List<InternshipEntity> internships = internshipRepository.findAll();
-        return mapper.mapAsList(internships, PrivateInternshipInfo.class);
+        return mapper.mapAsList(internships, Internship.class);
     }
 
     /**
@@ -126,15 +136,13 @@ public class InternshipServiceImpl implements InternshipService {
     /**
      * {@inheritDoc}
      *
-     * @param status статус стажировки
+     * @param statusId идентификатор статуса стажировки
      * @return список стажировок с указанным статусом
      */
     @Override
-    public List<PrivateInternshipInfo> getByStatus(String status) {
-        InternshipStatus internshipStatus = InternshipStatus.valueOf(status.toUpperCase());
-        //TODO
-        List<InternshipEntity> internships = internshipRepository.findByStatusId(null);
-        return mapper.mapAsList(internships, PrivateInternshipInfo.class);
+    public List<Internship> getByStatus(Long statusId) {
+        List<InternshipEntity> internships = internshipRepository.findByStatusId(statusId);
+        return mapper.mapAsList(internships, Internship.class);
     }
 
     /**

@@ -3,7 +3,7 @@ package org.example.internship.service.internship;
 import org.example.internship.model.request.internship.UpdateInternshipStatusRequest;
 import org.example.internship.model.request.internship.CreateUpdateInternshipRequest;
 import org.example.internship.model.response.Report;
-import org.example.internship.model.response.internship.PrivateInternshipInfo;
+import org.example.internship.model.response.internship.Internship;
 import org.example.internship.model.response.internship.PublicInternshipInfo;
 
 import java.util.List;
@@ -40,7 +40,7 @@ public interface InternshipService {
      * @param id идентификатор стажировки
      * @return публичная информация о стажировке
      */
-    PublicInternshipInfo getById(Long id);
+    Internship getById(Long id, Boolean isPrivate);
 
     /**
      * Получение списка открытых стажировок.
@@ -52,17 +52,17 @@ public interface InternshipService {
     /**
      * Получение списка стажировок по заданному статусу.
      *
-     * @param status статус стажировки
+     * @param statusId идентификатор статуса стажировки
      * @return список стажировок с заданным статусом
      */
-    List<PrivateInternshipInfo> getByStatus(String status);
+    List<Internship> getByStatus(Long statusId);
 
     /**
      * Получение списка всех стажировок.
      *
      * @return список всех стажировок
      */
-    List<PrivateInternshipInfo> getAll();
+    List<Internship> getAll();
 
     /**
      * Создание ведомости по стажировке.

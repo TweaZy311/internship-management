@@ -9,9 +9,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.internship.model.request.internship.CreateUpdateInternshipRequest;
-import org.example.internship.model.request.internship.UpdateInternshipStatusRequest;
 import org.example.internship.model.response.Report;
-import org.example.internship.model.response.internship.PrivateInternshipInfo;
+import org.example.internship.model.response.internship.Internship;
 import org.example.internship.model.response.internship.PublicInternshipInfo;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ExceptionResponse;
@@ -66,34 +65,34 @@ public class InternshipController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    /**
-     * Изменение статуса программы стажировки.
-     * Доступно только пользователям с ролью ADMIN.
-     *
-     * @param statusDto объект с информацией о статусе программы стажировки, который нужно изменить
-     * @return HTTP-ответ с кодом состояния 200 OK в случае успешного изменения статуса
-     */
-    @PatchMapping("/status")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Изменить статус стажировки",
-            description = "Обновляет статус стажировки. Доступно только администраторам.")
-    @SecurityRequirement(name = "basicAuth")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Статус успешно изменен"),
-            @ApiResponse(responseCode = "404", description = "Стажировка не найдена"),
-            @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
-    })
-    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Идентификатор и статус стажировки", required = true)
-    public ResponseEntity<Void> changeInternshipStatus(@RequestBody UpdateInternshipStatusRequest statusDto) {
-        internshipService.changeStatus(statusDto);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
+//    /**
+//     * Изменение статуса программы стажировки.
+//     * Доступно только пользователям с ролью ADMIN.
+//     *
+//     * @param statusDto объект с информацией о статусе программы стажировки, который нужно изменить
+//     * @return HTTP-ответ с кодом состояния 200 OK в случае успешного изменения статуса
+//     */
+//    @PatchMapping("/status")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    @Operation(summary = "Изменить статус стажировки",
+//            description = "Обновляет статус стажировки. Доступно только администраторам.")
+//    @SecurityRequirement(name = "basicAuth")
+//    @ApiResponses({
+//            @ApiResponse(responseCode = "200", description = "Статус успешно изменен"),
+//            @ApiResponse(responseCode = "404", description = "Стажировка не найдена"),
+//            @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
+//    })
+//    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Идентификатор и статус стажировки", required = true)
+//    public ResponseEntity<Void> changeInternshipStatus(@RequestBody UpdateInternshipStatusRequest statusDto) {
+//        internshipService.changeStatus(statusDto);
+//        return new ResponseEntity<>(HttpStatus.OK);
+//    }
 
     /**
      * Получение списка всех программ стажировок.
      * Доступно только пользователям с ролью ADMIN.
      *
-     * @param status фильтр по статусу программы стажировки (необязательный)
+     * @param statusId фильтр по статусу программы стажировки (необязательный)
      * @return HTTP-ответ со списком программ стажировок и кодом состояния 200 OK в случае успешного получения данных,
      * или кодом состояния 204 NO CONTENT, если список пуст
      */
@@ -108,13 +107,14 @@ public class InternshipController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @Parameter(name = "status", description = "Статус стажировки")
-    public ResponseEntity<List<PrivateInternshipInfo>> getAllInternships(@RequestParam(required = false) String status) {
-        List<PrivateInternshipInfo> internships;
-        if (status != null) {
-            internships = internshipService.getByStatus(status);
+    public ResponseEntity<List<Internship>> getAllInternships(@RequestParam(required = false) Long statusId) {
+        List<Internship> internships;
+        if (statusId != null) {
+            internships = internshipService.getByStatus(statusId);
         } else {
             internships = internshipService.getAll();
         }
+
         if (internships.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
@@ -157,8 +157,10 @@ public class InternshipController {
             @ApiResponse(responseCode = "404", description = "Стажировка не найдена")
     })
     @Parameter(name = "id", description = "Идентификатор стажировки", required = true)
-    public ResponseEntity<PublicInternshipInfo> getInternshipById(@PathVariable Long id) {
-        PublicInternshipInfo internship = internshipService.getById(id);
+    @PreAuthorize("@securityService.hasAccess(#isPrivate)")
+    public ResponseEntity<Internship> getInternshipById(@PathVariable Long id,
+                                                        @RequestParam(name = "private", defaultValue = "false") Boolean isPrivate) {
+        Internship internship = internshipService.getById(id, isPrivate);
         return new ResponseEntity<>(internship, HttpStatus.OK);
     }
 
@@ -183,7 +185,8 @@ public class InternshipController {
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация об обновленной стажировке", required = true)
     public ResponseEntity<ExceptionResponse> updateInternship(@PathVariable Long id,
-            @RequestBody CreateUpdateInternshipRequest dto) {
+                                                              @RequestBody CreateUpdateInternshipRequest dto) {
+        //todo add validation to registration start date
         if (!validator.dateIsValid(dto.getStartDate(), dto.getEndDate(),
                 dto.getRegistrationStartDate(), dto.getRegistrationEndDate())) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.ITS_400.getCode(), "Wrong date input");

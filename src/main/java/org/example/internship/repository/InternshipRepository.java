@@ -1,7 +1,6 @@
 package org.example.internship.repository;
 
 import org.example.internship.entity.internship.InternshipEntity;
-import org.example.internship.entity.internship.InternshipStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
