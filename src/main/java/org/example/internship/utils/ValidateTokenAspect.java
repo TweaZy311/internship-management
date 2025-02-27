@@ -6,11 +6,12 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.example.internship.annotation.GitlabTokenRequired;
 import org.example.internship.config.properties.GitlabProperties;
+import org.example.internship.exception.ErrorCode;
+import org.example.internship.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -29,14 +30,14 @@ public class ValidateTokenAspect {
     /**
      * Метод, выполняющий проверку токена перед выполнением метода, помеченного аннотацией GitlabTokenRequired.
      *
-     * @throws ResponseStatusException если токен не прошел валидацию
+     * @throws ServiceException если токен не прошел валидацию
      */
     @Before("@annotation(org.example.internship.annotation.GitlabTokenRequired)")
-    public void validateToken() throws ResponseStatusException {
+    public void validateToken() throws ServiceException {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         String token = request.getHeader("X-Gitlab-Token");
         if (StringUtils.isEmpty(token) || !token.equals(gitlabProperties.getSystemHookToken()) ) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid token");
+            throw new ServiceException(HttpStatus.FORBIDDEN, ErrorCode.GLB_403.getCode(), "Invalid token");
         }
     }
 }

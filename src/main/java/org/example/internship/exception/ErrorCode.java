@@ -11,6 +11,7 @@ public enum ErrorCode {
     APL_404("APL-404"),
     APL_400("APL-400"),
     //gitlab
+    GLB_403("GLB-403"),
     GLB_500("GLB-500"),
     //internship
     ITS_400("ITS-400"),
