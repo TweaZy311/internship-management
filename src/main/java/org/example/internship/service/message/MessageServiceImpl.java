@@ -1,13 +1,20 @@
 package org.example.internship.service.message;
 
 import lombok.RequiredArgsConstructor;
+import org.example.internship.entity.user.UserEntity;
+import org.example.internship.exception.ErrorCode;
+import org.example.internship.exception.ServiceException;
 import org.example.internship.mapper.Mapper;
 import org.example.internship.model.request.CreateMessageRequest;
 import org.example.internship.model.response.Message;
 import org.example.internship.entity.MessageEntity;
 import org.example.internship.repository.MessageRepository;
+import org.example.internship.repository.UserRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
@@ -17,7 +24,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MessageServiceImpl implements MessageService {
     private final MessageRepository messageRepository;
+    private final UserRepository userRepository;
     private final Mapper mapper;
+
+    private static final DateTimeFormatter localDateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     /**
      * {@inheritDoc}
@@ -27,6 +37,13 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public void create(CreateMessageRequest message) {
         MessageEntity newMessageEntity = mapper.map(message, MessageEntity.class);
+        UserEntity reciever = userRepository.findById(message.getReceiverId())
+                        .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), "User with such ID could not be found"));
+        UserEntity sender = userRepository.findById(message.getReceiverId())
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), "User with such ID could not be found"));
+        newMessageEntity.setSender(sender);
+        newMessageEntity.setReceiver(reciever);
+
         messageRepository.save(newMessageEntity);
     }
 

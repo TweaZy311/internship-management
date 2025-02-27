@@ -1,11 +1,10 @@
 package org.example.internship.model.response;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * DTO для получения информации о сообщении.
@@ -14,8 +13,7 @@ import java.time.LocalDateTime;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class Message {
     private String text;
-    private Long receiverId;
-    private Long senderId;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime sentAt;
+    private User receiver;
+    private User sender;
+    private Date sentAt;
 }

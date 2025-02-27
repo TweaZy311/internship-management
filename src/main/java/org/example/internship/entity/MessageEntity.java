@@ -5,9 +5,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.internship.entity.user.UserEntity;
+import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * Сущность, представляющая сообщение.
@@ -38,7 +40,8 @@ public class MessageEntity {
      * Дата и время отправки сообщения.
      */
     @Column(name = "sent_at", nullable = false)
-    private LocalDateTime sentAt;
+    @CreationTimestamp
+    private Date sentAt;
 
     /**
      * Отправитель сообщения.
