@@ -14,6 +14,6 @@ import lombok.Setter;
 public class CreateLessonRequest {
     private String name;
     private String description;
-    private Boolean isPublished = false;
+    private Boolean isPublished = Boolean.FALSE;
     private Long internshipId;
 }

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import org.example.internship.model.response.internship.Internship;
 import org.example.internship.model.response.task.ShortTaskInfo;
 
 import java.util.List;
@@ -15,12 +16,8 @@ import java.util.List;
 @Getter
 @Setter
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class AdminLessonInfo {
-    private Long id;
-    private String name;
-    private String description;
+public class AdminLessonInfo extends Lesson {
     private Boolean isPublished;
     private List<ShortTaskInfo> tasks;
-    //todo возвращать модель
-    private Long internshipId;
+    private Internship internship;
 }

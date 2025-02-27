@@ -27,7 +27,7 @@ import org.example.internship.model.response.internship.Internship;
 import org.example.internship.model.response.internship.PrivateInternshipInfo;
 import org.example.internship.model.response.internship.PublicInternshipInfo;
 import org.example.internship.model.response.lesson.AdminLessonInfo;
-import org.example.internship.model.response.lesson.InternshipLessonInfo;
+import org.example.internship.model.response.lesson.Lesson;
 import org.example.internship.model.response.lesson.UserLessonInfo;
 import org.example.internship.model.response.solution.Solution;
 import org.example.internship.model.response.task.ShortTaskInfo;
@@ -83,7 +83,7 @@ public class Mapper extends ConfigurableMapper {
                 .byDefault()
                 .register();
 
-        factory.classMap(LessonEntity.class, InternshipLessonInfo.class)
+        factory.classMap(LessonEntity.class, Lesson.class)
                 .byDefault()
                 .register();
 
