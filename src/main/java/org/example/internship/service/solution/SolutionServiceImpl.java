@@ -1,5 +1,6 @@
 package org.example.internship.service.solution;
 
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.example.internship.mapper.Mapper;
 import org.example.internship.model.request.solution.UpdateSolutionStatusRequest;
@@ -20,9 +21,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Реализация сервиса для работы с решениями заданий.
@@ -49,7 +49,7 @@ public class SolutionServiceImpl implements SolutionService {
         SolutionEntity solution = mapper.map(pushEvent, SolutionEntity.class);
         //todo fix status
         StatusEntity statusEntity = statusRepository.findById(DEFAULT_STATUS_ID)
-                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.STS_404.getCode(), "Status with such id has not been found"));
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.STS_404.getCode(), "Status with such id could not be found"));
 
         SolutionEntity existingSolution = solutionRepository.findByRepositoryUrl(solution.getRepositoryUrl());
         if (existingSolution != null) {
@@ -61,7 +61,8 @@ public class SolutionServiceImpl implements SolutionService {
             return;
         }
 
-        UserEntity user = userRepository.findByUsername(pushEvent.getUserUsername())
+        //или оставить pushEvent.getUserUsername()?
+        UserEntity user = userRepository.findByUsername(pushEvent.getProject().getNamespace())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), "User with such username could not be found"));
         TaskEntity task = taskRepository.findByName(pushEvent.getProject().getName());
         solution.setUser(user);
@@ -84,7 +85,7 @@ public class SolutionServiceImpl implements SolutionService {
         StatusEntity status = statusRepository.findById(updateSolutionStatusRequest.getStatusId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.STS_404.getCode(), "Status with such id could not be found"));
         solution.setStatus(status);
-        solution.setCheckedTime(LocalDateTime.now());
+        solution.setCheckedTime(new Date());
         solutionRepository.save(solution);
     }
 
@@ -111,6 +112,7 @@ public class SolutionServiceImpl implements SolutionService {
     @Override
     public List<Solution> getAll() {
         List<SolutionEntity> solutions = solutionRepository.findAll();
+
         return mapper.mapAsList(solutions, Solution.class);
     }
 

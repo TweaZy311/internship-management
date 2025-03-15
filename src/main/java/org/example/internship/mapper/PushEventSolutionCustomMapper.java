@@ -8,8 +8,6 @@ import org.gitlab4j.api.systemhooks.PushSystemHookEvent;
 import org.gitlab4j.api.webhook.EventCommit;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 
 @Component
 @RequiredArgsConstructor
@@ -20,11 +18,8 @@ public class PushEventSolutionCustomMapper extends CustomMapper<PushSystemHookEv
 
         EventCommit commit = pushSystemHookEvent.getCommits()
                 .get(lastCommitIndex);
-        LocalDateTime formattedCommitTime = commit.getTimestamp().toInstant()
-                .atZone(ZoneOffset.UTC)
-                .toLocalDateTime();
 
-        solutionEntity.setLastCommitTime(formattedCommitTime);
+        solutionEntity.setLastCommitTime(commit.getTimestamp());
         solutionEntity.setLastCommitUrl(commit.getUrl());
         solutionEntity.setRepositoryUrl(pushSystemHookEvent.getProject().getWebUrl());
     }

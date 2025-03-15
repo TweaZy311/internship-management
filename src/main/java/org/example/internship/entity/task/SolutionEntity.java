@@ -8,7 +8,7 @@ import org.example.internship.entity.StatusEntity;
 import org.example.internship.entity.user.UserEntity;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * Сущность, представляющая решение задания.
@@ -25,8 +25,8 @@ public class SolutionEntity {
      * ID решения.
      */
     @Id
-    @SequenceGenerator(name = "solution_seq", sequenceName = "solution_seq", allocationSize = 1)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "solution_seq")
+    @SequenceGenerator(name = "task_solution_seq", sequenceName = "task_solution_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "task_solution_seq")
     private Long id;
 
     /**
@@ -39,7 +39,7 @@ public class SolutionEntity {
      * Дата и время последнего коммита.
      */
     @Column(name = "last_commit_time", nullable = false)
-    private LocalDateTime lastCommitTime;
+    private Date lastCommitTime;
 
     /**
      * URL последнего коммита.
@@ -57,7 +57,7 @@ public class SolutionEntity {
      * Дата и время проверки решения.
      */
     @Column(name = "checked_time")
-    private LocalDateTime checkedTime;
+    private Date checkedTime;
 
     /**
      * Флаг, указывающий находится ли решение в архиве.

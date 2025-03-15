@@ -1,13 +1,13 @@
 package org.example.internship.model.response.solution;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
-import org.example.internship.entity.task.SolutionStatus;
 import org.example.internship.model.Status;
+import org.example.internship.model.response.User;
+import org.example.internship.model.response.task.Task;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * DTO для получения информации о решении задачи.
@@ -17,10 +17,9 @@ import java.time.LocalDateTime;
 public class Solution {
     private Long id;
     private String repositoryUrl;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime lastCommitTime;
+    private Date lastCommitTime;
     private String lastCommitUrl;
-    private Long taskId;
-    private Long userId;
+    private Task task;
+    private User user;
     private Status status;
 }
