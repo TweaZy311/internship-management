@@ -135,7 +135,7 @@ public class UserServiceImpl implements UserService {
      */
     @PostConstruct
     private void createAdmin() {
-        if (userRepository.findByUsername(adminProperties.getUsername()) == null) {
+        if (userRepository.findByUsername(adminProperties.getUsername()).isEmpty()) {
             UserEntity user = UserEntity.builder()
                     .email(adminProperties.getEmail())
                     .name(adminProperties.getName())
