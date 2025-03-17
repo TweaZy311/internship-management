@@ -1,9 +1,9 @@
 package org.example.internship.repository;
 
-import org.example.internship.model.task.Solution;
-import org.example.internship.model.task.SolutionStatus;
-import org.example.internship.model.task.Task;
-import org.example.internship.model.user.User;
+import org.example.internship.entity.task.SolutionEntity;
+import org.example.internship.entity.task.SolutionStatus;
+import org.example.internship.entity.task.TaskEntity;
+import org.example.internship.entity.user.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -13,7 +13,7 @@ import java.util.List;
  * Репозиторий для работы с решениями задач.
  */
 @Repository
-public interface SolutionRepository extends JpaRepository<Solution, Long> {
+public interface SolutionRepository extends JpaRepository<SolutionEntity, Long> {
 
     /**
      * Поиск решения по URL репозитория.
@@ -21,7 +21,7 @@ public interface SolutionRepository extends JpaRepository<Solution, Long> {
      * @param url URL репозитория
      * @return решение, найденное по URL
      */
-    Solution findByRepositoryUrl(String url);
+    SolutionEntity findByRepositoryUrl(String url);
 
     /**
      * Поиск не архивированных решений по статусу.
@@ -29,7 +29,7 @@ public interface SolutionRepository extends JpaRepository<Solution, Long> {
      * @param status статус решения
      * @return список решений с указанным статусом
      */
-    List<Solution> findAllByStatusAndIsArchivedFalse(SolutionStatus status);
+    List<SolutionEntity> findAllByStatusAndIsArchivedFalse(SolutionStatus status);
 
     /**
      * Поиск решений для заданного пользователя и списка задач.
@@ -38,7 +38,7 @@ public interface SolutionRepository extends JpaRepository<Solution, Long> {
      * @param tasks список задач
      * @return список решений для указанного пользователя и задач
      */
-    List<Solution> findAllByUserAndTaskIn(User user, List<Task> tasks);
+    List<SolutionEntity> findAllByUserAndTaskIn(UserEntity user, List<TaskEntity> tasks);
 
     /**
      * Поиск не архивированных решений для задачи по ее идентификатору.
@@ -46,7 +46,7 @@ public interface SolutionRepository extends JpaRepository<Solution, Long> {
      * @param taskId идентификатор задачи
      * @return список решений для указанной задачи
      */
-    List<Solution> findAllByTaskIdAndIsArchivedFalse(Long taskId);
+    List<SolutionEntity> findAllByTaskIdAndIsArchivedFalse(Long taskId);
 
     /**
      * Поиск решений по идентификатору пользователя.
@@ -54,5 +54,5 @@ public interface SolutionRepository extends JpaRepository<Solution, Long> {
      * @param userId идентификатор пользователя
      * @return список решений для указанного пользователя
      */
-    List<Solution> findAllByUserId(Long userId);
+    List<SolutionEntity> findAllByUserId(Long userId);
 }

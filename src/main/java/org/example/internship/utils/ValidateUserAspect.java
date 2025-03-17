@@ -2,12 +2,15 @@ package org.example.internship.utils;
 
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.example.internship.annotation.UserIdMatches;
 import org.example.internship.annotation.UsernameMatches;
-import org.example.internship.model.user.Role;
-import org.example.internship.model.user.User;
+import org.example.internship.entity.user.Role;
+import org.example.internship.entity.user.UserEntity;
+import org.example.internship.exception.ErrorCode;
+import org.example.internship.exception.ServiceException;
 import org.example.internship.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -39,16 +42,17 @@ public class ValidateUserAspect {
      * @throws ResponseStatusException если ID пользователя в запросе не совпадает с ID аутентифицированного пользователя.
      */
     @Before("@annotation(org.example.internship.annotation.UserIdMatches)")
-    public void validateUserId() throws ResponseStatusException {
+    public void validateUserId() throws ServiceException {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         Long id = Long.parseLong(request.getParameter("id"));
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        User user = userRepository.findByUsername(username);
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), "User with such username has not been found"));
 
         if (!id.equals(user.getId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: User ID mismatch");
+            throw new ServiceException(HttpStatus.FORBIDDEN, ErrorCode.MSG_403.getCode(), "Access denied: User ID mismatch");
         }
     }
 
@@ -59,17 +63,17 @@ public class ValidateUserAspect {
      * или аутентифицированный пользователь не имеет роли администратора.
      */
     @Before("@annotation(org.example.internship.annotation.UsernameMatches)")
-    public void validateUsername() throws ResponseStatusException {
+    public void validateUsername() throws ServiceException {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         String usernameInParam = request.getParameter("username");
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        User user = userRepository.findByUsername(username);
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), "User with such username has not been found"));
 
-        if (!user.getRole().equals(Role.ADMIN) && (usernameInParam == null || usernameInParam.isEmpty()
-                || !usernameInParam.equals(username))) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: Username mismatch");
+        if (!user.getRole().equals(Role.ADMIN) && (StringUtils.isEmpty(usernameInParam) || !usernameInParam.equals(username))) {
+            throw new ServiceException(HttpStatus.FORBIDDEN, ErrorCode.MSG_403.getCode(), "Access denied: Username mismatch");
         }
     }
 }

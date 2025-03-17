@@ -1,11 +1,10 @@
 package org.example.internship.service.internship;
 
-import org.example.internship.dto.request.internship.InternshipStatusDto;
-import org.example.internship.dto.request.internship.NewInternshipDto;
-import org.example.internship.dto.request.internship.UpdateInternshipDto;
-import org.example.internship.dto.response.ReportDto;
-import org.example.internship.dto.response.internship.AdminInternshipDto;
-import org.example.internship.dto.response.internship.PublicInternshipDto;
+import org.example.internship.model.request.internship.UpdateInternshipStatusRequest;
+import org.example.internship.model.request.internship.CreateUpdateInternshipRequest;
+import org.example.internship.model.response.Report;
+import org.example.internship.model.response.internship.Internship;
+import org.example.internship.model.response.internship.PublicInternshipInfo;
 
 import java.util.List;
 
@@ -17,23 +16,23 @@ public interface InternshipService {
     /**
      * Сохранение новой стажировки.
      *
-     * @param newInternshipDto информация о новой стажировке
+     * @param createUpdateInternshipRequest информация о новой стажировке
      */
-    void save(NewInternshipDto newInternshipDto);
+    void save(CreateUpdateInternshipRequest createUpdateInternshipRequest);
 
     /**
      * Изменение статуса стажировки.
      *
      * @param statusDto информация о статусе стажировки
      */
-    void changeStatus(InternshipStatusDto statusDto);
+    void changeStatus(UpdateInternshipStatusRequest statusDto);
 
     /**
      * Изменение данных о стажировке.
      *
-     * @param internshipDto обновленная информация о стажировке
+     * @param createUpdateInternshipRequest обновленная информация о стажировке
      */
-    void update(UpdateInternshipDto internshipDto);
+    void update(Long id, CreateUpdateInternshipRequest createUpdateInternshipRequest);
 
     /**
      * Получение публичной информации о стажировке по идентификатору.
@@ -41,29 +40,29 @@ public interface InternshipService {
      * @param id идентификатор стажировки
      * @return публичная информация о стажировке
      */
-    PublicInternshipDto getById(Long id);
+    Internship getById(Long id, Boolean isPrivate);
 
     /**
      * Получение списка открытых стажировок.
      *
      * @return список открытых стажировок
      */
-    List<PublicInternshipDto> getOpened();
+    List<PublicInternshipInfo> getByIsOpen(Boolean isOpen);
 
     /**
      * Получение списка стажировок по заданному статусу.
      *
-     * @param status статус стажировки
+     * @param statusId идентификатор статуса стажировки
      * @return список стажировок с заданным статусом
      */
-    List<AdminInternshipDto> getByStatus(String status);
+    List<Internship> getByStatus(Long statusId);
 
     /**
      * Получение списка всех стажировок.
      *
      * @return список всех стажировок
      */
-    List<AdminInternshipDto> getAll();
+    List<Internship> getAll();
 
     /**
      * Создание ведомости по стажировке.
@@ -71,5 +70,5 @@ public interface InternshipService {
      * @param internshipId идентификатор стажировки
      * @return ведомость по стажировке
      */
-    List<ReportDto> createReport(Long internshipId);
+    List<Report> createReport(Long internshipId);
 }

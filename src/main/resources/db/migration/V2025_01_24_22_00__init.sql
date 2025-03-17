@@ -21,7 +21,6 @@ create table application
     status           varchar(255) not null,
     telegram_id      varchar(255) not null,
     university       varchar(255),
-    username         varchar(255) not null,
     internship_id    bigint,
     primary key (id)
 );
@@ -80,8 +79,6 @@ create table app_user
     internship_id bigint,
     primary key (id)
 );
-alter table if exists application
-    add constraint application_username_uk unique (username);
 alter table if exists task_solution
     add constraint repository_url_uk unique (repository_url);
 alter table if exists app_user

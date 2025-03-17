@@ -1,15 +1,21 @@
 package org.example.internship.service.message;
 
 import lombok.RequiredArgsConstructor;
-import org.example.internship.dto.request.NewMessageDto;
-import org.example.internship.dto.response.MessageDto;
-import org.example.internship.mapper.MessageMapper;
-import org.example.internship.model.Message;
+import org.example.internship.entity.user.UserEntity;
+import org.example.internship.exception.ErrorCode;
+import org.example.internship.exception.ServiceException;
+import org.example.internship.mapper.Mapper;
+import org.example.internship.model.request.CreateMessageRequest;
+import org.example.internship.model.response.Message;
+import org.example.internship.entity.MessageEntity;
 import org.example.internship.repository.MessageRepository;
+import org.example.internship.repository.UserRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Реализация сервиса для работы с сообщениями.
@@ -18,7 +24,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MessageServiceImpl implements MessageService {
     private final MessageRepository messageRepository;
-    private final MessageMapper messageMapper;
+    private final UserRepository userRepository;
+    private final Mapper mapper;
+
+    private static final DateTimeFormatter localDateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     /**
      * {@inheritDoc}
@@ -26,9 +35,16 @@ public class MessageServiceImpl implements MessageService {
      * @param message данные нового сообщения
      */
     @Override
-    public void create(NewMessageDto message) {
-        Message newMessage = messageMapper.newDtoToModel(message);
-        messageRepository.save(newMessage);
+    public void create(CreateMessageRequest message) {
+        MessageEntity newMessageEntity = mapper.map(message, MessageEntity.class);
+        UserEntity reciever = userRepository.findById(message.getReceiverId())
+                        .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), "User with such ID could not be found"));
+        UserEntity sender = userRepository.findById(message.getReceiverId())
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), "User with such ID could not be found"));
+        newMessageEntity.setSender(sender);
+        newMessageEntity.setReceiver(reciever);
+
+        messageRepository.save(newMessageEntity);
     }
 
     /**
@@ -38,10 +54,8 @@ public class MessageServiceImpl implements MessageService {
      * @return список сообщений
      */
     @Override
-    public List<MessageDto> getByReceiverIdOrSenderId(Long id) {
-        List<Message> messages = messageRepository.findBySenderIdOrReceiverId(id);
-        return messages.stream()
-                .map(messageMapper::modelToDto)
-                .collect(Collectors.toList());
+    public List<Message> getByReceiverIdOrSenderId(Long id) {
+        List<MessageEntity> messageEntities = messageRepository.findBySenderIdOrReceiverId(id);
+        return mapper.mapAsList(messageEntities, Message.class);
     }
 }
