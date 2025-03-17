@@ -11,11 +11,9 @@ public class SecurityService {
 
     public boolean hasAccess(boolean isPrivate) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
         if (!isPrivate) {
             return true;
         }
-
         return authentication.getAuthorities().stream()
                 .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
     }
