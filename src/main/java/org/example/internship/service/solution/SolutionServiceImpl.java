@@ -1,6 +1,7 @@
 package org.example.internship.service.solution;
 
 import lombok.RequiredArgsConstructor;
+import org.example.internship.config.properties.StatusProperties;
 import org.example.internship.mapper.Mapper;
 import org.example.internship.model.request.solution.UpdateSolutionStatusRequest;
 import org.example.internship.model.response.solution.Solution;
@@ -29,7 +30,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SolutionServiceImpl implements SolutionService {
     private final String SOLUTION_WITH_SUCH_ID_COULD_NOT_BE_FOUND = "Solution with such ID could not be found";
-    private final Long DEFAULT_STATUS_ID = 1L;
+    private final StatusProperties statusProperties;
 
     private final SolutionRepository solutionRepository;
     private final UserRepository userRepository;
@@ -46,7 +47,7 @@ public class SolutionServiceImpl implements SolutionService {
     public void add(PushSystemHookEvent pushEvent) {
         SolutionEntity solution = mapper.map(pushEvent, SolutionEntity.class);
         //todo fix status
-        StatusEntity statusEntity = statusRepository.findById(DEFAULT_STATUS_ID)
+        StatusEntity statusEntity = statusRepository.findById(statusProperties.getDefaultSolutionStatusId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.STS_404.getCode(), "Status with such id could not be found"));
 
         SolutionEntity existingSolution = solutionRepository.findByRepositoryUrl(solution.getRepositoryUrl());

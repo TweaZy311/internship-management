@@ -1,6 +1,7 @@
 package org.example.internship.service.application;
 
 import lombok.RequiredArgsConstructor;
+import org.example.internship.config.properties.StatusProperties;
 import org.example.internship.entity.InternshipEntity;
 import org.example.internship.mapper.Mapper;
 import org.example.internship.model.request.application.UpdateApplicationStatusRequest;
@@ -28,8 +29,7 @@ import java.util.List;
 
 public class ApplicationServiceImpl implements ApplicationService {
     private final String APPLICATION_WITH_SUCH_ID_COULD_NOT_BE_FOUND = "Application with such ID could not be found";
-    //todo стоит вынести в пропертис
-    private final Long DEFAULT_STATUS_ID = 100L;
+    private final StatusProperties statusProperties;
 
     private final ApplicationRepository applicationRepository;
     private final StatusRepository statusRepository;
@@ -55,7 +55,7 @@ public class ApplicationServiceImpl implements ApplicationService {
             StatusEntity educationStatus = statusRepository.findById(application.getEducationStatusId())
                     .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.STS_404.getCode(), "Status with such ID could not be found"));
             ApplicationEntity applicationEntity = mapper.map(application, ApplicationEntity.class);
-            applicationEntity.setStatus(statusRepository.findById(DEFAULT_STATUS_ID).get());
+            applicationEntity.setStatus(statusRepository.findById(statusProperties.getDefaultApplicationStatusId()).get());
             applicationEntity.setEducationStatus(educationStatus);
             applicationEntity.setInternship(internship);
             applicationEntity.setCreationDate(LocalDate.now());
@@ -68,7 +68,7 @@ public class ApplicationServiceImpl implements ApplicationService {
             Long id = existingApplication.getId();
             existingApplication = mapper.map(application, ApplicationEntity.class);
             existingApplication.setId(id);
-            existingApplication.setStatus(statusRepository.findById(DEFAULT_STATUS_ID).get());
+            existingApplication.setStatus(statusRepository.findById(statusProperties.getDefaultApplicationStatusId()).get());
             applicationRepository.save(existingApplication);
         } else {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.APL_400.getCode(), "Application for this internship from user with such phone number already exists");

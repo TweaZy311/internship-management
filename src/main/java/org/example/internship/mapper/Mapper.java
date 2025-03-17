@@ -12,6 +12,7 @@ import org.example.internship.entity.InternshipEntity;
 import org.example.internship.entity.SolutionEntity;
 import org.example.internship.entity.TaskEntity;
 import org.example.internship.entity.UserEntity;
+import org.example.internship.model.CreateUpdateStatusRequest;
 import org.example.internship.model.Status;
 import org.example.internship.model.request.CreateUserRequest;
 import org.example.internship.model.request.application.CreateApplicationRequest;
@@ -128,6 +129,15 @@ public class Mapper extends ConfigurableMapper {
                 .register();
 
         factory.classMap(Message.class, MessageEntity.class)
+                .byDefault()
+                .register();
+
+        factory.classMap(CreateUpdateStatusRequest.class, StatusEntity.class)
+                .mapNulls(false)
+                .byDefault()
+                .register();
+
+        factory.classMap(Status.class, StatusEntity.class)
                 .byDefault()
                 .register();
     }

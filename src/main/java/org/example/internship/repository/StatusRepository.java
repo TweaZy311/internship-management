@@ -9,7 +9,5 @@ import java.util.List;
 
 @Repository
 public interface StatusRepository extends JpaRepository<StatusEntity, Long> {
-    List<StatusEntity> findAllByNameContaining(String name);
-    List<StatusEntity> findAllByTypeAndNameContaining(StatusType type, String name);
-    StatusEntity findByTypeAndNameContaining(StatusType type, String name);
+    List<StatusEntity> findAllByType(StatusType type);
 }
