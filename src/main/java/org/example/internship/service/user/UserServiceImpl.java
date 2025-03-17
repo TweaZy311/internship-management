@@ -3,14 +3,14 @@ package org.example.internship.service.user;
 import lombok.RequiredArgsConstructor;
 import org.example.internship.config.properties.AdminProperties;
 import org.example.internship.config.properties.GitlabProperties;
-import org.example.internship.entity.internship.InternshipEntity;
+import org.example.internship.entity.InternshipEntity;
 import org.example.internship.mapper.Mapper;
 import org.example.internship.model.request.CreateUserRequest;
 import org.example.internship.model.response.User;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
-import org.example.internship.entity.user.Role;
-import org.example.internship.entity.user.UserEntity;
+import org.example.internship.entity.Role;
+import org.example.internship.entity.UserEntity;
 import org.example.internship.model.response.UserInfo;
 import org.example.internship.repository.InternshipRepository;
 import org.example.internship.repository.UserRepository;
@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Реализация сервиса для работы с пользователями.

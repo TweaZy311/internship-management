@@ -1,6 +1,6 @@
 package org.example.internship.repository;
 
-import org.example.internship.entity.task.TaskEntity;
+import org.example.internship.entity.TaskEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

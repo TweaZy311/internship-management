@@ -1,7 +1,7 @@
 package org.example.internship.service.application;
 
 import lombok.RequiredArgsConstructor;
-import org.example.internship.entity.internship.InternshipEntity;
+import org.example.internship.entity.InternshipEntity;
 import org.example.internship.mapper.Mapper;
 import org.example.internship.model.request.application.UpdateApplicationStatusRequest;
 import org.example.internship.model.request.application.CreateApplicationRequest;
@@ -9,9 +9,7 @@ import org.example.internship.model.response.application.Application;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.entity.StatusEntity;
-import org.example.internship.entity.StatusType;
-import org.example.internship.entity.application.ApplicationEntity;
-import org.example.internship.entity.application.ApplicationStatus;
+import org.example.internship.entity.ApplicationEntity;
 import org.example.internship.repository.ApplicationRepository;
 import org.example.internship.repository.InternshipRepository;
 import org.example.internship.repository.StatusRepository;

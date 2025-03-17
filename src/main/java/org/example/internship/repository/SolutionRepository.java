@@ -1,9 +1,8 @@
 package org.example.internship.repository;
 
-import org.example.internship.entity.task.SolutionEntity;
-import org.example.internship.entity.task.SolutionStatus;
-import org.example.internship.entity.task.TaskEntity;
-import org.example.internship.entity.user.UserEntity;
+import org.example.internship.entity.SolutionEntity;
+import org.example.internship.entity.TaskEntity;
+import org.example.internship.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -29,7 +28,7 @@ public interface SolutionRepository extends JpaRepository<SolutionEntity, Long> 
      * @param status статус решения
      * @return список решений с указанным статусом
      */
-    List<SolutionEntity> findAllByStatusAndIsArchivedFalse(SolutionStatus status);
+    List<SolutionEntity> findAllByStatusIdAndIsArchived(Long status, Boolean isArchived);
 
     /**
      * Поиск решений для заданного пользователя и списка задач.

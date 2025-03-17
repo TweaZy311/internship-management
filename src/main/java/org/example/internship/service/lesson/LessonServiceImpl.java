@@ -1,7 +1,7 @@
 package org.example.internship.service.lesson;
 
 import lombok.RequiredArgsConstructor;
-import org.example.internship.entity.internship.InternshipEntity;
+import org.example.internship.entity.InternshipEntity;
 import org.example.internship.mapper.Mapper;
 import org.example.internship.model.request.lesson.CreateLessonRequest;
 import org.example.internship.model.response.lesson.AdminLessonInfo;

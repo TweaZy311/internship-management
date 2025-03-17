@@ -1,12 +1,9 @@
-package org.example.internship.entity.internship;
+package org.example.internship.entity;
 
 import javax.persistence.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
-import org.example.internship.entity.LessonEntity;
-import org.example.internship.entity.StatusEntity;
-import org.example.internship.entity.user.UserEntity;
 
 import java.time.LocalDate;
 import java.util.List;

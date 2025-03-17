@@ -1,10 +1,9 @@
-package org.example.internship.entity.user;
+package org.example.internship.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.internship.entity.internship.InternshipEntity;
 
 import javax.persistence.*;
 

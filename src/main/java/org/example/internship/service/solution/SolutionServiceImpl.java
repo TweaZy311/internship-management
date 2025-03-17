@@ -1,6 +1,5 @@
 package org.example.internship.service.solution;
 
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.example.internship.mapper.Mapper;
 import org.example.internship.model.request.solution.UpdateSolutionStatusRequest;
@@ -8,10 +7,9 @@ import org.example.internship.model.response.solution.Solution;
 import org.example.internship.entity.StatusEntity;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
-import org.example.internship.entity.task.SolutionEntity;
-import org.example.internship.entity.task.SolutionStatus;
-import org.example.internship.entity.task.TaskEntity;
-import org.example.internship.entity.user.UserEntity;
+import org.example.internship.entity.SolutionEntity;
+import org.example.internship.entity.TaskEntity;
+import org.example.internship.entity.UserEntity;
 import org.example.internship.repository.SolutionRepository;
 import org.example.internship.repository.StatusRepository;
 import org.example.internship.repository.TaskRepository;
@@ -124,9 +122,8 @@ public class SolutionServiceImpl implements SolutionService {
      */
     @Override
     public List<Solution> getAllByStatus(String status) {
-        //todo fix status
-        SolutionStatus solutionStatus = SolutionStatus.valueOf(status.toUpperCase());
-        List<SolutionEntity> solutions = solutionRepository.findAllByStatusAndIsArchivedFalse(solutionStatus);
+        //todo FIX
+        List<SolutionEntity> solutions = solutionRepository.findAllByStatusIdAndIsArchived(null, true);
         return mapper.mapAsList(solutions, Solution.class);
     }
 

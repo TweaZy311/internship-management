@@ -1,7 +1,7 @@
 package org.example.internship.service.message;
 
 import lombok.RequiredArgsConstructor;
-import org.example.internship.entity.user.UserEntity;
+import org.example.internship.entity.UserEntity;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.mapper.Mapper;
@@ -13,7 +13,6 @@ import org.example.internship.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 

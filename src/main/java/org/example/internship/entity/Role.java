@@ -1,4 +1,4 @@
-package org.example.internship.entity.user;
+package org.example.internship.entity;
 
 /**
  * Перечисление ролей пользователей.

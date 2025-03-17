@@ -1,7 +1,7 @@
 package org.example.internship.repository;
 
-import org.example.internship.entity.user.Role;
-import org.example.internship.entity.user.UserEntity;
+import org.example.internship.entity.Role;
+import org.example.internship.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

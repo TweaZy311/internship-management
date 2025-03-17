@@ -3,7 +3,7 @@ package org.example.internship.mapper;
 import lombok.RequiredArgsConstructor;
 import ma.glasnost.orika.CustomMapper;
 import ma.glasnost.orika.MappingContext;
-import org.example.internship.entity.task.SolutionEntity;
+import org.example.internship.entity.SolutionEntity;
 import org.gitlab4j.api.systemhooks.PushSystemHookEvent;
 import org.gitlab4j.api.webhook.EventCommit;
 import org.springframework.stereotype.Component;

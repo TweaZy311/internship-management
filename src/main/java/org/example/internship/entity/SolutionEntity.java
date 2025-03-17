@@ -1,11 +1,9 @@
-package org.example.internship.entity.task;
+package org.example.internship.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.internship.entity.StatusEntity;
-import org.example.internship.entity.user.UserEntity;
 
 import javax.persistence.*;
 import java.util.Date;

@@ -1,7 +1,7 @@
 package org.example.internship.service.user;
 
 import lombok.RequiredArgsConstructor;
-import org.example.internship.entity.user.UserEntity;
+import org.example.internship.entity.UserEntity;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.repository.UserRepository;

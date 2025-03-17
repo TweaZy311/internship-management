@@ -1,7 +1,6 @@
 package org.example.internship.repository;
 
-import org.example.internship.entity.application.ApplicationEntity;
-import org.example.internship.entity.application.ApplicationStatus;
+import org.example.internship.entity.ApplicationEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
