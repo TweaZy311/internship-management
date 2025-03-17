@@ -9,7 +9,7 @@ import org.example.internship.entity.LessonEntity;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.entity.TaskEntity;
-import org.example.internship.entity.Role;
+import org.example.internship.entity.UserRole;
 import org.example.internship.entity.UserEntity;
 import org.example.internship.repository.LessonRepository;
 import org.example.internship.repository.TaskRepository;
@@ -134,7 +134,7 @@ public class TaskServiceImpl implements TaskService {
         }
 
         task.setPublishDate(LocalDate.now());
-        List<UserEntity> users = userRepository.findAllByInternshipIdAndRole(lesson.getInternship().getId(), Role.USER);
+        List<UserEntity> users = userRepository.findAllByInternshipIdAndRole(lesson.getInternship().getId(), UserRole.USER);
         //todo возможно стоит убрать
         if (users.isEmpty()) {
             throw new EntityNotFoundException("Users not found");
@@ -159,7 +159,7 @@ public class TaskServiceImpl implements TaskService {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.TSK_400.getCode(), LESSON_WITH_TASKS_NOT_PUBLISHED_YET);
         }
 
-        List<UserEntity> users = userRepository.findAllByInternshipIdAndRole(lesson.getInternship().getId(), Role.USER);
+        List<UserEntity> users = userRepository.findAllByInternshipIdAndRole(lesson.getInternship().getId(), UserRole.USER);
         //todo возможно стоит убрать
         if (users.isEmpty()) {
             throw new EntityNotFoundException("Users not found");

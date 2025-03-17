@@ -7,7 +7,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.example.internship.annotation.UserIdMatches;
 import org.example.internship.annotation.UsernameMatches;
-import org.example.internship.entity.Role;
+import org.example.internship.entity.UserRole;
 import org.example.internship.entity.UserEntity;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
@@ -72,7 +72,7 @@ public class ValidateUserAspect {
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), "User with such username has not been found"));
 
-        if (!user.getRole().equals(Role.ADMIN) && (StringUtils.isEmpty(usernameInParam) || !usernameInParam.equals(username))) {
+        if (!user.getRole().equals(UserRole.ADMIN) && (StringUtils.isEmpty(usernameInParam) || !usernameInParam.equals(username))) {
             throw new ServiceException(HttpStatus.FORBIDDEN, ErrorCode.MSG_403.getCode(), "Access denied: Username mismatch");
         }
     }

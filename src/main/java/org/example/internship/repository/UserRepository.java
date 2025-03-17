@@ -1,6 +1,6 @@
 package org.example.internship.repository;
 
-import org.example.internship.entity.Role;
+import org.example.internship.entity.UserRole;
 import org.example.internship.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -37,5 +37,5 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
      * @param role роль пользователя
      * @return список пользователей, участвующих в указанной стажировке
      */
-    List<UserEntity> findAllByInternshipIdAndRole(Long internshipId, Role role);
+    List<UserEntity> findAllByInternshipIdAndRole(Long internshipId, UserRole role);
 }

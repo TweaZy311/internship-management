@@ -9,7 +9,7 @@ import org.example.internship.model.request.CreateUserRequest;
 import org.example.internship.model.response.User;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
-import org.example.internship.entity.Role;
+import org.example.internship.entity.UserRole;
 import org.example.internship.entity.UserEntity;
 import org.example.internship.model.response.UserInfo;
 import org.example.internship.repository.InternshipRepository;
@@ -80,7 +80,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void create(CreateUserRequest createUserRequest) {
         UserEntity user = mapper.map(createUserRequest, UserEntity.class);
-        user.setRole(Role.USER);
+        user.setRole(UserRole.USER);
         InternshipEntity internship = internshipRepository.findById(createUserRequest.getInternshipId())
                         .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), "Internship with such ID could not be found"));
         user.setInternship(internship);
@@ -123,7 +123,7 @@ public class UserServiceImpl implements UserService {
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username")));;
 
-        user.setRole(Role.ARCHIVED);
+        user.setRole(UserRole.ARCHIVED);
         solutionService.archiveSolutions(user.getId());
         gitlabService.blockUser(username);
         userRepository.saveAndFlush(user);
@@ -140,7 +140,7 @@ public class UserServiceImpl implements UserService {
                     .name(adminProperties.getName())
                     .username(adminProperties.getUsername())
                     .password(passwordEncoder.encode(adminProperties.getPassword()))
-                    .role(Role.ADMIN)
+                    .role(UserRole.ADMIN)
                     .build();
             userRepository.saveAndFlush(user);
         }

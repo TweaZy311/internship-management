@@ -61,5 +61,5 @@ public class UserEntity {
      */
     @Column(name = "role")
     @Enumerated(EnumType.STRING)
-    private Role role;
+    private UserRole role;
 }

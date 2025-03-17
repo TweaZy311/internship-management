@@ -15,7 +15,7 @@ import org.example.internship.entity.StatusEntity;
 import org.example.internship.entity.TaskEntity;
 import org.example.internship.entity.InternshipEntity;
 import org.example.internship.entity.SolutionEntity;
-import org.example.internship.entity.Role;
+import org.example.internship.entity.UserRole;
 import org.example.internship.entity.UserEntity;
 import org.example.internship.repository.*;
 import org.springframework.http.HttpStatus;
@@ -98,7 +98,7 @@ public class InternshipServiceImpl implements InternshipService {
         InternshipEntity internship = internshipRepository.findById(id)
                 .orElseThrow(() ->  new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), INTERNSHIP_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         if (isPrivate) {
-            List<UserEntity> participants = userRepository.findAllByInternshipIdAndRole(id, Role.USER);
+            List<UserEntity> participants = userRepository.findAllByInternshipIdAndRole(id, UserRole.USER);
             PrivateInternshipInfo internshipInfo =  mapper.map(internship, PrivateInternshipInfo.class);
             internshipInfo.setParticipants(mapper.mapAsList(participants, User.class));
             return internshipInfo;
@@ -156,7 +156,7 @@ public class InternshipServiceImpl implements InternshipService {
     public List<Report> createReport(Long internshipId) {
         internshipRepository.findById(internshipId)
                 .orElseThrow(() ->  new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), INTERNSHIP_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
-        List<UserEntity> users = userRepository.findAllByInternshipIdAndRole(internshipId, Role.USER);
+        List<UserEntity> users = userRepository.findAllByInternshipIdAndRole(internshipId, UserRole.USER);
         List<TaskEntity> tasks = taskRepository.findAllByLesson_InternshipId(internshipId);
         //todo возможно здесь не нужны exception
         if (users.isEmpty()) {
