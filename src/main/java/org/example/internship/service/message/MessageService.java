@@ -15,7 +15,7 @@ public interface MessageService {
      *
      * @param message данные нового сообщения
      */
-    void create(CreateMessageRequest message);
+    Message create(CreateMessageRequest message);
 
     /**
      * Получение списка сообщений, которые получил или отправил пользователь с указанным ID.

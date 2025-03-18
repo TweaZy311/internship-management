@@ -16,7 +16,7 @@ public interface LessonService {
      *
      * @param createLessonRequest информация о новом занятии
      */
-    void save(CreateLessonRequest createLessonRequest);
+    AdminLessonInfo save(CreateLessonRequest createLessonRequest);
 
     /**
      * Получение информации о занятии по его идентификатору.
@@ -31,7 +31,7 @@ public interface LessonService {
      *
      * @param id идентификатор занятия
      */
-    void publish(Long id);
+    AdminLessonInfo publish(Long id);
 
     /**
      * Получение списка всех опубликованных занятий в рамках стажировки.

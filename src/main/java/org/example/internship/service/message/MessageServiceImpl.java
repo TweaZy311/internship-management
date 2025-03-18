@@ -34,16 +34,17 @@ public class MessageServiceImpl implements MessageService {
      * @param message данные нового сообщения
      */
     @Override
-    public void create(CreateMessageRequest message) {
+    public Message create(CreateMessageRequest message) {
         MessageEntity newMessageEntity = mapper.map(message, MessageEntity.class);
         UserEntity reciever = userRepository.findById(message.getReceiverId())
                         .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), "User with such ID could not be found"));
-        UserEntity sender = userRepository.findById(message.getReceiverId())
+        UserEntity sender = userRepository.findById(message.getSenderId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), "User with such ID could not be found"));
         newMessageEntity.setSender(sender);
         newMessageEntity.setReceiver(reciever);
+        newMessageEntity = messageRepository.save(newMessageEntity);
 
-        messageRepository.save(newMessageEntity);
+        return mapper.map(newMessageEntity, Message.class);
     }
 
     /**

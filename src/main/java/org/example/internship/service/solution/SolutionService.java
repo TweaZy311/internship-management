@@ -16,14 +16,14 @@ public interface SolutionService {
      *
      * @param pushEvent событие системного хука GitLab
      */
-    void add(PushSystemHookEvent pushEvent);
+    Solution add(PushSystemHookEvent pushEvent);
 
     /**
      * Обновление статуса решения задания.
      *
      * @param solution информация о решении и его новом статусе
      */
-    void updateStatus(UpdateSolutionStatusRequest solution);
+    Solution updateStatus(UpdateSolutionStatusRequest solution);
 
     /**
      * Получение информации о решении по его идентификатору.

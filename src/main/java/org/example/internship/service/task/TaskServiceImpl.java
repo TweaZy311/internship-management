@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -44,7 +45,7 @@ public class TaskServiceImpl implements TaskService {
      * @param createTaskRequest данные нового задания
      */
     @Override
-    public void save(CreateTaskRequest createTaskRequest) {
+    public Task save(CreateTaskRequest createTaskRequest) {
         TaskEntity taskEntity = mapper.map(createTaskRequest, TaskEntity.class);
         taskEntity.setLesson(lessonRepository.findById(createTaskRequest.getLessonId()).orElseThrow(
                 () -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.LSN_404.getCode(), "Lesson with such ID has not been found")
@@ -56,7 +57,8 @@ public class TaskServiceImpl implements TaskService {
 
         taskEntity.setRepository(url);
         taskEntity.setRepositoryId(projectId);
-        taskRepository.saveAndFlush(taskEntity);
+        taskEntity = taskRepository.save(taskEntity);
+        return mapper.map(taskEntity, Task.class);
     }
 
     /**
@@ -91,13 +93,14 @@ public class TaskServiceImpl implements TaskService {
      * @throws ServiceException если задание не найдено
      */
     @Override
-    public void update(UpdateTaskRequest updateTaskRequest) {
+    public Task update(UpdateTaskRequest updateTaskRequest) {
         TaskEntity existingTask = taskRepository.findById(updateTaskRequest.getId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.TSK_404.getCode(), TASK_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
 
         //todo
         mapper.map(updateTaskRequest, existingTask);
-        taskRepository.saveAndFlush(existingTask);
+        existingTask = taskRepository.save(existingTask);
+        return mapper.map(existingTask, Task.class);
     }
 
     /**
@@ -121,7 +124,7 @@ public class TaskServiceImpl implements TaskService {
      * @throws ServiceException если задание уже было ранее опубликовано
      */
     @Override
-    public void publishById(Long id) {
+    public Task publishById(Long id) {
         TaskEntity task = taskRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.TSK_404.getCode(), TASK_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
 
@@ -142,11 +145,12 @@ public class TaskServiceImpl implements TaskService {
         for (UserEntity user : users) {
             gitlabService.forkRepository(task.getRepositoryId(), user.getUsername());
         }
-        taskRepository.saveAndFlush(task);
+        task = taskRepository.save(task);
+        return mapper.map(task, Task.class);
     }
 
     @Override
-    public void publishByLessonId(Long lessonId) {
+    public List<Task> publishByLessonId(Long lessonId) {
         List<TaskEntity> tasks = taskRepository.findAllByLessonIdAndPublishDateIsNull(lessonId);
 
         if (tasks.isEmpty()) {
@@ -164,13 +168,14 @@ public class TaskServiceImpl implements TaskService {
         if (users.isEmpty()) {
             throw new EntityNotFoundException("Users not found");
         }
+        List<TaskEntity> publishedTasks = new ArrayList<>();
         for (TaskEntity task : tasks) {
             task.setPublishDate(LocalDate.now());
-            taskRepository.saveAndFlush(task);
+            publishedTasks.add(taskRepository.save(task));
             for (UserEntity user : users) {
                 gitlabService.forkRepository(task.getRepositoryId(), user.getUsername());
             }
         }
-
+        return mapper.mapAsList(publishedTasks, Task.class);
     }
 }

@@ -15,14 +15,14 @@ public interface ApplicationService {
      *
      * @param application информация о новой заявке
      */
-    void save(CreateApplicationRequest application);
+    Application save(CreateApplicationRequest application);
 
     /**
      * Изменение статуса заявки.
      *
      * @param statusDto объект, содержащий идентификатор заявки и новый статус
      */
-    void changeStatus(UpdateApplicationStatusRequest statusDto);
+    Application changeStatus(UpdateApplicationStatusRequest statusDto);
 
     /**
      * Получение всех заявок.

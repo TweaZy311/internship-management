@@ -44,7 +44,7 @@ public class SolutionServiceImpl implements SolutionService {
      * @param pushEvent событие системного хука GitLab
      */
     @Override
-    public void add(PushSystemHookEvent pushEvent) {
+    public Solution add(PushSystemHookEvent pushEvent) {
         SolutionEntity solution = mapper.map(pushEvent, SolutionEntity.class);
         //todo fix status
         StatusEntity statusEntity = statusRepository.findById(statusProperties.getDefaultSolutionStatusId())
@@ -55,9 +55,9 @@ public class SolutionServiceImpl implements SolutionService {
             existingSolution.setLastCommitTime(solution.getLastCommitTime());
             existingSolution.setLastCommitUrl(solution.getLastCommitUrl());
             existingSolution.setStatus(statusEntity);
-            solutionRepository.saveAndFlush(existingSolution);
+            existingSolution = solutionRepository.save(existingSolution);
 
-            return;
+            return mapper.map(existingSolution, Solution.class);
         }
 
         //или оставить pushEvent.getUserUsername()?
@@ -68,7 +68,8 @@ public class SolutionServiceImpl implements SolutionService {
         solution.setTask(task);
         solution.setIsArchived(Boolean.FALSE);
         solution.setStatus(statusEntity);
-        solutionRepository.saveAndFlush(solution);
+        solution = solutionRepository.save(solution);
+        return mapper.map(solution, Solution.class);
     }
 
     /**
@@ -78,14 +79,15 @@ public class SolutionServiceImpl implements SolutionService {
      * @throws EntityNotFoundException если решение не найдено
      */
     @Override
-    public void updateStatus(UpdateSolutionStatusRequest updateSolutionStatusRequest) {
+    public Solution updateStatus(UpdateSolutionStatusRequest updateSolutionStatusRequest) {
         SolutionEntity solution = solutionRepository.findById(updateSolutionStatusRequest.getId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.SLN_404.getCode(), SOLUTION_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         StatusEntity status = statusRepository.findById(updateSolutionStatusRequest.getStatusId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.STS_404.getCode(), "Status with such id could not be found"));
         solution.setStatus(status);
         solution.setCheckedTime(new Date());
-        solutionRepository.save(solution);
+        solution = solutionRepository.save(solution);
+        return mapper.map(solution, Solution.class);
     }
 
     /**

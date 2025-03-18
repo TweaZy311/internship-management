@@ -48,12 +48,13 @@ public class InternshipServiceImpl implements InternshipService {
      * @param createUpdateInternshipRequest информация о новой стажировке
      */
     @Override
-    public void save(CreateUpdateInternshipRequest createUpdateInternshipRequest) {
+    public Internship save(CreateUpdateInternshipRequest createUpdateInternshipRequest) {
         InternshipEntity internshipEntity = mapper.map(createUpdateInternshipRequest, InternshipEntity.class);
         StatusEntity status = statusRepository.findById(createUpdateInternshipRequest.getStatusId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.STS_404.getCode(), "Status with such ID could not be found"));
         internshipEntity.setStatus(status);
-        internshipRepository.saveAndFlush(internshipEntity);
+        internshipEntity = internshipRepository.save(internshipEntity);
+        return mapper.map(internshipEntity, Internship.class);
     }
 
     /**
@@ -63,13 +64,14 @@ public class InternshipServiceImpl implements InternshipService {
      */
     @Override
     //todo remove
-    public void changeStatus(UpdateInternshipStatusRequest updateInternshipStatusRequest) {
+    public Internship changeStatus(UpdateInternshipStatusRequest updateInternshipStatusRequest) {
         InternshipEntity internship = internshipRepository.findById(updateInternshipStatusRequest.getId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), INTERNSHIP_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         StatusEntity status = statusRepository.findById(updateInternshipStatusRequest.getStatusId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.STS_404.getCode(), "Status with such id was not found"));
         internship.setStatus(status);
-        internshipRepository.saveAndFlush(internship);
+        internship = internshipRepository.saveAndFlush(internship);
+        return mapper.map(internship, Internship.class);
     }
 
     /**
@@ -79,11 +81,12 @@ public class InternshipServiceImpl implements InternshipService {
      * @throws ServiceException если стажировка не найдена
      */
     @Override
-    public void update(Long id, CreateUpdateInternshipRequest createUpdateInternshipRequest) {
+    public Internship update(Long id, CreateUpdateInternshipRequest createUpdateInternshipRequest) {
         InternshipEntity internship = internshipRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), INTERNSHIP_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         mapper.map(createUpdateInternshipRequest, internship);
-        internshipRepository.saveAndFlush(internship);
+        internship = internshipRepository.save(internship);
+        return mapper.map(internship, Internship.class);
     }
 
     /**

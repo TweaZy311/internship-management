@@ -44,7 +44,7 @@ public class ApplicationServiceImpl implements ApplicationService {
      */
 
     @Override
-    public void save(CreateApplicationRequest application) {
+    public Application save(CreateApplicationRequest application) {
         ApplicationEntity existingApplication = applicationRepository.
                 findByPhoneNumberAndInternshipId(application.getPhoneNumber(),
                         application.getInternshipId());
@@ -59,8 +59,8 @@ public class ApplicationServiceImpl implements ApplicationService {
             applicationEntity.setEducationStatus(educationStatus);
             applicationEntity.setInternship(internship);
             applicationEntity.setCreationDate(LocalDate.now());
-            applicationRepository.saveAndFlush(applicationEntity);
-            return;
+            applicationEntity = applicationRepository.save(applicationEntity);
+            return mapper.map(applicationEntity, Application.class);
         }
 
         //todo что здесь вообще происходит
@@ -69,7 +69,8 @@ public class ApplicationServiceImpl implements ApplicationService {
             existingApplication = mapper.map(application, ApplicationEntity.class);
             existingApplication.setId(id);
             existingApplication.setStatus(statusRepository.findById(statusProperties.getDefaultApplicationStatusId()).get());
-            applicationRepository.save(existingApplication);
+            existingApplication = applicationRepository.save(existingApplication);
+            return mapper.map(existingApplication, Application.class);
         } else {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.APL_400.getCode(), "Application for this internship from user with such phone number already exists");
         }
@@ -82,14 +83,15 @@ public class ApplicationServiceImpl implements ApplicationService {
      * @throws ServiceException если заявка с указанным идентификатором не найдена
      */
     @Override
-    public void changeStatus(UpdateApplicationStatusRequest statusDto) {
+    public Application changeStatus(UpdateApplicationStatusRequest statusDto) {
         ApplicationEntity application = applicationRepository.findById(statusDto.getApplicationId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.APL_404.getCode(), APPLICATION_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         StatusEntity status = statusRepository.findById(statusDto.getStatusId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.STS_404.getCode(), "Status with such ID could not be found"));
 
         application.setStatus(status);
-        applicationRepository.saveAndFlush(application);
+        application = applicationRepository.saveAndFlush(application);
+        return mapper.map(application, Application.class);
     }
 
     /**

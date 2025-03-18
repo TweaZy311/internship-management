@@ -18,21 +18,21 @@ public interface InternshipService {
      *
      * @param createUpdateInternshipRequest информация о новой стажировке
      */
-    void save(CreateUpdateInternshipRequest createUpdateInternshipRequest);
+    Internship save(CreateUpdateInternshipRequest createUpdateInternshipRequest);
 
     /**
      * Изменение статуса стажировки.
      *
      * @param statusDto информация о статусе стажировки
      */
-    void changeStatus(UpdateInternshipStatusRequest statusDto);
+    Internship changeStatus(UpdateInternshipStatusRequest statusDto);
 
     /**
      * Изменение данных о стажировке.
      *
      * @param createUpdateInternshipRequest обновленная информация о стажировке
      */
-    void update(Long id, CreateUpdateInternshipRequest createUpdateInternshipRequest);
+    Internship update(Long id, CreateUpdateInternshipRequest createUpdateInternshipRequest);
 
     /**
      * Получение публичной информации о стажировке по идентификатору.
