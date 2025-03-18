@@ -2,21 +2,16 @@ package org.example.internship.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import ma.glasnost.orika.CustomMapper;
 import ma.glasnost.orika.MapperFactory;
+import ma.glasnost.orika.MappingContext;
 import ma.glasnost.orika.converter.builtin.PassThroughConverter;
 import ma.glasnost.orika.impl.ConfigurableMapper;
-import org.example.internship.entity.LessonEntity;
-import org.example.internship.entity.MessageEntity;
-import org.example.internship.entity.StatusEntity;
-import org.example.internship.entity.InternshipEntity;
-import org.example.internship.entity.SolutionEntity;
-import org.example.internship.entity.TaskEntity;
-import org.example.internship.entity.UserEntity;
+import org.example.internship.entity.*;
 import org.example.internship.model.CreateUpdateStatusRequest;
 import org.example.internship.model.Status;
 import org.example.internship.model.request.CreateUserRequest;
 import org.example.internship.model.request.application.CreateApplicationRequest;
-import org.example.internship.entity.ApplicationEntity;
 import org.example.internship.model.request.internship.CreateUpdateInternshipRequest;
 import org.example.internship.model.request.lesson.CreateLessonRequest;
 import org.example.internship.model.request.task.CreateTaskRequest;
@@ -134,7 +129,14 @@ public class Mapper extends ConfigurableMapper {
 
         factory.classMap(CreateUpdateStatusRequest.class, StatusEntity.class)
                 .mapNulls(false)
-                .byDefault()
+                .field("name", "name")
+                .customize(new CustomMapper<>() {
+                    @Override
+                    public void mapAtoB(CreateUpdateStatusRequest request, StatusEntity statusEntity, MappingContext context) {
+                        StatusType statusType = StatusType.valueOf(request.getType().toUpperCase());
+                        statusEntity.setType(statusType);
+                    }
+                })
                 .register();
 
         factory.classMap(Status.class, StatusEntity.class)
