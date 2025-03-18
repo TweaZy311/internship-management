@@ -1,8 +1,11 @@
 package org.example.internship.service.user;
 
 import lombok.RequiredArgsConstructor;
-import org.example.internship.model.user.User;
+import org.example.internship.entity.UserEntity;
+import org.example.internship.exception.ErrorCode;
+import org.example.internship.exception.ServiceException;
 import org.example.internship.repository.UserRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -28,11 +31,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
      * @throws UsernameNotFoundException если пользователь не найден
      */
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username);
-        if (user == null) {
-            throw new UsernameNotFoundException("User not found with username: " + username);
-        }
+    public UserDetails loadUserByUsername(String username) throws ServiceException {
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), "User with such username could not be found"));
+
         String role = "ROLE_" + user.getRole();
         List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role));
 

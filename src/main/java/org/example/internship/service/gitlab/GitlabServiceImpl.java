@@ -4,7 +4,7 @@ package org.example.internship.service.gitlab;
 import lombok.RequiredArgsConstructor;
 import org.example.internship.config.properties.AdminProperties;
 import org.example.internship.config.properties.GitlabProperties;
-import org.example.internship.dto.request.NewUserDto;
+import org.example.internship.model.request.CreateUserRequest;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.gitlab4j.api.*;
@@ -89,7 +89,7 @@ public class GitlabServiceImpl implements GitlabService {
      * @throws ServiceException если произошла ошибка при взаимодействии с GitLab API
      */
     @Override
-    public void createUser(NewUserDto newUserDto) {
+    public void createUser(CreateUserRequest newUserDto) {
         UserApi userApi = gitlabApi.getUserApi();
         User user = new User();
         user.setUsername(newUserDto.getUsername());

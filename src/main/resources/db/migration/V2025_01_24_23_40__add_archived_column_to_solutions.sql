@@ -1,2 +1,2 @@
-ALTER TABLE task_solution ADD COLUMN
-    is_archived BOOLEAN NOT NULL DEFAULT false;
+alter table task_solution add column
+    is_archived boolean not null default false;

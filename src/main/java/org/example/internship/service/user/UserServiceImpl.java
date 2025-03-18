@@ -2,13 +2,17 @@ package org.example.internship.service.user;
 
 import lombok.RequiredArgsConstructor;
 import org.example.internship.config.properties.AdminProperties;
-import org.example.internship.dto.request.NewUserDto;
-import org.example.internship.dto.response.UserDto;
+import org.example.internship.config.properties.GitlabProperties;
+import org.example.internship.entity.InternshipEntity;
+import org.example.internship.mapper.Mapper;
+import org.example.internship.model.request.CreateUserRequest;
+import org.example.internship.model.response.User;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
-import org.example.internship.mapper.UserMapper;
-import org.example.internship.model.user.Role;
-import org.example.internship.model.user.User;
+import org.example.internship.entity.UserRole;
+import org.example.internship.entity.UserEntity;
+import org.example.internship.model.response.UserInfo;
+import org.example.internship.repository.InternshipRepository;
 import org.example.internship.repository.UserRepository;
 import org.example.internship.service.gitlab.GitlabService;
 import org.example.internship.service.solution.SolutionService;
@@ -19,7 +23,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Реализация сервиса для работы с пользователями.
@@ -30,12 +33,14 @@ public class UserServiceImpl implements UserService {
     private final String USER_NOT_FOUND_WITH = "User with such %s could not be found";
 
     private final UserRepository userRepository;
+    private final InternshipRepository internshipRepository;
     private final SolutionService solutionService;
     private final GitlabService gitlabService;
 
-    private final UserMapper userMapper;
+    private final Mapper mapper;
     private final PasswordEncoder passwordEncoder;
     private final AdminProperties adminProperties;
+    private final GitlabProperties gitlabProperties;
 
 
     /**
@@ -46,12 +51,10 @@ public class UserServiceImpl implements UserService {
      * @throws ServiceException если пользователь с указанным email не найден
      */
     @Override
-    public UserDto getByEmail(String email) {
-        User user = userRepository.findByEmail(email);
-        if (user == null) {
-            throw new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "e-mail"));
-        }
-        return userMapper.modelToDto(user);
+    public User getByEmail(String email) {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "e-mail")));
+        return mapper.map(user, UserInfo.class);
     }
 
     /**
@@ -62,24 +65,27 @@ public class UserServiceImpl implements UserService {
      * @throws EntityNotFoundException если пользователь с указанным именем не найден
      */
     @Override
-    public UserDto getByUsername(String username) {
-        User user = userRepository.findByUsername(username);
-        if (user == null) {
-            throw new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username"));
-        }
-        return userMapper.modelToDto(user);
+    public User getByUsername(String username) {
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username")));;
+
+        return mapper.map(user, User.class);
     }
 
     /**
      * {@inheritDoc}
      *
-     * @param newUserDto информация о новом пользователе
+     * @param createUserRequest информация о новом пользователе
      */
     @Override
-    public void create(NewUserDto newUserDto) {
-        User user = userMapper.newDtoToModel(newUserDto);
+    public void create(CreateUserRequest createUserRequest) {
+        UserEntity user = mapper.map(createUserRequest, UserEntity.class);
+        user.setRole(UserRole.USER);
+        InternshipEntity internship = internshipRepository.findById(createUserRequest.getInternshipId())
+                        .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), "Internship with such ID could not be found"));
+        user.setInternship(internship);
+        user.setPassword(passwordEncoder.encode(gitlabProperties.getUserPassword()));
         userRepository.saveAndFlush(user);
-        gitlabService.createUser(newUserDto);
     }
 
     /**
@@ -90,10 +96,10 @@ public class UserServiceImpl implements UserService {
      * @throws EntityNotFoundException если пользователь с указанным идентификатором не найден
      */
     @Override
-    public UserDto getById(Long id) {
-        User user = userRepository.findById(id)
+    public User getById(Long id) {
+        UserEntity user = userRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "ID")));
-        return userMapper.modelToDto(user);
+        return mapper.map(user, User.class);
     }
 
     /**
@@ -102,11 +108,9 @@ public class UserServiceImpl implements UserService {
      * @return список пользователей
      */
     @Override
-    public List<UserDto> getAllUsers() {
-        List<User> users = userRepository.findAll();
-        return users.stream()
-                .map(userMapper::modelToDto)
-                .collect(Collectors.toList());
+    public List<User> getAllUsers() {
+        List<UserEntity> users = userRepository.findAll();
+        return mapper.mapAsList(users, User.class);
     }
 
     /**
@@ -116,11 +120,10 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public void archiveUser(String username) {
-        User user = userRepository.findByUsername(username);
-        if (user == null) {
-            throw new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username"));
-        }
-        user.setRole(Role.ARCHIVED);
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username")));;
+
+        user.setRole(UserRole.ARCHIVED);
         solutionService.archiveSolutions(user.getId());
         gitlabService.blockUser(username);
         userRepository.saveAndFlush(user);
@@ -131,13 +134,13 @@ public class UserServiceImpl implements UserService {
      */
     @PostConstruct
     private void createAdmin() {
-        if (userRepository.findByUsername(adminProperties.getUsername()) == null) {
-            User user = User.builder()
+        if (userRepository.findByUsername(adminProperties.getUsername()).isEmpty()) {
+            UserEntity user = UserEntity.builder()
                     .email(adminProperties.getEmail())
                     .name(adminProperties.getName())
                     .username(adminProperties.getUsername())
                     .password(passwordEncoder.encode(adminProperties.getPassword()))
-                    .role(Role.ADMIN)
+                    .role(UserRole.ADMIN)
                     .build();
             userRepository.saveAndFlush(user);
         }

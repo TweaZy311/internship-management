@@ -11,6 +11,7 @@ public enum ErrorCode {
     APL_404("APL-404"),
     APL_400("APL-400"),
     //gitlab
+    GLB_403("GLB-403"),
     GLB_500("GLB-500"),
     //internship
     ITS_400("ITS-400"),
@@ -26,7 +27,12 @@ public enum ErrorCode {
     TSK_400("TSK-400"),
     //user
     USR_404("USR-404"),
+    USR_403("USR-403"),
     USR_400("USR-400"),
+    //status
+    STS_404("STS-404"),
+    //message
+    MSG_403("MSG-403"),
     ;
 
     private final String code;

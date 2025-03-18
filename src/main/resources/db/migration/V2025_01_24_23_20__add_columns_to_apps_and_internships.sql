@@ -1,4 +1,4 @@
-ALTER TABLE application
-    ADD COLUMN creation_date DATE NOT NULL DEFAULT current_date;
-ALTER TABLE internship
-    ADD COLUMN registration_start_date DATE NOT NULL DEFAULT current_date;
+alter table application
+    add column creation_date date not null default current_date;
+alter table internship
+    add column registration_start_date date not null default current_date;
