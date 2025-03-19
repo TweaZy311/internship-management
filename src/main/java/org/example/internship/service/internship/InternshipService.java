@@ -18,21 +18,21 @@ public interface InternshipService {
      *
      * @param createUpdateInternshipRequest информация о новой стажировке
      */
-    void save(CreateUpdateInternshipRequest createUpdateInternshipRequest);
+    Internship saveInternship(CreateUpdateInternshipRequest createUpdateInternshipRequest);
 
     /**
      * Изменение статуса стажировки.
      *
      * @param statusDto информация о статусе стажировки
      */
-    void changeStatus(UpdateInternshipStatusRequest statusDto);
+    Internship changeInternshipStatus(UpdateInternshipStatusRequest statusDto);
 
     /**
      * Изменение данных о стажировке.
      *
      * @param createUpdateInternshipRequest обновленная информация о стажировке
      */
-    void update(Long id, CreateUpdateInternshipRequest createUpdateInternshipRequest);
+    Internship updateInternship(Long id, CreateUpdateInternshipRequest createUpdateInternshipRequest);
 
     /**
      * Получение публичной информации о стажировке по идентификатору.
@@ -40,14 +40,14 @@ public interface InternshipService {
      * @param id идентификатор стажировки
      * @return публичная информация о стажировке
      */
-    Internship getById(Long id, Boolean isPrivate);
+    Internship getInternshipById(Long id, Boolean isPrivate);
 
     /**
      * Получение списка открытых стажировок.
      *
      * @return список открытых стажировок
      */
-    List<PublicInternshipInfo> getByIsOpen(Boolean isOpen);
+    List<PublicInternshipInfo> getInternshipsByIsOpen(Boolean isOpen);
 
     /**
      * Получение списка стажировок по заданному статусу.
@@ -55,14 +55,14 @@ public interface InternshipService {
      * @param statusId идентификатор статуса стажировки
      * @return список стажировок с заданным статусом
      */
-    List<Internship> getByStatus(Long statusId);
+    List<Internship> getInternshipsByStatus(Long statusId);
 
     /**
      * Получение списка всех стажировок.
      *
      * @return список всех стажировок
      */
-    List<Internship> getAll();
+    List<Internship> getAllInternships();
 
     /**
      * Создание ведомости по стажировке.

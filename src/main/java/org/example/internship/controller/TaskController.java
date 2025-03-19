@@ -34,7 +34,7 @@ public class TaskController {
      * Создание нового задания.
      * Доступно только пользователям с ролью ADMIN.
      *
-     * @param task информация о новом задании
+     * @param request информация о новом задании
      * @return HTTP-ответ с кодом состояния 201 CREATED в случае успешного создания задания
      */
     @PostMapping("/create")
@@ -46,9 +46,9 @@ public class TaskController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация о новом задании", required = true)
-    public ResponseEntity<Void> createTask(@RequestBody CreateTaskRequest task) {
-        taskService.save(task);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+    public ResponseEntity<Task> createTask(@RequestBody CreateTaskRequest request) {
+        Task task = taskService.saveTask(request);
+        return new ResponseEntity<>(task, HttpStatus.CREATED);
     }
 
     /**
@@ -92,9 +92,9 @@ public class TaskController {
             @ApiResponse(responseCode = "409", description = "Задание уже опубликовано"),
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
-    public ResponseEntity<Void> publishTaskById(@PathVariable Long id) {
-        taskService.publishById(id);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<Task> publishTaskById(@PathVariable Long id) {
+        Task task = taskService.publishById(id);
+        return new ResponseEntity<>(task, HttpStatus.OK);
     }
 
     /**
@@ -117,9 +117,9 @@ public class TaskController {
 
     })
     @Parameter(name = "lessonId", description = "ID занятия", required = true)
-    public ResponseEntity<Void> publishTasksByLessonId(@RequestParam Long lessonId) {
-        taskService.publishByLessonId(lessonId);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<List<Task>> publishTasksByLessonId(@RequestParam Long lessonId) {
+        List<Task> tasks = taskService.publishByLessonId(lessonId);
+        return new ResponseEntity<>(tasks, HttpStatus.OK);
     }
 
     /**
@@ -138,7 +138,7 @@ public class TaskController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     public ResponseEntity<List<Task>> getAllTasks() {
-        List<Task> tasks = taskService.getAll();
+        List<Task> tasks = taskService.getAllTasks();
         if (tasks.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
@@ -149,7 +149,7 @@ public class TaskController {
      * Обновление задания.
      * Доступно только пользователям с ролью ADMIN.
      *
-     * @param task информация о задании, которое нужно обновить
+     * @param request информация о задании, которое нужно обновить
      * @return HTTP-ответ с кодом состояния 200 OK в случае успешного обновления задания
      */
     @PatchMapping("/update")
@@ -162,9 +162,9 @@ public class TaskController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация об обновленном задании", required = true)
-    public ResponseEntity<Void> updateTask(@RequestBody UpdateTaskRequest task) {
-        taskService.update(task);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<Task> updateTask(@RequestBody UpdateTaskRequest request) {
+        Task task = taskService.updateTask(request);
+        return new ResponseEntity<>(task, HttpStatus.OK);
     }
 
 
@@ -186,6 +186,6 @@ public class TaskController {
     })
     @Parameter(name = "id", description = "Идентификатор задания", required = true)
     public ResponseEntity<Task> getTaskById(@PathVariable Long id) {
-        return new ResponseEntity<>(taskService.getById(id), HttpStatus.OK);
+        return new ResponseEntity<>(taskService.getTaskById(id), HttpStatus.OK);
     }
 }

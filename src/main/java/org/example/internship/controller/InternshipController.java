@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.internship.model.request.internship.CreateUpdateInternshipRequest;
 import org.example.internship.model.response.Report;
 import org.example.internship.model.response.internship.Internship;
+import org.example.internship.model.response.internship.PrivateInternshipInfo;
 import org.example.internship.model.response.internship.PublicInternshipInfo;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ExceptionResponse;
@@ -39,7 +40,7 @@ public class InternshipController {
      * Создание новой программы стажировки.
      * Доступно только пользователям с ролью ADMIN.
      *
-     * @param internship информация о новой программе стажировки
+     * @param request информация о новой программе стажировки
      * @return HTTP-ответ с кодом состояния 201 CREATED в случае успешного создания программы,
      * или соответствующий HTTP-ответ с кодом состояния 400 BAD REQUEST в случае неверного ввода данных
      */
@@ -54,15 +55,15 @@ public class InternshipController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Данные новой стажировки", required = true)
-    public ResponseEntity<ExceptionResponse> createInternship(@RequestBody CreateUpdateInternshipRequest internship) {
+    public ResponseEntity<Internship> createInternship(@RequestBody CreateUpdateInternshipRequest request) {
         //todo add validation to registration start date
-        if (!validator.dateIsValid(internship.getStartDate(),
-                internship.getEndDate(),
-                internship.getRegistrationEndDate())) {
+        if (!validator.dateIsValid(request.getStartDate(),
+                request.getEndDate(),
+                request.getRegistrationEndDate())) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.ITS_400.getCode(), "Wrong date input");
         }
-        internshipService.save(internship);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        Internship internship = internshipService.saveInternship(request);
+        return new ResponseEntity<>(internship, HttpStatus.CREATED);
     }
 
 //    /**
@@ -110,9 +111,9 @@ public class InternshipController {
     public ResponseEntity<List<Internship>> getAllInternships(@RequestParam(required = false) Long statusId) {
         List<Internship> internships;
         if (statusId != null) {
-            internships = internshipService.getByStatus(statusId);
+            internships = internshipService.getInternshipsByStatus(statusId);
         } else {
-            internships = internshipService.getAll();
+            internships = internshipService.getAllInternships();
         }
 
         if (internships.isEmpty()) {
@@ -136,7 +137,7 @@ public class InternshipController {
     })
     //todo переделать с параметром true/false?
     public ResponseEntity<List<PublicInternshipInfo>> getAllOpenedInternships() {
-        List<PublicInternshipInfo> internships = internshipService.getByIsOpen(true);
+        List<PublicInternshipInfo> internships = internshipService.getInternshipsByIsOpen(true);
         if (internships.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
@@ -160,7 +161,7 @@ public class InternshipController {
     @PreAuthorize("@securityService.hasAccess(#isPrivate)")
     public ResponseEntity<Internship> getInternshipById(@PathVariable Long id,
                                                         @RequestParam(name = "private", defaultValue = "false") Boolean isPrivate) {
-        Internship internship = internshipService.getById(id, isPrivate);
+        Internship internship = internshipService.getInternshipById(id, isPrivate);
         return new ResponseEntity<>(internship, HttpStatus.OK);
     }
 
@@ -168,7 +169,7 @@ public class InternshipController {
     /**
      * Обновление информации о программе стажировки.
      *
-     * @param dto объект, содержащий обновленную информацию о стажировке
+     * @param request объект, содержащий обновленную информацию о стажировке
      * @return HTTP-ответ с кодом состояния 200 OK в случае успешного изменения статуса,
      * или соответствующий HTTP-ответ с кодом состояния 400 BAD REQUEST в случае неверного ввода данных
      */
@@ -184,15 +185,15 @@ public class InternshipController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация об обновленной стажировке", required = true)
-    public ResponseEntity<ExceptionResponse> updateInternship(@PathVariable Long id,
-                                                              @RequestBody CreateUpdateInternshipRequest dto) {
+    public ResponseEntity<Internship> updateInternship(@PathVariable Long id,
+                                                              @RequestBody CreateUpdateInternshipRequest request) {
         //todo add validation to registration start date
-        if (!validator.dateIsValid(dto.getStartDate(), dto.getEndDate(),
-                dto.getRegistrationStartDate(), dto.getRegistrationEndDate())) {
+        if (!validator.dateIsValid(request.getStartDate(), request.getEndDate(),
+                request.getRegistrationStartDate(), request.getRegistrationEndDate())) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.ITS_400.getCode(), "Wrong date input");
         }
-        internshipService.update(id, dto);
-        return new ResponseEntity<>(HttpStatus.OK);
+        Internship internship = internshipService.updateInternship(id, request);
+        return new ResponseEntity<>(internship, HttpStatus.OK);
     }
 
     /**

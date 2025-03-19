@@ -33,7 +33,7 @@ public class MessageController {
      * Отправка сообщения.
      * Доступно только пользователям с ролью USER или ADMIN.
      *
-     * @param message данные нового сообщения.
+     * @param request данные нового сообщения.
      * @return ResponseEntity с HTTP-статусом 201 CREATED, если сообщение успешно отправлено.
      */
     @PostMapping("/send")
@@ -45,9 +45,9 @@ public class MessageController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Данные нового сообщения", required = true)
-    public ResponseEntity<Void> sendMessage(@RequestBody CreateMessageRequest message) {
-        messageService.create(message);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+    public ResponseEntity<Message> sendMessage(@RequestBody CreateMessageRequest request) {
+        Message message = messageService.create(request);
+        return new ResponseEntity<>(message, HttpStatus.CREATED);
     }
 
     /**

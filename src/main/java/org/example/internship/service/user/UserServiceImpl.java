@@ -78,14 +78,15 @@ public class UserServiceImpl implements UserService {
      * @param createUserRequest информация о новом пользователе
      */
     @Override
-    public void create(CreateUserRequest createUserRequest) {
+    public User createUser(CreateUserRequest createUserRequest) {
         UserEntity user = mapper.map(createUserRequest, UserEntity.class);
         user.setRole(UserRole.USER);
         InternshipEntity internship = internshipRepository.findById(createUserRequest.getInternshipId())
                         .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), "Internship with such ID could not be found"));
         user.setInternship(internship);
         user.setPassword(passwordEncoder.encode(gitlabProperties.getUserPassword()));
-        userRepository.saveAndFlush(user);
+        user = userRepository.save(user);
+        return mapper.map(user, UserInfo.class);
     }
 
     /**

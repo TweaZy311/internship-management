@@ -16,7 +16,7 @@ public interface TaskService {
      *
      * @param taskDto данные нового задания
      */
-    void save(CreateTaskRequest taskDto);
+    Task saveTask(CreateTaskRequest taskDto);
 
     /**
      * Получение списка всех опубликованных заданий.
@@ -31,34 +31,34 @@ public interface TaskService {
      * @param id идентификатор задания
      * @return информация о задании
      */
-    Task getById(Long id);
+    Task getTaskById(Long id);
 
     /**
      * Обновление информацию о задании.
      *
      * @param taskDto данные обновленного задания
      */
-    void update(UpdateTaskRequest taskDto);
+    Task updateTask(UpdateTaskRequest taskDto);
 
     /**
      * Получение списка всех заданий.
      *
      * @return список всех заданий
      */
-    List<Task> getAll();
+    List<Task> getAllTasks();
 
     /**
      * Публикация задания по его идентификатору.
      *
      * @param id идентификатор задания
      */
-    void publishById(Long id);
+    Task publishById(Long id);
 
     /**
      * Публикация заданий по идентификатору занятия, к которому они принадлежат.
      *
      * @param lessonId идентификатор занятия
      */
-    void publishByLessonId(Long lessonId);
+    List<Task> publishByLessonId(Long lessonId);
 
 }
