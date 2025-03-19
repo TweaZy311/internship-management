@@ -45,7 +45,7 @@ public interface UserService {
      *
      * @param user информация о новом пользователе
      */
-    User create(CreateUserRequest user);
+    User createUser(CreateUserRequest user);
 
     /**
      * Архивирование данных пользователя.

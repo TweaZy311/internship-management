@@ -61,7 +61,7 @@ public class InternshipController {
                 internship.getRegistrationEndDate())) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.ITS_400.getCode(), "Wrong date input");
         }
-        internshipService.save(internship);
+        internshipService.saveInternship(internship);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
@@ -110,9 +110,9 @@ public class InternshipController {
     public ResponseEntity<List<Internship>> getAllInternships(@RequestParam(required = false) Long statusId) {
         List<Internship> internships;
         if (statusId != null) {
-            internships = internshipService.getByStatus(statusId);
+            internships = internshipService.getInternshipsByStatus(statusId);
         } else {
-            internships = internshipService.getAll();
+            internships = internshipService.getAllInternships();
         }
 
         if (internships.isEmpty()) {
@@ -136,7 +136,7 @@ public class InternshipController {
     })
     //todo переделать с параметром true/false?
     public ResponseEntity<List<PublicInternshipInfo>> getAllOpenedInternships() {
-        List<PublicInternshipInfo> internships = internshipService.getByIsOpen(true);
+        List<PublicInternshipInfo> internships = internshipService.getInternshipsByIsOpen(true);
         if (internships.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
@@ -160,7 +160,7 @@ public class InternshipController {
     @PreAuthorize("@securityService.hasAccess(#isPrivate)")
     public ResponseEntity<Internship> getInternshipById(@PathVariable Long id,
                                                         @RequestParam(name = "private", defaultValue = "false") Boolean isPrivate) {
-        Internship internship = internshipService.getById(id, isPrivate);
+        Internship internship = internshipService.getInternshipById(id, isPrivate);
         return new ResponseEntity<>(internship, HttpStatus.OK);
     }
 
@@ -191,7 +191,7 @@ public class InternshipController {
                 dto.getRegistrationStartDate(), dto.getRegistrationEndDate())) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.ITS_400.getCode(), "Wrong date input");
         }
-        internshipService.update(id, dto);
+        internshipService.updateInternship(id, dto);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

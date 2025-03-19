@@ -53,7 +53,7 @@ public class SolutionController {
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация о пуше в репозиторий", required = true)
     public ResponseEntity<Void> addSolution(@RequestBody PushSystemHookEvent request) {
         if (gitlabService.isForkedRepository(request.getProjectId())) {
-            solutionService.add(request);
+            solutionService.addSolution(request);
         }
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
@@ -77,7 +77,7 @@ public class SolutionController {
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация для обновления статуса решения", required = true)
     public ResponseEntity<Void> updateSolutionStatus(@RequestBody UpdateSolutionStatusRequest dto) {
-        solutionService.updateStatus(dto);
+        solutionService.updateSolutionStatus(dto);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -99,7 +99,7 @@ public class SolutionController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     public ResponseEntity<Solution> getSolutionById(@PathVariable Long id) {
-        Solution solution = solutionService.getById(id);
+        Solution solution = solutionService.getSolutionById(id);
         return new ResponseEntity<>(solution, HttpStatus.OK);
     }
 
@@ -138,7 +138,7 @@ public class SolutionController {
         } else if (taskId != null) {
             solutions = solutionService.getAllByTaskId(taskId);
         } else {
-            solutions = solutionService.getAll();
+            solutions = solutionService.getAllSolutions();
         }
         if (solutions.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);

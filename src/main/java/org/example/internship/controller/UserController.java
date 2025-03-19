@@ -54,7 +54,7 @@ public class UserController {
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Данные нового пользователя", required = true)
     public ResponseEntity<Void> create(@RequestBody CreateUserRequest user) {
-        userService.create(user);
+        userService.createUser(user);
         gitlabService.createUser(user);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }

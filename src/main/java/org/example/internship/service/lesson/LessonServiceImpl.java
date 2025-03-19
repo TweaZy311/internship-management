@@ -35,7 +35,7 @@ public class LessonServiceImpl implements LessonService {
      * @param createLessonRequest информация о новом занятии
      */
     @Override
-    public AdminLessonInfo save(CreateLessonRequest createLessonRequest) {
+    public AdminLessonInfo saveLesson(CreateLessonRequest createLessonRequest) {
         LessonEntity lessonEntity = mapper.map(createLessonRequest, LessonEntity.class);
         InternshipEntity internship = internshipRepository.findById(createLessonRequest.getInternshipId())
                         .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), "Internship with such ID could not be found"));
@@ -52,7 +52,7 @@ public class LessonServiceImpl implements LessonService {
      * @throws ServiceException если занятие не найдено
      */
     @Override
-    public UserLessonInfo getById(Long id) {
+    public UserLessonInfo getLessonById(Long id) {
         LessonEntity lesson = lessonRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.LSN_404.getCode(), LESSON_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         return mapper.map(lesson, UserLessonInfo.class);
@@ -64,7 +64,7 @@ public class LessonServiceImpl implements LessonService {
      * @return список всех занятий
      */
     @Override
-    public List<AdminLessonInfo> getAll() {
+    public List<AdminLessonInfo> getAllLessons() {
         List<LessonEntity> lessonEntities = lessonRepository.findAll();
         return mapper.mapAsList(lessonEntities, AdminLessonInfo.class);
     }
@@ -88,7 +88,7 @@ public class LessonServiceImpl implements LessonService {
      * @throws ServiceException если занятие не найдено
      */
     @Override
-    public AdminLessonInfo publish(Long id) {
+    public AdminLessonInfo publishLesson(Long id) {
         LessonEntity lesson = lessonRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.LSN_404.getCode(), LESSON_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         if (lesson.getIsPublished()) {

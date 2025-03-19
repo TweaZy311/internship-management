@@ -48,7 +48,7 @@ public class InternshipServiceImpl implements InternshipService {
      * @param createUpdateInternshipRequest информация о новой стажировке
      */
     @Override
-    public Internship save(CreateUpdateInternshipRequest createUpdateInternshipRequest) {
+    public Internship saveInternship(CreateUpdateInternshipRequest createUpdateInternshipRequest) {
         InternshipEntity internshipEntity = mapper.map(createUpdateInternshipRequest, InternshipEntity.class);
         StatusEntity status = statusRepository.findById(createUpdateInternshipRequest.getStatusId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.STS_404.getCode(), "Status with such ID could not be found"));
@@ -64,7 +64,7 @@ public class InternshipServiceImpl implements InternshipService {
      */
     @Override
     //todo remove
-    public Internship changeStatus(UpdateInternshipStatusRequest updateInternshipStatusRequest) {
+    public Internship changeInternshipStatus(UpdateInternshipStatusRequest updateInternshipStatusRequest) {
         InternshipEntity internship = internshipRepository.findById(updateInternshipStatusRequest.getId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), INTERNSHIP_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         StatusEntity status = statusRepository.findById(updateInternshipStatusRequest.getStatusId())
@@ -81,7 +81,7 @@ public class InternshipServiceImpl implements InternshipService {
      * @throws ServiceException если стажировка не найдена
      */
     @Override
-    public Internship update(Long id, CreateUpdateInternshipRequest createUpdateInternshipRequest) {
+    public Internship updateInternship(Long id, CreateUpdateInternshipRequest createUpdateInternshipRequest) {
         InternshipEntity internship = internshipRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), INTERNSHIP_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         mapper.map(createUpdateInternshipRequest, internship);
@@ -97,7 +97,7 @@ public class InternshipServiceImpl implements InternshipService {
      * @throws ServiceException если стажировка не найдена
      */
     @Override
-    public Internship getById(Long id, Boolean isPrivate) {
+    public Internship getInternshipById(Long id, Boolean isPrivate) {
         InternshipEntity internship = internshipRepository.findById(id)
                 .orElseThrow(() ->  new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), INTERNSHIP_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         if (isPrivate) {
@@ -119,7 +119,7 @@ public class InternshipServiceImpl implements InternshipService {
      * @return список всех стажировок
      */
     @Override
-    public List<Internship> getAll() {
+    public List<Internship> getAllInternships() {
         List<InternshipEntity> internships = internshipRepository.findAll();
         return mapper.mapAsList(internships, Internship.class);
     }
@@ -131,7 +131,7 @@ public class InternshipServiceImpl implements InternshipService {
      */
     @Override
     //todo этот метод вообще не нужен если есть тот что ниже
-    public List<PublicInternshipInfo> getByIsOpen(Boolean isOpen) {
+    public List<PublicInternshipInfo> getInternshipsByIsOpen(Boolean isOpen) {
         List<InternshipEntity> internships = internshipRepository.findByIsOpen(isOpen);
         return mapper.mapAsList(internships, PublicInternshipInfo.class);
     }
@@ -143,7 +143,7 @@ public class InternshipServiceImpl implements InternshipService {
      * @return список стажировок с указанным статусом
      */
     @Override
-    public List<Internship> getByStatus(Long statusId) {
+    public List<Internship> getInternshipsByStatus(Long statusId) {
         List<InternshipEntity> internships = internshipRepository.findByStatusId(statusId);
         return mapper.mapAsList(internships, Internship.class);
     }

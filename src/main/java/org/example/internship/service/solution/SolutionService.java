@@ -16,14 +16,14 @@ public interface SolutionService {
      *
      * @param pushEvent событие системного хука GitLab
      */
-    Solution add(PushSystemHookEvent pushEvent);
+    Solution addSolution(PushSystemHookEvent pushEvent);
 
     /**
      * Обновление статуса решения задания.
      *
      * @param solution информация о решении и его новом статусе
      */
-    Solution updateStatus(UpdateSolutionStatusRequest solution);
+    Solution updateSolutionStatus(UpdateSolutionStatusRequest solution);
 
     /**
      * Получение информации о решении по его идентификатору.
@@ -31,14 +31,14 @@ public interface SolutionService {
      * @param id идентификатор решения
      * @return информация о решении
      */
-    Solution getById(Long id);
+    Solution getSolutionById(Long id);
 
     /**
      * Получение списка всех решений.
      *
      * @return список всех решений
      */
-    List<Solution> getAll();
+    List<Solution> getAllSolutions();
 
     /**
      * Получение списка решений по указанному статусу.

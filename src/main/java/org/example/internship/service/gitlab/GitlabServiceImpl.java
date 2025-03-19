@@ -1,6 +1,5 @@
 package org.example.internship.service.gitlab;
 
-
 import lombok.RequiredArgsConstructor;
 import org.example.internship.config.properties.AdminProperties;
 import org.example.internship.config.properties.GitlabProperties;
@@ -135,7 +134,7 @@ public class GitlabServiceImpl implements GitlabService {
             user = userApi.getUser(username);
             //блокировка тк при удалении пропадают все репо
             userApi.blockUser(user.getId());
-        } catch (GitLabApiException e){
+        } catch (GitLabApiException e) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.GLB_500.getCode(), "Unable to block user");
         }
     }

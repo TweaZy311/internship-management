@@ -45,7 +45,7 @@ public class TaskServiceImpl implements TaskService {
      * @param createTaskRequest данные нового задания
      */
     @Override
-    public Task save(CreateTaskRequest createTaskRequest) {
+    public Task saveTask(CreateTaskRequest createTaskRequest) {
         TaskEntity taskEntity = mapper.map(createTaskRequest, TaskEntity.class);
         taskEntity.setLesson(lessonRepository.findById(createTaskRequest.getLessonId()).orElseThrow(
                 () -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.LSN_404.getCode(), "Lesson with such ID has not been found")
@@ -80,7 +80,7 @@ public class TaskServiceImpl implements TaskService {
      * @throws ServiceException если задание не найдено
      */
     @Override
-    public Task getById(Long id) {
+    public Task getTaskById(Long id) {
         TaskEntity task = taskRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.TSK_404.getCode(), TASK_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         return mapper.map(task, Task.class);
@@ -93,7 +93,7 @@ public class TaskServiceImpl implements TaskService {
      * @throws ServiceException если задание не найдено
      */
     @Override
-    public Task update(UpdateTaskRequest updateTaskRequest) {
+    public Task updateTask(UpdateTaskRequest updateTaskRequest) {
         TaskEntity existingTask = taskRepository.findById(updateTaskRequest.getId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.TSK_404.getCode(), TASK_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
 
@@ -109,7 +109,7 @@ public class TaskServiceImpl implements TaskService {
      * @return список всех заданий
      */
     @Override
-    public List<Task> getAll() {
+    public List<Task> getAllTasks() {
         List<TaskEntity> tasks = taskRepository.findAll();
         return mapper.mapAsList(tasks, Task.class);
     }

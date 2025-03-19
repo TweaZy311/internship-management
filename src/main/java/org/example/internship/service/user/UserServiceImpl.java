@@ -78,7 +78,7 @@ public class UserServiceImpl implements UserService {
      * @param createUserRequest информация о новом пользователе
      */
     @Override
-    public User create(CreateUserRequest createUserRequest) {
+    public User createUser(CreateUserRequest createUserRequest) {
         UserEntity user = mapper.map(createUserRequest, UserEntity.class);
         user.setRole(UserRole.USER);
         InternshipEntity internship = internshipRepository.findById(createUserRequest.getInternshipId())

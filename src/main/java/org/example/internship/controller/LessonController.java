@@ -49,7 +49,7 @@ public class LessonController {
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация о новом занятии", required = true)
     public ResponseEntity<Void> createLesson(@RequestBody CreateLessonRequest lesson) {
-        lessonService.save(lesson);
+        lessonService.saveLesson(lesson);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
@@ -71,7 +71,7 @@ public class LessonController {
     })
     @Parameter(name = "id", description = "Идентификатор занятия", required = true)
     public ResponseEntity<UserLessonInfo> getLessonById(@PathVariable Long id) {
-        return new ResponseEntity<>(lessonService.getById(id), HttpStatus.OK);
+        return new ResponseEntity<>(lessonService.getLessonById(id), HttpStatus.OK);
     }
 
     /**
@@ -91,7 +91,7 @@ public class LessonController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     public ResponseEntity<List<AdminLessonInfo>> getAllLessons() {
-        List<AdminLessonInfo> lessons = lessonService.getAll();
+        List<AdminLessonInfo> lessons = lessonService.getAllLessons();
         if (lessons.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
@@ -143,7 +143,7 @@ public class LessonController {
     @Parameter(name = "id", description = "Идентификатор задания", required = true)
     @Transactional
     public ResponseEntity<Void> publishLesson(@PathVariable Long id) {
-        lessonService.publish(id);
+        lessonService.publishLesson(id);
         //todo
         taskService.publishByLessonId(id);
         return new ResponseEntity<>(HttpStatus.OK);

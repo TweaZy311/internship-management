@@ -47,7 +47,7 @@ public class TaskController {
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация о новом задании", required = true)
     public ResponseEntity<Void> createTask(@RequestBody CreateTaskRequest task) {
-        taskService.save(task);
+        taskService.saveTask(task);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
@@ -138,7 +138,7 @@ public class TaskController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     public ResponseEntity<List<Task>> getAllTasks() {
-        List<Task> tasks = taskService.getAll();
+        List<Task> tasks = taskService.getAllTasks();
         if (tasks.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
@@ -163,7 +163,7 @@ public class TaskController {
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация об обновленном задании", required = true)
     public ResponseEntity<Void> updateTask(@RequestBody UpdateTaskRequest task) {
-        taskService.update(task);
+        taskService.updateTask(task);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -186,6 +186,6 @@ public class TaskController {
     })
     @Parameter(name = "id", description = "Идентификатор задания", required = true)
     public ResponseEntity<Task> getTaskById(@PathVariable Long id) {
-        return new ResponseEntity<>(taskService.getById(id), HttpStatus.OK);
+        return new ResponseEntity<>(taskService.getTaskById(id), HttpStatus.OK);
     }
 }

@@ -44,7 +44,7 @@ public class SolutionServiceImpl implements SolutionService {
      * @param pushEvent событие системного хука GitLab
      */
     @Override
-    public Solution add(PushSystemHookEvent pushEvent) {
+    public Solution addSolution(PushSystemHookEvent pushEvent) {
         SolutionEntity solution = mapper.map(pushEvent, SolutionEntity.class);
         //todo fix status
         StatusEntity statusEntity = statusRepository.findById(statusProperties.getDefaultSolutionStatusId())
@@ -79,7 +79,7 @@ public class SolutionServiceImpl implements SolutionService {
      * @throws EntityNotFoundException если решение не найдено
      */
     @Override
-    public Solution updateStatus(UpdateSolutionStatusRequest updateSolutionStatusRequest) {
+    public Solution updateSolutionStatus(UpdateSolutionStatusRequest updateSolutionStatusRequest) {
         SolutionEntity solution = solutionRepository.findById(updateSolutionStatusRequest.getId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.SLN_404.getCode(), SOLUTION_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         StatusEntity status = statusRepository.findById(updateSolutionStatusRequest.getStatusId())
@@ -98,7 +98,7 @@ public class SolutionServiceImpl implements SolutionService {
      * @throws EntityNotFoundException если решение не найдено
      */
     @Override
-    public Solution getById(Long id) {
+    public Solution getSolutionById(Long id) {
         SolutionEntity solution = solutionRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.SLN_404.getCode(), SOLUTION_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         //todo реализовать методы в маппере
@@ -111,7 +111,7 @@ public class SolutionServiceImpl implements SolutionService {
      * @return список всех решений
      */
     @Override
-    public List<Solution> getAll() {
+    public List<Solution> getAllSolutions() {
         List<SolutionEntity> solutions = solutionRepository.findAll();
 
         return mapper.mapAsList(solutions, Solution.class);
