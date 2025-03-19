@@ -2,12 +2,14 @@ package org.example.internship.model.request;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * DTO для создания нового сообщения.
  */
-@Data
+@Getter
+@Setter
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CreateMessageRequest {
     private String text;
