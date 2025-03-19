@@ -57,7 +57,7 @@ public class ApplicationController {
             @ApiResponse(responseCode = "400", description = "Неверный формат электронной почты или номера телефона, или регистрация закрыта")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Данные новой заявки", required = true)
-    public ResponseEntity<ExceptionResponse> createApplication(
+    public ResponseEntity<Application> createApplication(
             @RequestBody CreateApplicationRequest application) {
         Internship internshipDto = internshipService.getInternshipById(application.getInternshipId(), Boolean.FALSE);
 
@@ -70,8 +70,8 @@ public class ApplicationController {
         if (!validator.phoneNumberIsValid(application.getPhoneNumber())) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.APL_400.getCode(), "Wrong phone number format");
         }
-        applicationService.saveApplication(application);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        Application applicationInfo = applicationService.saveApplication(application);
+        return new ResponseEntity<>(applicationInfo, HttpStatus.CREATED);
     }
 
     /**
@@ -91,9 +91,9 @@ public class ApplicationController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Идентификатор заявки и новый статус", required = true)
-    public ResponseEntity<Void> changeApplicationStatus(@RequestBody UpdateApplicationStatusRequest statusDto) {
-        applicationService.changeApplicationStatus(statusDto);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<Application> changeApplicationStatus(@RequestBody UpdateApplicationStatusRequest statusDto) {
+        Application application = applicationService.changeApplicationStatus(statusDto);
+        return new ResponseEntity<>(application, HttpStatus.OK);
     }
 
     /**
@@ -120,6 +120,7 @@ public class ApplicationController {
     })
     public ResponseEntity<List<Application>> getAllApplications(@RequestParam(required = false) Long statusId,
                                                                 @RequestParam(required = false) Long internshipId) {
+        //todo возможно это как то можно улучшить
         List<Application> applications;
         if (statusId == null && internshipId == null) {
             applications = applicationService.getAllApplications();

@@ -40,7 +40,7 @@ public class UserController {
      * Создание нового пользователя.
      * Доступно только пользователям с ролью ADMIN.
      *
-     * @param user данные нового пользователя
+     * @param request данные нового пользователя
      * @return HTTP-ответ с кодом состояния 201 CREATED в случае успешного создания пользователя
      */
     @PostMapping("/create")
@@ -53,10 +53,10 @@ public class UserController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Данные нового пользователя", required = true)
-    public ResponseEntity<Void> create(@RequestBody CreateUserRequest user) {
-        userService.createUser(user);
-        gitlabService.createUser(user);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+    public ResponseEntity<User> create(@RequestBody CreateUserRequest request) {
+        User user = userService.createUser(request);
+        gitlabService.createUser(request);
+        return new ResponseEntity<>(user, HttpStatus.CREATED);
     }
 
     /**

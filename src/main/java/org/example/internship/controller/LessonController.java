@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.internship.model.request.lesson.CreateLessonRequest;
 import org.example.internship.model.response.lesson.AdminLessonInfo;
+import org.example.internship.model.response.lesson.Lesson;
 import org.example.internship.model.response.lesson.UserLessonInfo;
 import org.example.internship.service.lesson.LessonService;
 import org.example.internship.service.task.TaskService;
@@ -36,7 +37,7 @@ public class LessonController {
      * Создание нового занятия.
      * Доступно только пользователям с ролью ADMIN.
      *
-     * @param lesson информация о новом занятии
+     * @param request информация о новом занятии
      * @return HTTP-ответ с кодом состояния 201 CREATED в случае успешного создания занятия
      */
     @PostMapping("/create")
@@ -48,9 +49,9 @@ public class LessonController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация о новом занятии", required = true)
-    public ResponseEntity<Void> createLesson(@RequestBody CreateLessonRequest lesson) {
-        lessonService.saveLesson(lesson);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+    public ResponseEntity<Lesson> createLesson(@RequestBody CreateLessonRequest request) {
+        AdminLessonInfo lesson = lessonService.saveLesson(request);
+        return new ResponseEntity<>(lesson, HttpStatus.CREATED);
     }
 
     /**
