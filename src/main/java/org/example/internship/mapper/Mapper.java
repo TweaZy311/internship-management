@@ -18,6 +18,7 @@ import org.example.internship.model.request.task.CreateTaskRequest;
 import org.example.internship.model.request.task.UpdateTaskRequest;
 import org.example.internship.model.response.Message;
 import org.example.internship.model.response.User;
+import org.example.internship.model.response.UserInfo;
 import org.example.internship.model.response.application.Application;
 import org.example.internship.model.response.internship.Internship;
 import org.example.internship.model.response.internship.PrivateInternshipInfo;
@@ -29,6 +30,7 @@ import org.example.internship.model.response.solution.Solution;
 import org.example.internship.model.response.task.ShortTaskInfo;
 import org.example.internship.model.response.task.Task;
 import org.gitlab4j.api.systemhooks.PushSystemHookEvent;
+import org.gitlab4j.api.webhook.EventCommit;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -87,8 +89,19 @@ public class Mapper extends ConfigurableMapper {
                 .byDefault()
                 .register();
 
+        factory.classMap(EventCommit.class, Commit.class)
+                .field("message", "message")
+                .field("timestamp", "timestamp")
+                .field("added", "added")
+                .field("modified", "modified")
+                .field("removed", "removed")
+                .field("url", "url")
+                .field("author.name", "author")
+                .register();
+
         factory.classMap(PushSystemHookEvent.class, SolutionEntity.class)
-                .customize(new PushEventSolutionCustomMapper())
+                .field("project.webUrl", "repositoryUrl")
+                .byDefault()
                 .register();
 
         factory.classMap(SolutionEntity.class, Solution.class)
@@ -120,6 +133,10 @@ public class Mapper extends ConfigurableMapper {
                 .register();
 
         factory.classMap(UserEntity.class, User.class)
+                .byDefault()
+                .register();
+
+        factory.classMap(UserEntity.class, UserInfo.class)
                 .byDefault()
                 .register();
 

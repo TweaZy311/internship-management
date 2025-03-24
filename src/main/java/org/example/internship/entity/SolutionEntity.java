@@ -1,12 +1,14 @@
 package org.example.internship.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.vladmihalcea.hibernate.type.json.JsonType;
+import lombok.*;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Сущность, представляющая решение задания.
@@ -14,17 +16,18 @@ import java.util.Date;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-@Builder
-@Table(name = "task_solution")
+@Getter
+@Setter
+@TypeDef(name = "json", typeClass = JsonType.class)
+@Table(name = "solution")
 public class SolutionEntity {
 
     /**
      * ID решения.
      */
     @Id
-    @SequenceGenerator(name = "task_solution_seq", sequenceName = "task_solution_seq", allocationSize = 1)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "task_solution_seq")
+    @SequenceGenerator(name = "solution_seq", sequenceName = "solution_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "solution_seq")
     private Long id;
 
     /**
@@ -34,16 +37,11 @@ public class SolutionEntity {
     private String repositoryUrl;
 
     /**
-     * Дата и время последнего коммита.
+     * Список всех коммитов.
      */
-    @Column(name = "last_commit_time", nullable = false)
-    private Date lastCommitTime;
-
-    /**
-     * URL последнего коммита.
-     */
-    @Column(name = "last_commit_url", nullable = false)
-    private String lastCommitUrl;
+    @Column(name = "commits", columnDefinition = "jsonb")
+    @Type(type = "json")
+    private List<Commit> commits = new ArrayList<>();
 
     /**
      * Комментарий к решению.
