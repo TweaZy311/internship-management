@@ -2,15 +2,12 @@ package org.example.internship.service.solution;
 
 import lombok.RequiredArgsConstructor;
 import org.example.internship.config.properties.StatusProperties;
+import org.example.internship.entity.*;
 import org.example.internship.mapper.Mapper;
 import org.example.internship.model.request.solution.UpdateSolutionStatusRequest;
 import org.example.internship.model.response.solution.Solution;
-import org.example.internship.entity.StatusEntity;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
-import org.example.internship.entity.SolutionEntity;
-import org.example.internship.entity.TaskEntity;
-import org.example.internship.entity.UserEntity;
 import org.example.internship.repository.SolutionRepository;
 import org.example.internship.repository.StatusRepository;
 import org.example.internship.repository.TaskRepository;
@@ -52,8 +49,7 @@ public class SolutionServiceImpl implements SolutionService {
 
         SolutionEntity existingSolution = solutionRepository.findByRepositoryUrl(solution.getRepositoryUrl());
         if (existingSolution != null) {
-            existingSolution.setLastCommitTime(solution.getLastCommitTime());
-            existingSolution.setLastCommitUrl(solution.getLastCommitUrl());
+            existingSolution.setCommits(mapper.mapAsList(pushEvent.getCommits(), Commit.class));
             existingSolution.setStatus(statusEntity);
             existingSolution = solutionRepository.save(existingSolution);
 

@@ -1,2 +1,2 @@
-alter table task_solution add column
+alter table solution add column
     is_archived boolean not null default false;

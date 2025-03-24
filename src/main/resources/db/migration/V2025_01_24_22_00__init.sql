@@ -1,7 +1,7 @@
 create sequence application_seq;
 create sequence internship_seq;
 create sequence lesson_seq;
-create sequence task_solution_seq;
+create sequence solution_seq;
 create sequence task_seq;
 create sequence app_user_seq;
 
@@ -44,13 +44,12 @@ create table lesson
     internship_id bigint,
     primary key (id)
 );
-create table task_solution
+create table solution
 (
-    id               bigint       not null unique default nextval('task_solution_seq'),
+    id               bigint       not null unique default nextval('solution_seq'),
     checked_time     timestamp,
     comment          varchar(1024),
-    last_commit_time timestamp    not null,
-    last_commit_url  varchar(255) not null,
+    commits          jsonb        not null,
     repository_url   varchar(255) not null,
     status           varchar(255) not null,
     task_id          bigint,
@@ -79,7 +78,7 @@ create table app_user
     internship_id bigint,
     primary key (id)
 );
-alter table if exists task_solution
+alter table if exists solution
     add constraint repository_url_uk unique (repository_url);
 alter table if exists app_user
     add constraint user_email_uk unique (email);
@@ -89,10 +88,10 @@ alter table if exists application
     add constraint application_internship_fk foreign key (internship_id) references internship;
 alter table if exists lesson
     add constraint lesson_internship_fk foreign key (internship_id) references internship;
-alter table if exists task_solution
-    add constraint task_solution_task_fk foreign key (task_id) references task;
-alter table if exists task_solution
-    add constraint task_solution_user_fk foreign key (user_id) references app_user;
+alter table if exists solution
+    add constraint solution_task_fk foreign key (task_id) references task;
+alter table if exists solution
+    add constraint solution_user_fk foreign key (user_id) references app_user;
 alter table if exists task
     add constraint task_lesson_fk foreign key (lesson_id) references lesson;
 alter table if exists app_user

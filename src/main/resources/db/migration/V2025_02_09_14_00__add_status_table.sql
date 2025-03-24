@@ -20,7 +20,7 @@ alter table if exists internship
     drop column status,
     add column status_id bigint,
     add constraint internship_status_fk foreign key (status_id) references status;
-alter table if exists task_solution
+alter table if exists solution
     drop column status,
     add column status_id bigint,
-    add constraint task_solution_status_fk foreign key (status_id) references status;
+    add constraint solution_status_fk foreign key (status_id) references status;
