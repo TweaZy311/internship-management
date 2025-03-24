@@ -51,7 +51,7 @@ public class TaskServiceImpl implements TaskService {
                 () -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.LSN_404.getCode(), "Lesson with such ID has not been found")
         ));
 
-        Project project = gitlabService.createRepository(createTaskRequest.getName(), createTaskRequest.getDescription());
+        Project project = gitlabService.createRepository(createTaskRequest.getRepositoryName(), createTaskRequest.getDescription());
         String url = project.getWebUrl();
         Long projectId = project.getId();
 

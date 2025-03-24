@@ -13,6 +13,7 @@ import lombok.Setter;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CreateTaskRequest {
     private String name;
+    private String repositoryName;
     private String description;
     private Long lessonId;
 }
