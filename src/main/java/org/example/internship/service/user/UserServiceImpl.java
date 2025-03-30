@@ -67,7 +67,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getByUsername(String username) {
         UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username")));;
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username")));
 
         return mapper.map(user, User.class);
     }
@@ -82,7 +82,7 @@ public class UserServiceImpl implements UserService {
         UserEntity user = mapper.map(createUserRequest, UserEntity.class);
         user.setRole(UserRole.USER);
         InternshipEntity internship = internshipRepository.findById(createUserRequest.getInternshipId())
-                        .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), "Internship with such ID could not be found"));
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), "Internship with such ID could not be found"));
         user.setInternship(internship);
         user.setPassword(passwordEncoder.encode(gitlabProperties.getUserPassword()));
         user = userRepository.save(user);
@@ -122,12 +122,23 @@ public class UserServiceImpl implements UserService {
     @Override
     public void archiveUser(String username) {
         UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username")));;
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username")));
 
         user.setRole(UserRole.ARCHIVED);
         solutionService.archiveSolutions(user.getId());
         gitlabService.blockUser(username);
         userRepository.saveAndFlush(user);
+    }
+
+    @Override
+    public void updateCheckedSolutions(String username) {
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username")));
+        if (user.getRole().equals(UserRole.ADMIN)) {
+            long checkedSolutionsCount = user.getCheckedSolutions() == null ? 0L : user.getCheckedSolutions();
+            user.setCheckedSolutions(checkedSolutionsCount + 1);
+            userRepository.save(user);
+        }
     }
 
     /**

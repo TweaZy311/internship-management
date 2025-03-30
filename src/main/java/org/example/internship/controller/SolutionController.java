@@ -15,6 +15,7 @@ import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.service.gitlab.GitlabService;
 import org.example.internship.service.solution.SolutionService;
+import org.example.internship.service.user.UserService;
 import org.gitlab4j.api.systemhooks.PushSystemHookEvent;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +34,7 @@ import java.util.List;
 @Tag(name = "Управление решениями заданий")
 public class SolutionController {
     private final SolutionService solutionService;
+    private final UserService userService;
     private final GitlabService gitlabService;
 
     /**
@@ -77,8 +79,10 @@ public class SolutionController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация для обновления статуса решения", required = true)
-    public ResponseEntity<Solution> updateSolutionStatus(@RequestBody UpdateSolutionStatusRequest request) {
+    public ResponseEntity<Solution> updateSolutionStatus(@RequestBody UpdateSolutionStatusRequest request,
+                                                         @RequestHeader String username) {
         Solution solution = solutionService.updateSolutionStatus(request);
+        userService.updateCheckedSolutions(username);
         return new ResponseEntity<>(solution, HttpStatus.OK);
     }
 

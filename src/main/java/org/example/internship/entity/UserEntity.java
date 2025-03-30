@@ -60,4 +60,7 @@ public class UserEntity {
     @Column(name = "role")
     @Enumerated(EnumType.STRING)
     private UserRole role;
+
+    @Column(name = "checked_solutions")
+    private Long checkedSolutions;
 }

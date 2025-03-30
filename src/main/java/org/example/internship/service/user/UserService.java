@@ -52,4 +52,6 @@ public interface UserService {
      * @param username имя пользователя
      */
     void archiveUser(String username);
+
+    void updateCheckedSolutions(String username);
 }
