@@ -6,6 +6,7 @@ import org.example.internship.config.properties.GitlabProperties;
 import org.example.internship.entity.InternshipEntity;
 import org.example.internship.mapper.Mapper;
 import org.example.internship.model.request.CreateUserRequest;
+import org.example.internship.model.request.GetUsersRequest;
 import org.example.internship.model.response.User;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
@@ -16,6 +17,10 @@ import org.example.internship.repository.InternshipRepository;
 import org.example.internship.repository.UserRepository;
 import org.example.internship.service.gitlab.GitlabService;
 import org.example.internship.service.solution.SolutionService;
+import org.example.internship.utils.SpecificationsBuilder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -81,9 +86,11 @@ public class UserServiceImpl implements UserService {
     public User createUser(CreateUserRequest createUserRequest) {
         UserEntity user = mapper.map(createUserRequest, UserEntity.class);
         user.setRole(UserRole.USER);
-        InternshipEntity internship = internshipRepository.findById(createUserRequest.getInternshipId())
-                        .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), "Internship with such ID could not be found"));
-        user.setInternship(internship);
+        if (createUserRequest.getInternshipId() != null) {
+            InternshipEntity internship = internshipRepository.findById(createUserRequest.getInternshipId())
+                    .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), "Internship with such ID could not be found"));
+            user.setInternship(internship);
+        }
         user.setPassword(passwordEncoder.encode(gitlabProperties.getUserPassword()));
         user = userRepository.save(user);
         return mapper.map(user, UserInfo.class);
@@ -109,9 +116,19 @@ public class UserServiceImpl implements UserService {
      * @return список пользователей
      */
     @Override
-    public List<User> getAllUsers() {
-        List<UserEntity> users = userRepository.findAll();
-        return mapper.mapAsList(users, User.class);
+    public Page<UserEntity> getUsers(GetUsersRequest request) {
+        SpecificationsBuilder<UserEntity> filterBuilder = new SpecificationsBuilder<>();
+        request.getFilters().forEach(filterBuilder::with);
+
+        Sort sort = request.getSortBy() != null ?
+                Sort.by(
+                        Sort.Direction.fromOptionalString(request.getSortDirection()).orElse(Sort.Direction.ASC),
+                        request.getSortBy()
+                ) :
+                Sort.unsorted();
+
+        return userRepository.findAll(filterBuilder.build(),
+                PageRequest.of(request.getPage(), request.getPageSize(), sort));
     }
 
     /**

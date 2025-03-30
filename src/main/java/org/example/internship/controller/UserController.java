@@ -10,7 +10,11 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.internship.annotation.UsernameMatches;
+import org.example.internship.entity.UserEntity;
+import org.example.internship.mapper.Mapper;
+import org.example.internship.model.Page;
 import org.example.internship.model.request.CreateUserRequest;
+import org.example.internship.model.request.GetUsersRequest;
 import org.example.internship.model.response.User;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
@@ -20,8 +24,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 
 /**
@@ -35,6 +37,8 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
     private final GitlabService gitlabService;
+
+    private final Mapper mapper;
 
     /**
      * Создание нового пользователя.
@@ -102,10 +106,9 @@ public class UserController {
      * Получение списка всех пользователей.
      * Доступно только пользователям с ролью ADMIN.
      *
-     * @return HTTP-ответ со списком всех пользователей и кодом состояния 200 OK в случае успешного получения данных,
-     * или кодом состояния 204 NO CONTENT, если список пуст
+     * @return HTTP-ответ со списком всех пользователей и кодом состояния 200 OK в случае успешного получения данных
      */
-    @GetMapping("/all")
+    @PostMapping("/page")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Получить список всех пользователей",
             description = "Возвращает список всех пользователей. Доступно только администраторам.")
@@ -115,12 +118,18 @@ public class UserController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
 
     })
-    public ResponseEntity<List<User>> getAll() {
-        List<User> users = userService.getAllUsers();
-        if (users.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>(users, HttpStatus.OK);
+    public ResponseEntity<Page<User>> getUsers(@RequestBody GetUsersRequest request) {
+        org.springframework.data.domain.Page<UserEntity> page = userService.getUsers(request);
+
+        Page<User> result = Page.<User>builder()
+                .pageSize(page.getSize())
+                .pageNumber(page.getNumber())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .content(mapper.mapAsList(page.getContent(), User.class))
+                .build();
+
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     /**

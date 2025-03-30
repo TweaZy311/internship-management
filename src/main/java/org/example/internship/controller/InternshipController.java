@@ -11,10 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.example.internship.model.request.internship.CreateUpdateInternshipRequest;
 import org.example.internship.model.response.Report;
 import org.example.internship.model.response.internship.Internship;
-import org.example.internship.model.response.internship.PrivateInternshipInfo;
 import org.example.internship.model.response.internship.PublicInternshipInfo;
 import org.example.internship.exception.ErrorCode;
-import org.example.internship.exception.ExceptionResponse;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.service.internship.InternshipService;
 import org.example.internship.utils.Validator;
@@ -186,7 +184,7 @@ public class InternshipController {
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация об обновленной стажировке", required = true)
     public ResponseEntity<Internship> updateInternship(@PathVariable Long id,
-                                                              @RequestBody CreateUpdateInternshipRequest request) {
+                                                       @RequestBody CreateUpdateInternshipRequest request) {
         //todo add validation to registration start date
         if (!validator.dateIsValid(request.getStartDate(), request.getEndDate(),
                 request.getRegistrationStartDate(), request.getRegistrationEndDate())) {

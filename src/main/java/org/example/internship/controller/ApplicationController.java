@@ -9,12 +9,15 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.example.internship.entity.ApplicationEntity;
+import org.example.internship.mapper.Mapper;
+import org.example.internship.model.Page;
+import org.example.internship.model.request.GetApplicationsRequest;
 import org.example.internship.model.request.application.UpdateApplicationStatusRequest;
 import org.example.internship.model.request.application.CreateApplicationRequest;
 import org.example.internship.model.response.application.Application;
 import org.example.internship.model.response.internship.Internship;
 import org.example.internship.exception.ErrorCode;
-import org.example.internship.exception.ExceptionResponse;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.service.application.ApplicationService;
 import org.example.internship.service.internship.InternshipService;
@@ -25,7 +28,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.List;
 
 
 /**
@@ -40,6 +42,7 @@ public class ApplicationController {
     private final ApplicationService applicationService;
     private final Validator validator;
     private final InternshipService internshipService;
+    private final Mapper mapper;
 
     /**
      * Создание новой заявки на стажировку.
@@ -103,7 +106,7 @@ public class ApplicationController {
      * @return ResponseEntity с списком объектов ApplicationDto и HTTP-статусом 200 OK,
      * или ResponseEntity с HTTP-статусом 204 NO CONTENT, если заявки не найдены.
      */
-    @GetMapping("/all")
+    @PostMapping("/page")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Получить все заявки на стажировку",
             description = "Возвращает список всех заявок на стажировку с указанным статусом (если он указан). " +
@@ -118,24 +121,18 @@ public class ApplicationController {
             @Parameter(name = "status", description = "Статус заявки для получения заявок с определенным статусом"),
             @Parameter(name = "internshipId", description = "Идентификатор стажировки, на которую была оставлена заявка")
     })
-    public ResponseEntity<List<Application>> getAllApplications(@RequestParam(required = false) Long statusId,
-                                                                @RequestParam(required = false) Long internshipId) {
-        //todo возможно это как то можно улучшить
-        List<Application> applications;
-        if (statusId == null && internshipId == null) {
-            applications = applicationService.getAllApplications();
-        } else if (statusId != null && internshipId == null) {
-            applications = applicationService.getApplicationByStatus(statusId);
-        } else if (statusId == null) {
-            applications = applicationService.getAllByInternship(internshipId);
-        } else {
-            applications = applicationService.getAllByInternshipAndStatus(internshipId, statusId);
-        }
+    public ResponseEntity<Page<Application>> getApplications(@RequestBody GetApplicationsRequest request) {
+        org.springframework.data.domain.Page<ApplicationEntity> page = applicationService.getApplications(request);
 
-        if (applications.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>(applications, HttpStatus.OK);
+        Page<Application> result = Page.<Application>builder()
+                .pageSize(page.getSize())
+                .pageNumber(page.getNumber())
+                .totalPages(page.getTotalPages())
+                .totalElements(page.getTotalElements())
+                .content(mapper.mapAsList(page.getContent(), Application.class))
+                .build();
+
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     /**

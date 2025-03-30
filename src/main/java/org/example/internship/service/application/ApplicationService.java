@@ -1,10 +1,11 @@
 package org.example.internship.service.application;
 
+import org.example.internship.entity.ApplicationEntity;
+import org.example.internship.model.request.GetApplicationsRequest;
 import org.example.internship.model.request.application.UpdateApplicationStatusRequest;
 import org.example.internship.model.request.application.CreateApplicationRequest;
 import org.example.internship.model.response.application.Application;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
 
 /**
  * Сервис для работы с заявками.
@@ -29,7 +30,7 @@ public interface ApplicationService {
      *
      * @return список всех заявок
      */
-    List<Application> getAllApplications();
+    Page<ApplicationEntity> getApplications(GetApplicationsRequest request);
 
     /**
      * Получение заявки по её идентификатору.
@@ -38,30 +39,4 @@ public interface ApplicationService {
      * @return информация о заявке с указанным идентификатором
      */
     Application getApplicationById(Long id);
-
-    /**
-     * Получение списка заявок по статусу.
-     *
-     * @param statusId идентификатор статуса заявки
-     * @return список заявок с указанным статусом
-     */
-    List<Application> getApplicationByStatus(Long statusId);
-
-
-    /**
-     * Получение списка заявок по идентификатору стажировки.
-     *
-     * @param internshipId идентификатор стажировки
-     * @return список заявок, оставленных на указанную стажировку
-     */
-    List<Application> getAllByInternship(Long internshipId);
-
-    /**
-     * Получение списка заявок по идентификатору стажировки и статусу.
-     *
-     * @param internshipId идентификатор стажировки
-     * @param statusId     идентификатор статуса заявки
-     * @return список заявок, оставленных на указанную стажировку с указанным статусом
-     */
-    List<Application> getAllByInternshipAndStatus(Long internshipId, Long statusId);
 }
