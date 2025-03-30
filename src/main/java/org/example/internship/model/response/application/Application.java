@@ -14,7 +14,7 @@ import java.time.LocalDate;
  */
 @Getter
 @Setter
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
 public class Application {
     private Long id;
     private String fullName;

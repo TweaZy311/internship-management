@@ -17,7 +17,7 @@ import java.util.List;
  */
 @Getter
 @Setter
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
 public class Solution {
     private Long id;
     private String repositoryUrl;

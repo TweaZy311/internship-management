@@ -14,7 +14,7 @@ import java.util.List;
  */
 @Getter
 @Setter
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
 public class UserLessonInfo extends Lesson {
     private List<ShortTaskInfo> tasks;
     private Internship internship;

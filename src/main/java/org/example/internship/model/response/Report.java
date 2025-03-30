@@ -14,7 +14,7 @@ import java.util.Map;
 @Getter
 @Setter
 @AllArgsConstructor
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
 public class Report {
     private String username;
     private Map<String, String> taskStatuses;

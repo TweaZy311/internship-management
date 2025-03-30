@@ -8,7 +8,7 @@ import org.example.internship.model.response.internship.Internship;
 
 @Getter
 @Setter
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
 public class UserInfo extends User {
     private Internship internship;
 }

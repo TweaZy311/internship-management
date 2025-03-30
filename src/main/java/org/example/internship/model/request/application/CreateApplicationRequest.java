@@ -13,7 +13,7 @@ import java.time.LocalDate;
  */
 @Getter
 @Setter
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
 public class CreateApplicationRequest {
     private String fullName;
     private String email;
