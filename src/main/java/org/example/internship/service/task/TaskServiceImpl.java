@@ -1,25 +1,26 @@
 package org.example.internship.service.task;
 
 import lombok.RequiredArgsConstructor;
+import org.example.internship.entity.*;
 import org.example.internship.mapper.Mapper;
+import org.example.internship.model.request.BaseGetListRequest;
 import org.example.internship.model.request.task.CreateTaskRequest;
 import org.example.internship.model.request.task.UpdateTaskRequest;
 import org.example.internship.model.response.task.Task;
-import org.example.internship.entity.LessonEntity;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
-import org.example.internship.entity.TaskEntity;
-import org.example.internship.entity.UserRole;
-import org.example.internship.entity.UserEntity;
 import org.example.internship.repository.LessonRepository;
 import org.example.internship.repository.TaskRepository;
 import org.example.internship.repository.UserRepository;
 import org.example.internship.service.gitlab.GitlabService;
+import org.example.internship.utils.SpecificationsBuilder;
 import org.gitlab4j.api.models.Project;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -109,9 +110,18 @@ public class TaskServiceImpl implements TaskService {
      * @return список всех заданий
      */
     @Override
-    public List<Task> getAllTasks() {
-        List<TaskEntity> tasks = taskRepository.findAll();
-        return mapper.mapAsList(tasks, Task.class);
+    public Page<TaskEntity> getTasks(BaseGetListRequest request) {
+        SpecificationsBuilder<TaskEntity> filterBuilder = new SpecificationsBuilder<>();
+        request.getFilters().forEach(filterBuilder::with);
+
+        Sort sort = request.getSortBy() != null ?
+                Sort.by(
+                        Sort.Direction.fromOptionalString(request.getSortDirection()).orElse(Sort.Direction.ASC),
+                        request.getSortBy()
+                ) :
+                Sort.unsorted();
+        return taskRepository.findAll(filterBuilder.build(),
+                PageRequest.of(request.getPage(), request.getPageSize(), sort));
     }
 
     /**
@@ -132,16 +142,12 @@ public class TaskServiceImpl implements TaskService {
         if (!lesson.getIsPublished()) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.TSK_400.getCode(), LESSON_WITH_TASKS_NOT_PUBLISHED_YET);
         }
-        if (task.getPublishDate() != null && task.getPublishDate().isBefore(LocalDate.now())) {
+        if (!task.getIsPublished()) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.TSK_400.getCode(), "Task with such ID is already published");
         }
 
-        task.setPublishDate(LocalDate.now());
         List<UserEntity> users = userRepository.findAllByInternshipIdAndRole(lesson.getInternship().getId(), UserRole.USER);
-        //todo возможно стоит убрать
-        if (users.isEmpty()) {
-            throw new EntityNotFoundException("Users not found");
-        }
+
         for (UserEntity user : users) {
             gitlabService.forkRepository(task.getRepositoryId(), user.getUsername());
         }
@@ -164,13 +170,10 @@ public class TaskServiceImpl implements TaskService {
         }
 
         List<UserEntity> users = userRepository.findAllByInternshipIdAndRole(lesson.getInternship().getId(), UserRole.USER);
-        //todo возможно стоит убрать
-        if (users.isEmpty()) {
-            throw new EntityNotFoundException("Users not found");
-        }
+
         List<TaskEntity> publishedTasks = new ArrayList<>();
         for (TaskEntity task : tasks) {
-            task.setPublishDate(LocalDate.now());
+            task.setIsPublished(Boolean.TRUE);
             publishedTasks.add(taskRepository.save(task));
             for (UserEntity user : users) {
                 gitlabService.forkRepository(task.getRepositoryId(), user.getUsername());

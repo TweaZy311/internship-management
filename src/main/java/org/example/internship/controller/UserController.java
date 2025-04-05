@@ -86,6 +86,7 @@ public class UserController {
             @Parameter(name = "username", description = "Имя пользователя"),
             @Parameter(name = "email", description = "Email пользователя")
     })
+    //todo нужно ли оставлять этот метод?
     public ResponseEntity<User> getByParam(@RequestParam(required = false) String username,
                                            @RequestParam(required = false) String email) {
         if (username != null && email != null) {

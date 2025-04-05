@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.internship.config.properties.StatusProperties;
 import org.example.internship.entity.*;
 import org.example.internship.mapper.Mapper;
+import org.example.internship.model.request.BaseGetListRequest;
 import org.example.internship.model.request.solution.UpdateSolutionStatusRequest;
 import org.example.internship.model.response.solution.Solution;
 import org.example.internship.exception.ErrorCode;
@@ -12,7 +13,11 @@ import org.example.internship.repository.SolutionRepository;
 import org.example.internship.repository.StatusRepository;
 import org.example.internship.repository.TaskRepository;
 import org.example.internship.repository.UserRepository;
+import org.example.internship.utils.SpecificationsBuilder;
 import org.gitlab4j.api.systemhooks.PushSystemHookEvent;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -107,10 +112,18 @@ public class SolutionServiceImpl implements SolutionService {
      * @return список всех решений
      */
     @Override
-    public List<Solution> getAllSolutions() {
-        List<SolutionEntity> solutions = solutionRepository.findAll();
+    public Page<SolutionEntity> getSolutions(BaseGetListRequest request) {
+        SpecificationsBuilder<SolutionEntity> filterBuilder = new SpecificationsBuilder<>();
+        request.getFilters().forEach(filterBuilder::with);
 
-        return mapper.mapAsList(solutions, Solution.class);
+        Sort sort = request.getSortBy() != null ?
+                Sort.by(
+                        Sort.Direction.fromOptionalString(request.getSortDirection()).orElse(Sort.Direction.ASC),
+                        request.getSortBy()
+                ) :
+                Sort.unsorted();
+        return solutionRepository.findAll(filterBuilder.build(),
+                PageRequest.of(request.getPage(), request.getPageSize(), sort));
     }
 
     /**

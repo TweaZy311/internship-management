@@ -1,9 +1,12 @@
 package org.example.internship.repository;
 
+import org.example.internship.entity.InternshipEntity;
 import org.example.internship.entity.SolutionEntity;
 import org.example.internship.entity.TaskEntity;
 import org.example.internship.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -12,7 +15,7 @@ import java.util.List;
  * Репозиторий для работы с решениями задач.
  */
 @Repository
-public interface SolutionRepository extends JpaRepository<SolutionEntity, Long> {
+public interface SolutionRepository extends PagingAndSortingRepository<SolutionEntity, Long>, JpaSpecificationExecutor<SolutionEntity>, JpaRepository<SolutionEntity, Long> {
 
     /**
      * Поиск решения по URL репозитория.

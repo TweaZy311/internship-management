@@ -8,8 +8,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.example.internship.entity.SolutionEntity;
+import org.example.internship.entity.TaskEntity;
+import org.example.internship.mapper.Mapper;
+import org.example.internship.model.Page;
+import org.example.internship.model.request.BaseGetListRequest;
 import org.example.internship.model.request.task.CreateTaskRequest;
 import org.example.internship.model.request.task.UpdateTaskRequest;
+import org.example.internship.model.response.solution.Solution;
 import org.example.internship.model.response.task.Task;
 import org.example.internship.service.task.TaskService;
 import org.springframework.http.HttpStatus;
@@ -29,6 +35,7 @@ import java.util.List;
 @Tag(name = "Управление заданиями")
 public class TaskController {
     private final TaskService taskService;
+    private final Mapper mapper;
 
     /**
      * Создание нового задания.
@@ -58,6 +65,7 @@ public class TaskController {
      * @return HTTP-ответ со списком опубликованных заданий и кодом состояния 200 OK в случае успешного получения данных,
      * или кодом состояния 204 NO CONTENT, если список пуст
      */
+    //todo deprecated
     @GetMapping("/published")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @Operation(summary = "Получить список опубликованных заданий",
@@ -128,7 +136,7 @@ public class TaskController {
      * @return HTTP-ответ со списком всех заданий и кодом состояния 200 OK в случае успешного получения данных
      * или кодом состояния 204 NO CONTENT, если список пуст
      */
-    @GetMapping("/all")
+    @PostMapping("/page")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Получить список всех заданий",
             description = "Возвращает список всех заданий. Доступно только администраторам.")
@@ -137,12 +145,17 @@ public class TaskController {
             @ApiResponse(responseCode = "204", description = "Список заданий пуст"),
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
-    public ResponseEntity<List<Task>> getAllTasks() {
-        List<Task> tasks = taskService.getAllTasks();
-        if (tasks.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>(tasks, HttpStatus.OK);
+    public ResponseEntity<Page<Task>> getTasks(@RequestBody BaseGetListRequest request) {
+        org.springframework.data.domain.Page<TaskEntity> page = taskService.getTasks(request);
+
+        Page<Task> result = Page.<Task>builder()
+                .pageSize(page.getSize())
+                .pageNumber(page.getNumber())
+                .totalPages(page.getTotalPages())
+                .totalElements(page.getTotalElements())
+                .content(mapper.mapAsList(page.getContent(), Task.class))
+                .build();
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     /**

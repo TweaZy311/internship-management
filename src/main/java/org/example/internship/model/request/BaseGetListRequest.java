@@ -15,7 +15,7 @@ import java.util.List;
 public class BaseGetListRequest {
     private List<SearchCriteria> filters = new ArrayList<>();
     private int page;
-    private int pageSize;
+    private int pageSize = 20;
     private String sortBy;
     private String sortDirection;
 }

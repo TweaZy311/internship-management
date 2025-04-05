@@ -1,7 +1,10 @@
 package org.example.internship.repository;
 
+import org.example.internship.entity.SolutionEntity;
 import org.example.internship.entity.TaskEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -11,7 +14,7 @@ import java.util.List;
  * Репозиторий для работы с задачами.
  */
 @Repository
-public interface TaskRepository extends JpaRepository<TaskEntity, Long> {
+public interface TaskRepository extends PagingAndSortingRepository<TaskEntity, Long>, JpaSpecificationExecutor<TaskEntity>, JpaRepository<TaskEntity, Long> {
 
     /**
      * Поиск всех задач, опубликованных до указанной даты.

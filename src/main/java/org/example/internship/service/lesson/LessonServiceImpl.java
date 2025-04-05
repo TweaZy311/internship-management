@@ -3,6 +3,7 @@ package org.example.internship.service.lesson;
 import lombok.RequiredArgsConstructor;
 import org.example.internship.entity.InternshipEntity;
 import org.example.internship.mapper.Mapper;
+import org.example.internship.model.request.BaseGetListRequest;
 import org.example.internship.model.request.lesson.CreateLessonRequest;
 import org.example.internship.model.response.lesson.AdminLessonInfo;
 import org.example.internship.model.response.lesson.Lesson;
@@ -12,6 +13,10 @@ import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.repository.InternshipRepository;
 import org.example.internship.repository.LessonRepository;
+import org.example.internship.utils.SpecificationsBuilder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -64,9 +69,18 @@ public class LessonServiceImpl implements LessonService {
      * @return список всех занятий
      */
     @Override
-    public List<AdminLessonInfo> getAllLessons() {
-        List<LessonEntity> lessonEntities = lessonRepository.findAll();
-        return mapper.mapAsList(lessonEntities, AdminLessonInfo.class);
+    public Page<LessonEntity> getLessons(BaseGetListRequest request) {
+        SpecificationsBuilder<LessonEntity> filterBuilder = new SpecificationsBuilder<>();
+        request.getFilters().forEach(filterBuilder::with);
+
+        Sort sort = request.getSortBy() != null ?
+                Sort.by(
+                        Sort.Direction.fromOptionalString(request.getSortDirection()).orElse(Sort.Direction.ASC),
+                        request.getSortBy()
+                ) :
+                Sort.unsorted();
+        return lessonRepository.findAll(filterBuilder.build(),
+                PageRequest.of(request.getPage(), request.getPageSize(), sort));
     }
 
     /**

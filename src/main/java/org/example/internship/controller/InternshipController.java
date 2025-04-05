@@ -8,8 +8,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.example.internship.entity.ApplicationEntity;
+import org.example.internship.entity.InternshipEntity;
+import org.example.internship.mapper.Mapper;
+import org.example.internship.model.Page;
+import org.example.internship.model.request.BaseGetListRequest;
 import org.example.internship.model.request.internship.CreateUpdateInternshipRequest;
 import org.example.internship.model.response.Report;
+import org.example.internship.model.response.application.Application;
 import org.example.internship.model.response.internship.Internship;
 import org.example.internship.model.response.internship.PublicInternshipInfo;
 import org.example.internship.exception.ErrorCode;
@@ -33,6 +39,7 @@ import java.util.List;
 public class InternshipController {
     private final InternshipService internshipService;
     private final Validator validator;
+    private final Mapper mapper;
 
     /**
      * Создание новой программы стажировки.
@@ -91,11 +98,11 @@ public class InternshipController {
      * Получение списка всех программ стажировок.
      * Доступно только пользователям с ролью ADMIN.
      *
-     * @param statusId фильтр по статусу программы стажировки (необязательный)
+     * @param request фильтр по статусу программы стажировки (необязательный)
      * @return HTTP-ответ со списком программ стажировок и кодом состояния 200 OK в случае успешного получения данных,
      * или кодом состояния 204 NO CONTENT, если список пуст
      */
-    @GetMapping("/all")
+    @PostMapping("/page")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Получить все стажировки",
             description = "Возвращает список всех стажировок c указанным статусом (если он указан). Доступно только администраторам.")
@@ -106,18 +113,18 @@ public class InternshipController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @Parameter(name = "status", description = "Статус стажировки")
-    public ResponseEntity<List<Internship>> getAllInternships(@RequestParam(required = false) Long statusId) {
-        List<Internship> internships;
-        if (statusId != null) {
-            internships = internshipService.getInternshipsByStatus(statusId);
-        } else {
-            internships = internshipService.getAllInternships();
-        }
+    public ResponseEntity<Page<Internship>> getInternships(@RequestBody BaseGetListRequest request) {
+        org.springframework.data.domain.Page<InternshipEntity> page = internshipService.getInternships(request);
 
-        if (internships.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>(internships, HttpStatus.OK);
+        Page<Internship> result = Page.<Internship>builder()
+                .pageSize(page.getSize())
+                .pageNumber(page.getNumber())
+                .totalPages(page.getTotalPages())
+                .totalElements(page.getTotalElements())
+                .content(mapper.mapAsList(page.getContent(), Internship.class))
+                .build();
+
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     /**
@@ -133,7 +140,7 @@ public class InternshipController {
             @ApiResponse(responseCode = "200", description = "Список открытых стажировок"),
             @ApiResponse(responseCode = "204", description = "Список пуст"),
     })
-    //todo переделать с параметром true/false?
+    //todo deprecated
     public ResponseEntity<List<PublicInternshipInfo>> getAllOpenedInternships() {
         List<PublicInternshipInfo> internships = internshipService.getInternshipsByIsOpen(true);
         if (internships.isEmpty()) {
