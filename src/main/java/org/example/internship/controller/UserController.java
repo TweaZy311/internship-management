@@ -92,7 +92,7 @@ public class UserController {
         if (username != null && email != null) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.ITS_400.getCode(), "Wrong param input");
         }
-        User user;
+        UserEntity user;
         if (username != null) {
             user = userService.getByUsername(username);
         } else if (email != null) {
@@ -100,7 +100,7 @@ public class UserController {
         } else {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.ITS_400.getCode(), "Wrong param input");
         }
-        return new ResponseEntity<>(user, HttpStatus.OK);
+        return new ResponseEntity<>(mapper.map(user, User.class), HttpStatus.OK);
     }
 
     /**

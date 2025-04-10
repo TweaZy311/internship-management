@@ -17,7 +17,7 @@ public interface UserService {
      * @param email адрес электронной почты пользователя
      * @return информация о пользователе
      */
-    User getByEmail(String email);
+    UserEntity getByEmail(String email);
 
     /**
      * Получение информации о пользователе по его идентификатору.
@@ -33,7 +33,7 @@ public interface UserService {
      * @param username имя пользователя
      * @return информация о пользователе
      */
-    User getByUsername(String username);
+    UserEntity getByUsername(String username);
 
     /**
      * Получение списка всех пользователей.
