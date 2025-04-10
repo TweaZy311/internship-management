@@ -14,7 +14,7 @@ import java.util.List;
  */
 @Getter
 @Setter
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
 public class PrivateInternshipInfo extends Internship {
 //    private List<InternshipLessonInfo> lessons;
     private List<User> participants = new ArrayList<>();

@@ -10,7 +10,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
 public class CreateTaskRequest {
     private String name;
     private String description;

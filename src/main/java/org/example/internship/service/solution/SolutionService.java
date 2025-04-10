@@ -1,8 +1,11 @@
 package org.example.internship.service.solution;
 
+import org.example.internship.entity.SolutionEntity;
+import org.example.internship.model.request.BaseGetListRequest;
 import org.example.internship.model.request.solution.UpdateSolutionStatusRequest;
 import org.example.internship.model.response.solution.Solution;
 import org.gitlab4j.api.systemhooks.PushSystemHookEvent;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -38,7 +41,7 @@ public interface SolutionService {
      *
      * @return список всех решений
      */
-    List<Solution> getAllSolutions();
+    Page<SolutionEntity> getSolutions(BaseGetListRequest request);
 
     /**
      * Получение списка решений по указанному статусу.

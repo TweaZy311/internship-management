@@ -9,7 +9,13 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.internship.annotation.GitlabTokenRequired;
+import org.example.internship.entity.InternshipEntity;
+import org.example.internship.entity.SolutionEntity;
+import org.example.internship.mapper.Mapper;
+import org.example.internship.model.Page;
+import org.example.internship.model.request.BaseGetListRequest;
 import org.example.internship.model.request.solution.UpdateSolutionStatusRequest;
+import org.example.internship.model.response.internship.Internship;
 import org.example.internship.model.response.solution.Solution;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
@@ -34,6 +40,7 @@ import java.util.List;
 public class SolutionController {
     private final SolutionService solutionService;
     private final GitlabService gitlabService;
+    private final Mapper mapper;
 
     /**
      * Добавление нового решения задания.
@@ -108,12 +115,10 @@ public class SolutionController {
      * Получение списка всех решений заданий.
      * Доступно только пользователям с ролью ADMIN.
      *
-     * @param status статус решения (необязательный параметр)
-     * @param taskId идентификатор задания, которому соответствуют решения (необязательный параметр)
      * @return HTTP-ответ со списком всех решений заданий и кодом состояния 200 OK в случае успешного получения данных,
      * или кодом состояния 204 NO CONTENT, если список пуст
      */
-    @GetMapping("/all")
+    @PostMapping("/page")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Получить список решений заданий",
             description = "Возвращает список всех решений заданий. Доступно только администраторам.")
@@ -124,27 +129,21 @@ public class SolutionController {
             @ApiResponse(responseCode = "400", description = "Некорректный запрос (указаны оба параметра одновременно)"),
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
-    @Parameters({
-            @Parameter(name = "status", description = "Статус решения"),
-            @Parameter(name = "taskId", description = "Идентификатор задания, которому соответствуют решения")
-    })
-    public ResponseEntity<List<Solution>> getAllSolutions(@RequestParam(required = false) String status,
-                                                          @RequestParam(required = false) Long taskId) {
-        if (status != null && taskId != null) {
-            throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.SLN_400.getCode(), "Wrong param values");
-        }
-        List<Solution> solutions;
-        if (status != null) {
-            solutions = solutionService.getAllByStatus(status);
-        } else if (taskId != null) {
-            solutions = solutionService.getAllByTaskId(taskId);
-        } else {
-            solutions = solutionService.getAllSolutions();
-        }
-        if (solutions.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>(solutions, HttpStatus.OK);
+//    @Parameters({
+//            @Parameter(name = "status", description = "Статус решения"),
+//            @Parameter(name = "taskId", description = "Идентификатор задания, которому соответствуют решения")
+//    })
+    public ResponseEntity<Page<Solution>> getSolutions(@RequestBody BaseGetListRequest request) {
+        org.springframework.data.domain.Page<SolutionEntity> page = solutionService.getSolutions(request);
+
+        Page<Solution> result = Page.<Solution>builder()
+                .pageSize(page.getSize())
+                .pageNumber(page.getNumber())
+                .totalPages(page.getTotalPages())
+                .totalElements(page.getTotalElements())
+                .content(mapper.mapAsList(page.getContent(), Solution.class))
+                .build();
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
 }

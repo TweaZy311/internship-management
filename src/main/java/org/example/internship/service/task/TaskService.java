@@ -1,8 +1,11 @@
 package org.example.internship.service.task;
 
+import org.example.internship.entity.TaskEntity;
+import org.example.internship.model.request.BaseGetListRequest;
 import org.example.internship.model.request.task.CreateTaskRequest;
 import org.example.internship.model.request.task.UpdateTaskRequest;
 import org.example.internship.model.response.task.Task;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -45,7 +48,7 @@ public interface TaskService {
      *
      * @return список всех заданий
      */
-    List<Task> getAllTasks();
+    Page<TaskEntity> getTasks(BaseGetListRequest request);
 
     /**
      * Публикация задания по его идентификатору.

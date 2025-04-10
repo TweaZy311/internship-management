@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.internship.config.properties.StatusProperties;
 import org.example.internship.entity.InternshipEntity;
 import org.example.internship.mapper.Mapper;
+import org.example.internship.model.request.GetApplicationsRequest;
 import org.example.internship.model.request.application.UpdateApplicationStatusRequest;
 import org.example.internship.model.request.application.CreateApplicationRequest;
 import org.example.internship.model.response.application.Application;
@@ -14,6 +15,10 @@ import org.example.internship.entity.ApplicationEntity;
 import org.example.internship.repository.ApplicationRepository;
 import org.example.internship.repository.InternshipRepository;
 import org.example.internship.repository.StatusRepository;
+import org.example.internship.utils.SpecificationsBuilder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -100,9 +105,19 @@ public class ApplicationServiceImpl implements ApplicationService {
      * @return список всех заявок
      */
     @Override
-    public List<Application> getAllApplications() {
-        List<ApplicationEntity> applications = applicationRepository.findAll();
-        return mapper.mapAsList(applications, Application.class);
+    public Page<ApplicationEntity> getApplications(GetApplicationsRequest request) {
+        SpecificationsBuilder<ApplicationEntity> filterBuilder = new SpecificationsBuilder<>();
+        request.getFilters().forEach(filterBuilder::with);
+
+        Sort sort = request.getSortBy() != null ?
+                Sort.by(
+                        Sort.Direction.fromOptionalString(request.getSortDirection()).orElse(Sort.Direction.ASC),
+                        request.getSortBy()
+                ) :
+                Sort.unsorted();
+
+        return applicationRepository.findAll(filterBuilder.build(),
+                PageRequest.of(request.getPage(), request.getPageSize(), sort));
     }
 
     /**
@@ -117,44 +132,5 @@ public class ApplicationServiceImpl implements ApplicationService {
         ApplicationEntity application = applicationRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.APL_404.getCode(), APPLICATION_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         return mapper.map(application, Application.class);
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @param statusId идентификатор статуса заявки
-     * @return список заявок с указанным статусом
-     */
-    @Override
-    public List<Application> getApplicationByStatus(Long statusId) {
-        List<ApplicationEntity> applications = applicationRepository
-                .findAllByStatusId(statusId);
-        return mapper.mapAsList(applications, Application.class);
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @param internshipId идентификатор стажировки
-     * @return список заявок, оставленных на указанную стажировку
-     */
-    @Override
-    public List<Application> getAllByInternship(Long internshipId) {
-        List<ApplicationEntity> applications = applicationRepository.findAllByInternshipId(internshipId);
-        return mapper.mapAsList(applications, Application.class);
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @param internshipId идентификатор стажировки
-     * @param statusId     идентификатор статуса заявки
-     * @return список заявок, оставленных на указанную стажировку с указанным статусом
-     */
-    @Override
-    public List<Application> getAllByInternshipAndStatus(Long internshipId, Long statusId) {
-        List<ApplicationEntity> applications = applicationRepository
-                .findAllByInternshipIdAndStatusId(internshipId, statusId);
-        return mapper.mapAsList(applications, Application.class);
     }
 }

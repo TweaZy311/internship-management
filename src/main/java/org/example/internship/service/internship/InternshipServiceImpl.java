@@ -1,7 +1,9 @@
 package org.example.internship.service.internship;
 
 import lombok.RequiredArgsConstructor;
+import org.example.internship.entity.*;
 import org.example.internship.mapper.Mapper;
+import org.example.internship.model.request.BaseGetListRequest;
 import org.example.internship.model.request.internship.UpdateInternshipStatusRequest;
 import org.example.internship.model.request.internship.CreateUpdateInternshipRequest;
 import org.example.internship.model.response.Report;
@@ -11,13 +13,11 @@ import org.example.internship.model.response.internship.PrivateInternshipInfo;
 import org.example.internship.model.response.internship.PublicInternshipInfo;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
-import org.example.internship.entity.StatusEntity;
-import org.example.internship.entity.TaskEntity;
-import org.example.internship.entity.InternshipEntity;
-import org.example.internship.entity.SolutionEntity;
-import org.example.internship.entity.UserRole;
-import org.example.internship.entity.UserEntity;
 import org.example.internship.repository.*;
+import org.example.internship.utils.SpecificationsBuilder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -119,9 +119,18 @@ public class InternshipServiceImpl implements InternshipService {
      * @return список всех стажировок
      */
     @Override
-    public List<Internship> getAllInternships() {
-        List<InternshipEntity> internships = internshipRepository.findAll();
-        return mapper.mapAsList(internships, Internship.class);
+    public Page<InternshipEntity> getInternships(BaseGetListRequest request) {
+        SpecificationsBuilder<InternshipEntity> filterBuilder = new SpecificationsBuilder<>();
+        request.getFilters().forEach(filterBuilder::with);
+
+        Sort sort = request.getSortBy() != null ?
+                Sort.by(
+                        Sort.Direction.fromOptionalString(request.getSortDirection()).orElse(Sort.Direction.ASC),
+                        request.getSortBy()
+                ) :
+                Sort.unsorted();
+        return internshipRepository.findAll(filterBuilder.build(),
+                PageRequest.of(request.getPage(), request.getPageSize(), sort));
     }
 
     /**

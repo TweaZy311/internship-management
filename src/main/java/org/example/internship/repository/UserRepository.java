@@ -3,6 +3,8 @@ package org.example.internship.repository;
 import org.example.internship.entity.UserRole;
 import org.example.internship.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -12,7 +14,7 @@ import java.util.Optional;
  * Репозиторий для работы с пользователями.
  */
 @Repository
-public interface UserRepository extends JpaRepository<UserEntity, Long> {
+public interface UserRepository extends PagingAndSortingRepository<UserEntity, Long>, JpaSpecificationExecutor<UserEntity>, JpaRepository<UserEntity, Long> {
 
     /**
      * Поиск пользователя по username.

@@ -1,5 +1,4 @@
-package org.example.internship.model.response.lesson;
-
+package org.example.internship.model.request;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -9,8 +8,5 @@ import lombok.Setter;
 @Getter
 @Setter
 @JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
-public class Lesson {
-    private Long id;
-    private String name;
-    private String description;
+public class GetUsersRequest extends BaseGetListRequest {
 }

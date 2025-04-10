@@ -50,10 +50,10 @@ public class TaskEntity {
     private String description;
 
     /**
-     * Дата публикации задания.
+     * Флаг публикации задания.
      */
-    @Column(name = "publish_date")
-    private LocalDate publishDate;
+    @Column(name = "is_published")
+    private Boolean isPublished;
 
     /**
      * Занятие, к которому относится задание.

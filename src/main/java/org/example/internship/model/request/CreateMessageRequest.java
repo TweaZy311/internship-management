@@ -10,7 +10,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
 public class CreateMessageRequest {
     private String text;
     private Long senderId;

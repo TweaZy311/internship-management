@@ -1,9 +1,11 @@
 package org.example.internship.service.user;
 
+import org.example.internship.entity.UserEntity;
 import org.example.internship.model.request.CreateUserRequest;
+import org.example.internship.model.request.GetUsersRequest;
 import org.example.internship.model.response.User;
+import org.springframework.data.domain.Page;
 
-import java.util.List;
 /**
  * Сервис для работы с пользователями.
  */
@@ -38,7 +40,7 @@ public interface UserService {
      *
      * @return список пользователей
      */
-    List<User> getAllUsers();
+    Page<UserEntity> getUsers(GetUsersRequest request);
 
     /**
      * Создание нового пользователя.

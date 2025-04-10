@@ -12,7 +12,7 @@ import java.util.Date;
  */
 @Getter
 @Setter
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
 public class Message {
     private String text;
     private User receiver;

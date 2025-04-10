@@ -2,13 +2,17 @@ package org.example.internship.model;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
-public class CreateUpdateStatusRequest {
-    private String name;
-    private String type;
+public class SearchCriteria {
+    private SearchKey key;
+    private SearchOperation operation;
+    private Object value;
+    private BooleanOperator operator;
 }

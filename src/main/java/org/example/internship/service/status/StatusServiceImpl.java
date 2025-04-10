@@ -8,7 +8,12 @@ import org.example.internship.exception.ServiceException;
 import org.example.internship.mapper.Mapper;
 import org.example.internship.model.CreateUpdateStatusRequest;
 import org.example.internship.model.Status;
+import org.example.internship.model.request.BaseGetListRequest;
 import org.example.internship.repository.StatusRepository;
+import org.example.internship.utils.SpecificationsBuilder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -44,9 +49,18 @@ public class StatusServiceImpl implements StatusService {
     }
 
     @Override
-    public List<Status> getAllStatuses() {
-        List<StatusEntity> statusEntities = statusRepository.findAll();
-        return mapper.mapAsList(statusEntities, Status.class);
+    public Page<StatusEntity> getStatuses(BaseGetListRequest request) {
+        SpecificationsBuilder<StatusEntity> filterBuilder = new SpecificationsBuilder<>();
+        request.getFilters().forEach(filterBuilder::with);
+
+        Sort sort = request.getSortBy() != null ?
+                Sort.by(
+                        Sort.Direction.fromOptionalString(request.getSortDirection()).orElse(Sort.Direction.ASC),
+                        request.getSortBy()
+                ) :
+                Sort.unsorted();
+        return statusRepository.findAll(filterBuilder.build(),
+                PageRequest.of(request.getPage(), request.getPageSize(), sort));
     }
 
     @Override

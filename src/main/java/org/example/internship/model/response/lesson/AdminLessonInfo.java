@@ -14,7 +14,7 @@ import java.util.List;
  */
 @Getter
 @Setter
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
 public class AdminLessonInfo extends Lesson {
     private Boolean isPublished;
     private List<ShortTaskInfo> tasks;
