@@ -3,8 +3,6 @@ package org.example.internship.service.lesson;
 import org.example.internship.entity.LessonEntity;
 import org.example.internship.model.request.BaseGetListRequest;
 import org.example.internship.model.request.lesson.CreateLessonRequest;
-import org.example.internship.model.response.lesson.AdminLessonInfo;
-import org.example.internship.model.response.lesson.UserLessonInfo;
 import org.springframework.data.domain.Page;
 
 import java.util.List;

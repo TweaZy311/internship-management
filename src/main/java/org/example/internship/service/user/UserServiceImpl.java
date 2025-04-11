@@ -13,7 +13,6 @@ import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.entity.UserRole;
 import org.example.internship.entity.UserEntity;
-import org.example.internship.model.response.UserInfo;
 import org.example.internship.repository.InternshipRepository;
 import org.example.internship.repository.UserRepository;
 import org.example.internship.service.gitlab.GitlabService;
@@ -27,7 +26,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import javax.management.relation.Role;
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
 

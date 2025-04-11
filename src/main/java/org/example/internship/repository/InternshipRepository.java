@@ -1,6 +1,5 @@
 package org.example.internship.repository;
 
-import org.example.internship.entity.ApplicationEntity;
 import org.example.internship.entity.InternshipEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;

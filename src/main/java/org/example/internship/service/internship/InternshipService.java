@@ -5,8 +5,6 @@ import org.example.internship.model.request.BaseGetListRequest;
 import org.example.internship.model.request.internship.UpdateInternshipStatusRequest;
 import org.example.internship.model.request.internship.CreateUpdateInternshipRequest;
 import org.example.internship.model.response.Report;
-import org.example.internship.model.response.internship.Internship;
-import org.example.internship.model.response.internship.PublicInternshipInfo;
 import org.springframework.data.domain.Page;
 
 import java.util.List;

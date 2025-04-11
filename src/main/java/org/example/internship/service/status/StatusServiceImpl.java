@@ -7,7 +7,6 @@ import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.mapper.Mapper;
 import org.example.internship.model.CreateUpdateStatusRequest;
-import org.example.internship.model.Status;
 import org.example.internship.model.request.BaseGetListRequest;
 import org.example.internship.repository.StatusRepository;
 import org.example.internship.utils.SpecificationsBuilder;

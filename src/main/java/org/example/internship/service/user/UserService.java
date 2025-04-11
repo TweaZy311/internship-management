@@ -7,7 +7,6 @@ import org.example.internship.model.request.GetUsersRequest;
 import org.example.internship.model.response.User;
 import org.springframework.data.domain.Page;
 
-import javax.management.relation.Role;
 import java.util.List;
 
 /**

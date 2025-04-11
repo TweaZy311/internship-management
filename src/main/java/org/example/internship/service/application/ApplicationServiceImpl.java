@@ -7,7 +7,6 @@ import org.example.internship.mapper.Mapper;
 import org.example.internship.model.request.GetApplicationsRequest;
 import org.example.internship.model.request.application.UpdateApplicationStatusRequest;
 import org.example.internship.model.request.application.CreateApplicationRequest;
-import org.example.internship.model.response.application.Application;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.entity.StatusEntity;
@@ -23,7 +22,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.List;
 
 
 /**

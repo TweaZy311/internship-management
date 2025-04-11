@@ -4,7 +4,6 @@ import org.example.internship.entity.ApplicationEntity;
 import org.example.internship.model.request.GetApplicationsRequest;
 import org.example.internship.model.request.application.UpdateApplicationStatusRequest;
 import org.example.internship.model.request.application.CreateApplicationRequest;
-import org.example.internship.model.response.application.Application;
 import org.springframework.data.domain.Page;
 
 /**
