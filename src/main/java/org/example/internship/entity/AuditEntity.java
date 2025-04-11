@@ -21,7 +21,7 @@ public class AuditEntity {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private UserEntity author;
+    private UserEntity user;
 
     @CreationTimestamp
     @Column(name = "date")

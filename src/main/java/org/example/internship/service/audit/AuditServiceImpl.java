@@ -31,7 +31,7 @@ public class AuditServiceImpl implements AuditService {
             return;
         }
         AuditEntity auditEntity = AuditEntity.builder()
-                .author(userService.getByUsername(username))
+                .user(userService.getByUsername(username))
                 .entityType(entityType != null ? entityType : AuditEntityType.SYSTEM)
                 .actionType(actionType)
                 .entityId(entityId)

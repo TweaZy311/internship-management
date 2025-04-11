@@ -6,7 +6,7 @@ create table audit
     action_type varchar(255) not null,
     entity_type varchar(255) not null,
     entity_id   bigint       not null,
-    entity_name varchar(255) not null,
+    entity_name varchar(255),
     error       varchar(255),
     user_id     bigint,
     primary key (id)
