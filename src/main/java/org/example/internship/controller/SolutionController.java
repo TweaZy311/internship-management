@@ -56,12 +56,12 @@ public class SolutionController {
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация о пуше в репозиторий", required = true)
     public ResponseEntity<Solution> addSolution(@RequestBody PushSystemHookEvent request) {
-        Solution solution = null;
+        SolutionEntity solution = null;
         if (gitlabService.isForkedRepository(request.getProjectId())) {
             solution = solutionService.addSolution(request);
         }
         //todo придумать как передавать заголовок
-        return new ResponseEntity<>(solution, HttpStatus.CREATED);
+        return new ResponseEntity<>(mapper.map(solution, Solution.class), HttpStatus.CREATED);
     }
 
     /**
@@ -84,10 +84,10 @@ public class SolutionController {
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация для обновления статуса решения", required = true)
     public ResponseEntity<Solution> updateSolutionStatus(@RequestBody UpdateSolutionStatusRequest request,
                                                          @RequestHeader("username") String username) {
-        Solution solution = solutionService.updateSolutionStatus(request);
+        SolutionEntity solution = solutionService.updateSolutionStatus(request);
         //todo repository url == name??
         auditService.addRecord(AuditEntityType.SOLUTION, AuditActionType.UPDATE, solution.getId(), solution.getRepositoryUrl(), username);
-        return new ResponseEntity<>(solution, HttpStatus.OK);
+        return new ResponseEntity<>(mapper.map(solution, Solution.class), HttpStatus.OK);
     }
 
     /**
@@ -108,8 +108,8 @@ public class SolutionController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     public ResponseEntity<Solution> getSolutionById(@PathVariable Long id) {
-        Solution solution = solutionService.getSolutionById(id);
-        return new ResponseEntity<>(solution, HttpStatus.OK);
+        SolutionEntity solution = solutionService.getSolutionById(id);
+        return new ResponseEntity<>(mapper.map(solution, Solution.class), HttpStatus.OK);
     }
 
     /**

@@ -28,8 +28,8 @@ public class StatusController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Status> getStatusById(@PathVariable Long id) {
-        Status status = statusService.getStatusById(id);
-        return new ResponseEntity<>(status, HttpStatus.OK);
+        StatusEntity status = statusService.getStatusById(id);
+        return new ResponseEntity<>(mapper.map(status, Status.class), HttpStatus.OK);
     }
 
     @PostMapping("/page")
@@ -51,9 +51,9 @@ public class StatusController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Status> createStatus(@RequestBody CreateUpdateStatusRequest request,
                                                @RequestHeader("username") String username) {
-        Status status = statusService.createStatus(request);
+        StatusEntity status = statusService.createStatus(request);
         auditService.addRecord(AuditEntityType.STATUS, AuditActionType.CREATE, status.getId(), status.getName(), username);
-        return new ResponseEntity<>(status, HttpStatus.CREATED);
+        return new ResponseEntity<>(mapper.map(status, Status.class), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
@@ -61,8 +61,8 @@ public class StatusController {
     public ResponseEntity<Status> updateStatus(@PathVariable Long id,
                                                @RequestBody CreateUpdateStatusRequest request,
                                                @RequestHeader("username") String username) {
-        Status status = statusService.updateStatus(id, request);
+        StatusEntity status = statusService.updateStatus(id, request);
         auditService.addRecord(AuditEntityType.STATUS, AuditActionType.UPDATE, status.getId(), status.getName(), username);
-        return new ResponseEntity<>(status, HttpStatus.OK);
+        return new ResponseEntity<>(mapper.map(status, Status.class), HttpStatus.OK);
     }
 }

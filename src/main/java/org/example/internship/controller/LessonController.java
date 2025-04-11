@@ -61,9 +61,9 @@ public class LessonController {
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация о новом занятии", required = true)
     public ResponseEntity<Lesson> createLesson(@RequestBody CreateLessonRequest request,
                                                @RequestHeader("username") String username) {
-        AdminLessonInfo lesson = lessonService.saveLesson(request);
+        LessonEntity lesson = lessonService.saveLesson(request);
         auditService.addRecord(AuditEntityType.LESSON, AuditActionType.CREATE, lesson.getId(), lesson.getName(), username);
-        return new ResponseEntity<>(lesson, HttpStatus.CREATED);
+        return new ResponseEntity<>(mapper.map(lesson, AdminLessonInfo.class), HttpStatus.CREATED);
     }
 
     /**
@@ -154,8 +154,8 @@ public class LessonController {
     })
     @Parameter(name = "internshipId", description = "Идентификатор стажировки", required = true)
     public ResponseEntity<List<UserLessonInfo>> getPublishedLessons(@RequestParam Long internshipId) {
-        List<UserLessonInfo> lessons = lessonService.getAllPublishedByInternshipId(internshipId);
-        return new ResponseEntity<>(lessons, HttpStatus.OK);
+        List<LessonEntity> lessons = lessonService.getAllPublishedByInternshipId(internshipId);
+        return new ResponseEntity<>(mapper.mapAsList(lessons, UserLessonInfo.class), HttpStatus.OK);
     }
 
     /**
@@ -178,10 +178,10 @@ public class LessonController {
     @Transactional
     public ResponseEntity<Void> publishLesson(@PathVariable Long id,
                                               @RequestHeader("username") String username) {
-        AdminLessonInfo lessonInfo = lessonService.publishLesson(id);
+        LessonEntity lesson = lessonService.publishLesson(id);
         //todo
         taskService.publishByLessonId(id);
-        auditService.addRecord(AuditEntityType.LESSON, AuditActionType.UPDATE, lessonInfo.getId(), lessonInfo.getName(), username);
+        auditService.addRecord(AuditEntityType.LESSON, AuditActionType.UPDATE, lesson.getId(), lesson.getName(), username);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

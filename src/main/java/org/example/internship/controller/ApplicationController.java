@@ -12,13 +12,13 @@ import lombok.RequiredArgsConstructor;
 import org.example.internship.entity.ApplicationEntity;
 import org.example.internship.entity.AuditActionType;
 import org.example.internship.entity.AuditEntityType;
+import org.example.internship.entity.InternshipEntity;
 import org.example.internship.mapper.Mapper;
 import org.example.internship.model.Page;
 import org.example.internship.model.request.GetApplicationsRequest;
 import org.example.internship.model.request.application.UpdateApplicationStatusRequest;
 import org.example.internship.model.request.application.CreateApplicationRequest;
 import org.example.internship.model.response.application.Application;
-import org.example.internship.model.response.internship.Internship;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.service.application.ApplicationService;
@@ -67,9 +67,9 @@ public class ApplicationController {
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Данные новой заявки", required = true)
     public ResponseEntity<Application> createApplication(
             @RequestBody CreateApplicationRequest application) {
-        Internship internshipDto = internshipService.getInternshipById(application.getInternshipId(), Boolean.FALSE);
+        InternshipEntity internship = internshipService.getInternshipById(application.getInternshipId());
 
-        if (internshipDto.getRegistrationEndDate().isBefore(LocalDate.now())) {
+        if (internship.getRegistrationEndDate().isBefore(LocalDate.now())) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.APL_400.getCode(), "Registration for the internship is closed");
         }
         if (!validator.emailIsValid(application.getEmail())) {
@@ -78,11 +78,10 @@ public class ApplicationController {
         if (!validator.phoneNumberIsValid(application.getPhoneNumber())) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.APL_400.getCode(), "Wrong phone number format");
         }
-        //todo возвращать entity в контроллеры
-        Application applicationInfo = applicationService.saveApplication(application);
-        //todo решить проблему с user == null
-        auditService.addRecord(AuditEntityType.APPLICATION, AuditActionType.CREATE, applicationInfo.getId(), applicationInfo.getPhoneNumber(), null);
-        return new ResponseEntity<>(applicationInfo, HttpStatus.CREATED);
+
+        ApplicationEntity applicationEntity = applicationService.saveApplication(application);
+        auditService.addRecord(AuditEntityType.APPLICATION, AuditActionType.CREATE, applicationEntity.getId(), applicationEntity.getPhoneNumber(), null);
+        return new ResponseEntity<>(mapper.map(applicationEntity, Application.class), HttpStatus.CREATED);
     }
 
     /**
@@ -104,9 +103,9 @@ public class ApplicationController {
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Идентификатор заявки и новый статус", required = true)
     public ResponseEntity<Application> changeApplicationStatus(@RequestBody UpdateApplicationStatusRequest statusDto,
                                                                @RequestHeader String username) {
-        Application application = applicationService.changeApplicationStatus(statusDto);
+        ApplicationEntity application = applicationService.changeApplicationStatus(statusDto);
         auditService.addRecord(AuditEntityType.APPLICATION, AuditActionType.UPDATE, application.getId(), null, username);
-        return new ResponseEntity<>(application, HttpStatus.OK);
+        return new ResponseEntity<>(mapper.map(application, Application.class), HttpStatus.OK);
     }
 
     /**
@@ -165,7 +164,7 @@ public class ApplicationController {
     })
     @Parameter(name = "id", description = "Идентификатор заявки")
     public ResponseEntity<Application> getApplicationById(@PathVariable Long id) {
-        Application application = applicationService.getApplicationById(id);
-        return new ResponseEntity<>(application, HttpStatus.OK);
+        ApplicationEntity application = applicationService.getApplicationById(id);
+        return new ResponseEntity<>(mapper.map(application, Application.class), HttpStatus.OK);
     }
 }

@@ -28,24 +28,23 @@ public class StatusServiceImpl implements StatusService {
     private final Mapper mapper;
 
     @Override
-    public Status createStatus(CreateUpdateStatusRequest request) {
+    public StatusEntity createStatus(CreateUpdateStatusRequest request) {
         StatusEntity statusEntity = mapper.map(request, StatusEntity.class);
-        return mapper.map(statusRepository.save(statusEntity), Status.class);
+        return statusRepository.save(statusEntity);
     }
 
     @Override
-    public Status updateStatus(Long id, CreateUpdateStatusRequest request) {
+    public StatusEntity updateStatus(Long id, CreateUpdateStatusRequest request) {
         StatusEntity existingStatus = statusRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.STS_404.getCode(), STATUS_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         mapper.map(request, existingStatus);
-        return mapper.map(statusRepository.save(existingStatus), Status.class);
+        return statusRepository.save(existingStatus);
     }
 
     @Override
-    public Status getStatusById(Long id) {
-        StatusEntity statusEntity = statusRepository.findById(id)
+    public StatusEntity getStatusById(Long id) {
+        return statusRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.STS_404.getCode(), STATUS_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
-        return mapper.map(statusEntity, Status.class);
     }
 
     @Override
@@ -64,8 +63,7 @@ public class StatusServiceImpl implements StatusService {
     }
 
     @Override
-    public List<Status> getAllByType(String type) {
-        List<StatusEntity> statusEntities = statusRepository.findAllByType(StatusType.valueOf(type.toUpperCase()));
-        return mapper.mapAsList(statusEntities, Status.class);
+    public List<StatusEntity> getAllByType(String type) {
+        return statusRepository.findAllByType(StatusType.valueOf(type.toUpperCase()));
     }
 }

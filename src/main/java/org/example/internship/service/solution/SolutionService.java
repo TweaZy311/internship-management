@@ -19,14 +19,14 @@ public interface SolutionService {
      *
      * @param pushEvent событие системного хука GitLab
      */
-    Solution addSolution(PushSystemHookEvent pushEvent);
+    SolutionEntity addSolution(PushSystemHookEvent pushEvent);
 
     /**
      * Обновление статуса решения задания.
      *
      * @param solution информация о решении и его новом статусе
      */
-    Solution updateSolutionStatus(UpdateSolutionStatusRequest solution);
+    SolutionEntity updateSolutionStatus(UpdateSolutionStatusRequest solution);
 
     /**
      * Получение информации о решении по его идентификатору.
@@ -34,7 +34,7 @@ public interface SolutionService {
      * @param id идентификатор решения
      * @return информация о решении
      */
-    Solution getSolutionById(Long id);
+    SolutionEntity getSolutionById(Long id);
 
     /**
      * Получение списка всех решений.
@@ -49,7 +49,7 @@ public interface SolutionService {
      * @param status статус решений
      * @return список решений с указанным статусом
      */
-    List<Solution> getAllByStatus(String status);
+    List<SolutionEntity> getAllByStatus(String status);
 
 
     /**
@@ -58,7 +58,7 @@ public interface SolutionService {
      * @param taskId идентификатор задания
      * @return список объектов SolutionDto, представляющих решения задания
      */
-    List<Solution> getAllByTaskId(Long taskId);
+    List<SolutionEntity> getAllByTaskId(Long taskId);
 
     /**
      * Архивирование решений задач по идентификатору пользователя.

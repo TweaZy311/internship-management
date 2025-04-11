@@ -63,10 +63,10 @@ public class UserController {
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Данные нового пользователя", required = true)
     public ResponseEntity<User> create(@RequestBody CreateUserRequest request,
                                        @RequestHeader("username") String username) {
-        User user = userService.createUser(request);
+        UserEntity user = userService.createUser(request);
         gitlabService.createUser(request);
         auditService.addRecord(AuditEntityType.USER, AuditActionType.CREATE, user.getId(), user.getUsername(), username);
-        return new ResponseEntity<>(user, HttpStatus.CREATED);
+        return new ResponseEntity<>(mapper.map(user, User.class), HttpStatus.CREATED);
     }
 
     /**
@@ -182,9 +182,7 @@ public class UserController {
     public ResponseEntity<Void> archiveUser(@RequestParam String username,
     @RequestHeader("username") String headerUsername) {
         UserEntity user = userService.archiveUser(username);
-        //todo возвращать юзера
         auditService.addRecord(AuditEntityType.USER, AuditActionType.UPDATE, user.getId(), user.getUsername(), headerUsername);
-
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

@@ -8,20 +8,21 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.example.internship.entity.AuditActionType;
-import org.example.internship.entity.AuditEntityType;
-import org.example.internship.entity.InternshipEntity;
+import org.example.internship.entity.*;
 import org.example.internship.mapper.Mapper;
 import org.example.internship.model.Page;
 import org.example.internship.model.request.BaseGetListRequest;
 import org.example.internship.model.request.internship.CreateUpdateInternshipRequest;
 import org.example.internship.model.response.Report;
+import org.example.internship.model.response.User;
 import org.example.internship.model.response.internship.Internship;
+import org.example.internship.model.response.internship.PrivateInternshipInfo;
 import org.example.internship.model.response.internship.PublicInternshipInfo;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.service.audit.AuditService;
 import org.example.internship.service.internship.InternshipService;
+import org.example.internship.service.user.UserService;
 import org.example.internship.utils.Validator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +41,7 @@ import java.util.List;
 public class InternshipController {
     private final InternshipService internshipService;
     private final AuditService auditService;
+    private final UserService userService;
 
     private final Validator validator;
     private final Mapper mapper;
@@ -71,9 +73,9 @@ public class InternshipController {
                 request.getRegistrationEndDate())) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.ITS_400.getCode(), "Wrong date input");
         }
-        Internship internship = internshipService.saveInternship(request);
+        InternshipEntity internship = internshipService.saveInternship(request);
         auditService.addRecord(AuditEntityType.INTERNSHIP, AuditActionType.CREATE, internship.getId(), internship.getName(), username);
-        return new ResponseEntity<>(internship, HttpStatus.CREATED);
+        return new ResponseEntity<>(mapper.map(internship, Internship.class), HttpStatus.CREATED);
     }
 
 //    /**
@@ -147,11 +149,8 @@ public class InternshipController {
     })
     //todo deprecated
     public ResponseEntity<List<PublicInternshipInfo>> getAllOpenedInternships() {
-        List<PublicInternshipInfo> internships = internshipService.getInternshipsByIsOpen(true);
-        if (internships.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>(internships, HttpStatus.OK);
+        List<InternshipEntity> internships = internshipService.getInternshipsByIsOpen(true);
+        return new ResponseEntity<>(mapper.mapAsList(internships, PublicInternshipInfo.class), HttpStatus.OK);
     }
 
     /**
@@ -171,8 +170,14 @@ public class InternshipController {
     @PreAuthorize("@securityService.hasAccess(#isPrivate)")
     public ResponseEntity<Internship> getInternshipById(@PathVariable Long id,
                                                         @RequestParam(name = "private", defaultValue = "false") Boolean isPrivate) {
-        Internship internship = internshipService.getInternshipById(id, isPrivate);
-        return new ResponseEntity<>(internship, HttpStatus.OK);
+        InternshipEntity internship = internshipService.getInternshipById(id);
+        if (isPrivate) {
+            List<UserEntity> participants = userService.getUsersByInternshipIdAndRole(id, UserRole.USER);
+            PrivateInternshipInfo internshipInfo = mapper.map(internship, PrivateInternshipInfo.class);
+            internshipInfo.setParticipants(mapper.mapAsList(participants, User.class));
+            return new ResponseEntity<>(internshipInfo, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(mapper.map(internship, PublicInternshipInfo.class), HttpStatus.OK);
     }
 
 
@@ -203,9 +208,9 @@ public class InternshipController {
                 request.getRegistrationStartDate(), request.getRegistrationEndDate())) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.ITS_400.getCode(), "Wrong date input");
         }
-        Internship internship = internshipService.updateInternship(id, request);
+        InternshipEntity internship = internshipService.updateInternship(id, request);
         auditService.addRecord(AuditEntityType.INTERNSHIP, AuditActionType.UPDATE, internship.getId(), internship.getName(), username);
-        return new ResponseEntity<>(internship, HttpStatus.OK);
+        return new ResponseEntity<>(mapper.map(internship, Internship.class), HttpStatus.OK);
     }
 
     /**

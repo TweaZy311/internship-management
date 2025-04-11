@@ -1,13 +1,11 @@
 package org.example.internship.repository;
 
-import org.example.internship.entity.SolutionEntity;
 import org.example.internship.entity.TaskEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -17,12 +15,12 @@ import java.util.List;
 public interface TaskRepository extends PagingAndSortingRepository<TaskEntity, Long>, JpaSpecificationExecutor<TaskEntity>, JpaRepository<TaskEntity, Long> {
 
     /**
-     * Поиск всех задач, опубликованных до указанной даты.
+     * Поиск всех опубликованных задач.
      *
-     * @param date дата публикации
-     * @return список задач, опубликованных до указанной даты
+     * @param isPublished флаг публикации
+     * @return список опубликованных задач
      */
-    List<TaskEntity> findAllByPublishDateLessThanEqual(LocalDate date);
+    List<TaskEntity> findAllByIsPublished(Boolean isPublished);
 
     /**
      * Поиск всех задач для стажировки с указанным идентификатором.
@@ -33,12 +31,13 @@ public interface TaskRepository extends PagingAndSortingRepository<TaskEntity, L
     List<TaskEntity> findAllByLesson_InternshipId(Long internshipId);
 
     /**
-     * Поиск всех задач для занятия с указанным идентификатором, у которых дата публикации не установлена.
+     * Поиск всех задач для занятия с указанным идентификатором и статусом публикации.
      *
      * @param lessonId идентификатор урока
+     * @param isPublished флаг публикации
      * @return список неопубликованных задач для указанного урока
      */
-    List<TaskEntity> findAllByLessonIdAndPublishDateIsNull(Long lessonId);
+    List<TaskEntity> findAllByLessonIdAndIsPublished(Long lessonId, Boolean isPublished);
 
     /**
      * Поиск задачи по имени.

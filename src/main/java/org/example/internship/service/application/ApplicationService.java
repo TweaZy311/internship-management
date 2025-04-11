@@ -16,14 +16,14 @@ public interface ApplicationService {
      *
      * @param application информация о новой заявке
      */
-    Application saveApplication(CreateApplicationRequest application);
+    ApplicationEntity saveApplication(CreateApplicationRequest application);
 
     /**
      * Изменение статуса заявки.
      *
      * @param statusDto объект, содержащий идентификатор заявки и новый статус
      */
-    Application changeApplicationStatus(UpdateApplicationStatusRequest statusDto);
+    ApplicationEntity changeApplicationStatus(UpdateApplicationStatusRequest statusDto);
 
     /**
      * Получение всех заявок.
@@ -38,5 +38,5 @@ public interface ApplicationService {
      * @param id идентификатор заявки
      * @return информация о заявке с указанным идентификатором
      */
-    Application getApplicationById(Long id);
+    ApplicationEntity getApplicationById(Long id);
 }

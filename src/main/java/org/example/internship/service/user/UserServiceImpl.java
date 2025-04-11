@@ -27,6 +27,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.management.relation.Role;
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
 
@@ -84,7 +85,7 @@ public class UserServiceImpl implements UserService {
      * @param createUserRequest информация о новом пользователе
      */
     @Override
-    public User createUser(CreateUserRequest createUserRequest) {
+    public UserEntity createUser(CreateUserRequest createUserRequest) {
         UserEntity user = mapper.map(createUserRequest, UserEntity.class);
         user.setRole(UserRole.USER);
         if (createUserRequest.getInternshipId() != null) {
@@ -93,8 +94,7 @@ public class UserServiceImpl implements UserService {
             user.setInternship(internship);
         }
         user.setPassword(passwordEncoder.encode(gitlabProperties.getUserPassword()));
-        user = userRepository.save(user);
-        return mapper.map(user, UserInfo.class);
+        return userRepository.save(user);
     }
 
     /**
@@ -146,6 +146,11 @@ public class UserServiceImpl implements UserService {
         solutionService.archiveSolutions(user.getId());
         gitlabService.blockUser(username);
         return userRepository.saveAndFlush(user);
+    }
+
+    @Override
+    public List<UserEntity> getUsersByInternshipIdAndRole(Long internshipId, UserRole role) {
+        return userRepository.findAllByInternshipIdAndRole(internshipId, role);
     }
 
     /**

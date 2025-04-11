@@ -19,7 +19,7 @@ public interface LessonService {
      *
      * @param createLessonRequest информация о новом занятии
      */
-    AdminLessonInfo saveLesson(CreateLessonRequest createLessonRequest);
+    LessonEntity saveLesson(CreateLessonRequest createLessonRequest);
 
     /**
      * Получение информации о занятии по его идентификатору.
@@ -34,7 +34,7 @@ public interface LessonService {
      *
      * @param id идентификатор занятия
      */
-    AdminLessonInfo publishLesson(Long id);
+    LessonEntity publishLesson(Long id);
 
     /**
      * Получение списка всех опубликованных занятий в рамках стажировки.
@@ -42,7 +42,7 @@ public interface LessonService {
      * @param id идентификатор стажировки
      * @return список опубликованных занятий
      */
-    List<UserLessonInfo> getAllPublishedByInternshipId(Long id);
+    List<LessonEntity> getAllPublishedByInternshipId(Long id);
 
     /**
      * Получение списка всех занятий.
