@@ -25,9 +25,12 @@ public enum SearchKey {
     TYPE("type"),
     //task
     LESSON_ID("lesson.id"),
-    //todo или просто по дате смотреть? или дату убрать?
     IS_PUBLISHED("isPublished"), //task, lesson
-
+    //audit
+    ACTION_TYPE("actionType"),
+    ENTITY_TYPE("entityType"),
+    ENTITY_ID("entityId"),
+    AUTHOR_ID("author.id")
     ;
 
     private final String column;

@@ -1,6 +1,7 @@
 package org.example.internship.service.user;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.example.internship.config.properties.AdminProperties;
 import org.example.internship.config.properties.GitlabProperties;
 import org.example.internship.entity.InternshipEntity;
@@ -56,10 +57,9 @@ public class UserServiceImpl implements UserService {
      * @throws ServiceException если пользователь с указанным email не найден
      */
     @Override
-    public User getByEmail(String email) {
-        UserEntity user = userRepository.findByEmail(email)
+    public UserEntity getByEmail(String email) {
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "e-mail")));
-        return mapper.map(user, UserInfo.class);
     }
 
     /**
@@ -70,11 +70,12 @@ public class UserServiceImpl implements UserService {
      * @throws EntityNotFoundException если пользователь с указанным именем не найден
      */
     @Override
-    public User getByUsername(String username) {
-        UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username")));;
-
-        return mapper.map(user, User.class);
+    public UserEntity getByUsername(String username) {
+        if (StringUtils.isEmpty(username)) {
+            return null;
+        }
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username")));
     }
 
     /**
@@ -137,14 +138,14 @@ public class UserServiceImpl implements UserService {
      * @param username имя пользователя
      */
     @Override
-    public void archiveUser(String username) {
+    public UserEntity archiveUser(String username) {
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username")));;
 
         user.setRole(UserRole.ARCHIVED);
         solutionService.archiveSolutions(user.getId());
         gitlabService.blockUser(username);
-        userRepository.saveAndFlush(user);
+        return userRepository.saveAndFlush(user);
     }
 
     /**

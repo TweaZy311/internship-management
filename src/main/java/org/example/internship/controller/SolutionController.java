@@ -1,24 +1,21 @@
 package org.example.internship.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.internship.annotation.GitlabTokenRequired;
-import org.example.internship.entity.InternshipEntity;
+import org.example.internship.entity.AuditActionType;
+import org.example.internship.entity.AuditEntityType;
 import org.example.internship.entity.SolutionEntity;
 import org.example.internship.mapper.Mapper;
 import org.example.internship.model.Page;
 import org.example.internship.model.request.BaseGetListRequest;
 import org.example.internship.model.request.solution.UpdateSolutionStatusRequest;
-import org.example.internship.model.response.internship.Internship;
 import org.example.internship.model.response.solution.Solution;
-import org.example.internship.exception.ErrorCode;
-import org.example.internship.exception.ServiceException;
+import org.example.internship.service.audit.AuditService;
 import org.example.internship.service.gitlab.GitlabService;
 import org.example.internship.service.solution.SolutionService;
 import org.gitlab4j.api.systemhooks.PushSystemHookEvent;
@@ -26,8 +23,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 
 /**
@@ -40,6 +35,8 @@ import java.util.List;
 public class SolutionController {
     private final SolutionService solutionService;
     private final GitlabService gitlabService;
+    private final AuditService auditService;
+
     private final Mapper mapper;
 
     /**
@@ -63,6 +60,7 @@ public class SolutionController {
         if (gitlabService.isForkedRepository(request.getProjectId())) {
             solution = solutionService.addSolution(request);
         }
+        //todo придумать как передавать заголовок
         return new ResponseEntity<>(solution, HttpStatus.CREATED);
     }
 
@@ -84,8 +82,11 @@ public class SolutionController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация для обновления статуса решения", required = true)
-    public ResponseEntity<Solution> updateSolutionStatus(@RequestBody UpdateSolutionStatusRequest request) {
+    public ResponseEntity<Solution> updateSolutionStatus(@RequestBody UpdateSolutionStatusRequest request,
+                                                         @RequestHeader("username") String username) {
         Solution solution = solutionService.updateSolutionStatus(request);
+        //todo repository url == name??
+        auditService.addRecord(AuditEntityType.SOLUTION, AuditActionType.UPDATE, solution.getId(), solution.getRepositoryUrl(), username);
         return new ResponseEntity<>(solution, HttpStatus.OK);
     }
 

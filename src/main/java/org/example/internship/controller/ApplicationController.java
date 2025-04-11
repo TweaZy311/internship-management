@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.internship.entity.ApplicationEntity;
+import org.example.internship.entity.AuditActionType;
+import org.example.internship.entity.AuditEntityType;
 import org.example.internship.mapper.Mapper;
 import org.example.internship.model.Page;
 import org.example.internship.model.request.GetApplicationsRequest;
@@ -20,6 +22,7 @@ import org.example.internship.model.response.internship.Internship;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.service.application.ApplicationService;
+import org.example.internship.service.audit.AuditService;
 import org.example.internship.service.internship.InternshipService;
 import org.example.internship.utils.Validator;
 import org.springframework.http.HttpStatus;
@@ -40,8 +43,10 @@ import java.time.LocalDate;
 @Tag(name = "Управление заявками")
 public class ApplicationController {
     private final ApplicationService applicationService;
-    private final Validator validator;
     private final InternshipService internshipService;
+    private final AuditService auditService;
+
+    private final Validator validator;
     private final Mapper mapper;
 
     /**
@@ -73,7 +78,10 @@ public class ApplicationController {
         if (!validator.phoneNumberIsValid(application.getPhoneNumber())) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.APL_400.getCode(), "Wrong phone number format");
         }
+        //todo возвращать entity в контроллеры
         Application applicationInfo = applicationService.saveApplication(application);
+        //todo решить проблему с user == null
+        auditService.addRecord(AuditEntityType.APPLICATION, AuditActionType.CREATE, applicationInfo.getId(), applicationInfo.getPhoneNumber(), null);
         return new ResponseEntity<>(applicationInfo, HttpStatus.CREATED);
     }
 
@@ -94,8 +102,10 @@ public class ApplicationController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Идентификатор заявки и новый статус", required = true)
-    public ResponseEntity<Application> changeApplicationStatus(@RequestBody UpdateApplicationStatusRequest statusDto) {
+    public ResponseEntity<Application> changeApplicationStatus(@RequestBody UpdateApplicationStatusRequest statusDto,
+                                                               @RequestHeader String username) {
         Application application = applicationService.changeApplicationStatus(statusDto);
+        auditService.addRecord(AuditEntityType.APPLICATION, AuditActionType.UPDATE, application.getId(), null, username);
         return new ResponseEntity<>(application, HttpStatus.OK);
     }
 

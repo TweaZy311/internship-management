@@ -53,32 +53,21 @@ public class ApplicationServiceImpl implements ApplicationService {
         ApplicationEntity existingApplication = applicationRepository.
                 findByPhoneNumberAndInternshipId(application.getPhoneNumber(),
                         application.getInternshipId());
-
-        if (existingApplication == null) {
-            InternshipEntity internship = internshipRepository.findById(application.getInternshipId())
-                    .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), "Internship with such ID could not be found"));
-            StatusEntity educationStatus = statusRepository.findById(application.getEducationStatusId())
-                    .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.STS_404.getCode(), "Status with such ID could not be found"));
-            ApplicationEntity applicationEntity = mapper.map(application, ApplicationEntity.class);
-            applicationEntity.setStatus(statusRepository.findById(statusProperties.getDefaultApplicationStatusId()).get());
-            applicationEntity.setEducationStatus(educationStatus);
-            applicationEntity.setInternship(internship);
-            applicationEntity.setCreationDate(LocalDate.now());
-            applicationEntity = applicationRepository.save(applicationEntity);
-            return mapper.map(applicationEntity, Application.class);
-        }
-
-        //todo что здесь вообще происходит
-        if (existingApplication.getInternship().getIsOpen()) {
-            Long id = existingApplication.getId();
-            existingApplication = mapper.map(application, ApplicationEntity.class);
-            existingApplication.setId(id);
-            existingApplication.setStatus(statusRepository.findById(statusProperties.getDefaultApplicationStatusId()).get());
-            existingApplication = applicationRepository.save(existingApplication);
-            return mapper.map(existingApplication, Application.class);
-        } else {
+        if (existingApplication != null) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.APL_400.getCode(), "Application for this internship from user with such phone number already exists");
         }
+
+        InternshipEntity internship = internshipRepository.findById(application.getInternshipId())
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), "Internship with such ID could not be found"));
+        StatusEntity educationStatus = statusRepository.findById(application.getEducationStatusId())
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.STS_404.getCode(), "Status with such ID could not be found"));
+        ApplicationEntity applicationEntity = mapper.map(application, ApplicationEntity.class);
+        applicationEntity.setStatus(statusRepository.findById(statusProperties.getDefaultApplicationStatusId()).get());
+        applicationEntity.setEducationStatus(educationStatus);
+        applicationEntity.setInternship(internship);
+        applicationEntity.setCreationDate(LocalDate.now());
+        applicationEntity = applicationRepository.save(applicationEntity);
+        return mapper.map(applicationEntity, Application.class);
     }
 
     /**

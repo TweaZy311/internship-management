@@ -53,5 +53,5 @@ public interface UserService {
      * Архивирование данных пользователя.
      * @param username имя пользователя
      */
-    void archiveUser(String username);
+    UserEntity archiveUser(String username);
 }
