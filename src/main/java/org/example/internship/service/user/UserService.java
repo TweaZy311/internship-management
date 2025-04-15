@@ -1,10 +1,13 @@
 package org.example.internship.service.user;
 
 import org.example.internship.entity.UserEntity;
+import org.example.internship.entity.UserRole;
 import org.example.internship.model.request.CreateUserRequest;
 import org.example.internship.model.request.GetUsersRequest;
 import org.example.internship.model.response.User;
 import org.springframework.data.domain.Page;
+
+import java.util.List;
 
 /**
  * Сервис для работы с пользователями.
@@ -17,7 +20,7 @@ public interface UserService {
      * @param email адрес электронной почты пользователя
      * @return информация о пользователе
      */
-    User getByEmail(String email);
+    UserEntity getByEmail(String email);
 
     /**
      * Получение информации о пользователе по его идентификатору.
@@ -33,7 +36,9 @@ public interface UserService {
      * @param username имя пользователя
      * @return информация о пользователе
      */
-    User getByUsername(String username);
+    UserEntity getByUsername(String username);
+
+    List<UserEntity> getUsersByInternshipIdAndRole(Long internshipId, UserRole role);
 
     /**
      * Получение списка всех пользователей.
@@ -47,11 +52,11 @@ public interface UserService {
      *
      * @param user информация о новом пользователе
      */
-    User createUser(CreateUserRequest user);
+    UserEntity createUser(CreateUserRequest user);
 
     /**
      * Архивирование данных пользователя.
      * @param username имя пользователя
      */
-    void archiveUser(String username);
+    UserEntity archiveUser(String username);
 }

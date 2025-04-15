@@ -4,7 +4,6 @@ import org.example.internship.entity.TaskEntity;
 import org.example.internship.model.request.BaseGetListRequest;
 import org.example.internship.model.request.task.CreateTaskRequest;
 import org.example.internship.model.request.task.UpdateTaskRequest;
-import org.example.internship.model.response.task.Task;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -19,14 +18,14 @@ public interface TaskService {
      *
      * @param taskDto данные нового задания
      */
-    Task saveTask(CreateTaskRequest taskDto);
+    TaskEntity saveTask(CreateTaskRequest taskDto);
 
     /**
      * Получение списка всех опубликованных заданий.
      *
      * @return список всех опубликованных заданий
      */
-    List<Task> getAllPublished();
+    List<TaskEntity> getAllPublished();
 
     /**
      * Получение информации о задании по его идентификатору.
@@ -34,14 +33,14 @@ public interface TaskService {
      * @param id идентификатор задания
      * @return информация о задании
      */
-    Task getTaskById(Long id);
+    TaskEntity getTaskById(Long id);
 
     /**
      * Обновление информацию о задании.
      *
      * @param taskDto данные обновленного задания
      */
-    Task updateTask(UpdateTaskRequest taskDto);
+    TaskEntity updateTask(UpdateTaskRequest taskDto);
 
     /**
      * Получение списка всех заданий.
@@ -55,13 +54,13 @@ public interface TaskService {
      *
      * @param id идентификатор задания
      */
-    Task publishById(Long id);
+    TaskEntity publishById(Long id);
 
     /**
      * Публикация заданий по идентификатору занятия, к которому они принадлежат.
      *
      * @param lessonId идентификатор занятия
      */
-    List<Task> publishByLessonId(Long lessonId);
+    List<TaskEntity> publishByLessonId(Long lessonId);
 
 }

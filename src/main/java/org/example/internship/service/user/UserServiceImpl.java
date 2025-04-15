@@ -1,6 +1,7 @@
 package org.example.internship.service.user;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.example.internship.config.properties.AdminProperties;
 import org.example.internship.config.properties.GitlabProperties;
 import org.example.internship.entity.InternshipEntity;
@@ -12,7 +13,6 @@ import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.entity.UserRole;
 import org.example.internship.entity.UserEntity;
-import org.example.internship.model.response.UserInfo;
 import org.example.internship.repository.InternshipRepository;
 import org.example.internship.repository.UserRepository;
 import org.example.internship.service.gitlab.GitlabService;
@@ -56,10 +56,9 @@ public class UserServiceImpl implements UserService {
      * @throws ServiceException если пользователь с указанным email не найден
      */
     @Override
-    public User getByEmail(String email) {
-        UserEntity user = userRepository.findByEmail(email)
+    public UserEntity getByEmail(String email) {
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "e-mail")));
-        return mapper.map(user, UserInfo.class);
     }
 
     /**
@@ -70,11 +69,12 @@ public class UserServiceImpl implements UserService {
      * @throws EntityNotFoundException если пользователь с указанным именем не найден
      */
     @Override
-    public User getByUsername(String username) {
-        UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username")));;
-
-        return mapper.map(user, User.class);
+    public UserEntity getByUsername(String username) {
+        if (StringUtils.isEmpty(username)) {
+            return null;
+        }
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username")));
     }
 
     /**
@@ -83,7 +83,7 @@ public class UserServiceImpl implements UserService {
      * @param createUserRequest информация о новом пользователе
      */
     @Override
-    public User createUser(CreateUserRequest createUserRequest) {
+    public UserEntity createUser(CreateUserRequest createUserRequest) {
         UserEntity user = mapper.map(createUserRequest, UserEntity.class);
         user.setRole(UserRole.USER);
         if (createUserRequest.getInternshipId() != null) {
@@ -92,8 +92,7 @@ public class UserServiceImpl implements UserService {
             user.setInternship(internship);
         }
         user.setPassword(passwordEncoder.encode(gitlabProperties.getUserPassword()));
-        user = userRepository.save(user);
-        return mapper.map(user, UserInfo.class);
+        return userRepository.save(user);
     }
 
     /**
@@ -137,14 +136,19 @@ public class UserServiceImpl implements UserService {
      * @param username имя пользователя
      */
     @Override
-    public void archiveUser(String username) {
+    public UserEntity archiveUser(String username) {
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username")));;
 
         user.setRole(UserRole.ARCHIVED);
         solutionService.archiveSolutions(user.getId());
         gitlabService.blockUser(username);
-        userRepository.saveAndFlush(user);
+        return userRepository.saveAndFlush(user);
+    }
+
+    @Override
+    public List<UserEntity> getUsersByInternshipIdAndRole(Long internshipId, UserRole role) {
+        return userRepository.findAllByInternshipIdAndRole(internshipId, role);
     }
 
     /**

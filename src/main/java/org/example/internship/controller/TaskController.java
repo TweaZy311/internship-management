@@ -8,15 +8,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.example.internship.entity.SolutionEntity;
+import org.example.internship.entity.AuditActionType;
+import org.example.internship.entity.AuditEntityType;
 import org.example.internship.entity.TaskEntity;
 import org.example.internship.mapper.Mapper;
 import org.example.internship.model.Page;
 import org.example.internship.model.request.BaseGetListRequest;
 import org.example.internship.model.request.task.CreateTaskRequest;
 import org.example.internship.model.request.task.UpdateTaskRequest;
-import org.example.internship.model.response.solution.Solution;
 import org.example.internship.model.response.task.Task;
+import org.example.internship.service.audit.AuditService;
 import org.example.internship.service.task.TaskService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +36,8 @@ import java.util.List;
 @Tag(name = "Управление заданиями")
 public class TaskController {
     private final TaskService taskService;
+    private final AuditService auditService;
+
     private final Mapper mapper;
 
     /**
@@ -53,9 +56,11 @@ public class TaskController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация о новом задании", required = true)
-    public ResponseEntity<Task> createTask(@RequestBody CreateTaskRequest request) {
-        Task task = taskService.saveTask(request);
-        return new ResponseEntity<>(task, HttpStatus.CREATED);
+    public ResponseEntity<Task> createTask(@RequestBody CreateTaskRequest request,
+                                           @RequestHeader("username") String username) {
+        TaskEntity task = taskService.saveTask(request);
+        auditService.addRecord(AuditEntityType.TASK, AuditActionType.CREATE, task.getId(), task.getName(), username);
+        return new ResponseEntity<>(mapper.map(task, Task.class), HttpStatus.CREATED);
     }
 
     /**
@@ -76,11 +81,8 @@ public class TaskController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     public ResponseEntity<List<Task>> getAllPublishedTasks() {
-        List<Task> tasks = taskService.getAllPublished();
-        if (tasks.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>(tasks, HttpStatus.OK);
+        List<TaskEntity> tasks = taskService.getAllPublished();
+        return new ResponseEntity<>(mapper.mapAsList(tasks, Task.class), HttpStatus.OK);
     }
 
     /**
@@ -100,9 +102,11 @@ public class TaskController {
             @ApiResponse(responseCode = "409", description = "Задание уже опубликовано"),
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
-    public ResponseEntity<Task> publishTaskById(@PathVariable Long id) {
-        Task task = taskService.publishById(id);
-        return new ResponseEntity<>(task, HttpStatus.OK);
+    public ResponseEntity<Task> publishTaskById(@PathVariable Long id,
+                                                @RequestHeader("username") String username) {
+        TaskEntity task = taskService.publishById(id);
+        auditService.addRecord(AuditEntityType.TASK, AuditActionType.UPDATE, task.getId(), task.getName(), username);
+        return new ResponseEntity<>(mapper.map(task, Task.class), HttpStatus.OK);
     }
 
     /**
@@ -125,9 +129,12 @@ public class TaskController {
 
     })
     @Parameter(name = "lessonId", description = "ID занятия", required = true)
-    public ResponseEntity<List<Task>> publishTasksByLessonId(@RequestParam Long lessonId) {
-        List<Task> tasks = taskService.publishByLessonId(lessonId);
-        return new ResponseEntity<>(tasks, HttpStatus.OK);
+    public ResponseEntity<List<Task>> publishTasksByLessonId(@RequestParam Long lessonId,
+                                                             @RequestHeader("username") String username) {
+        List<TaskEntity> tasks = taskService.publishByLessonId(lessonId);
+        //todo как быть здесь?
+        auditService.addRecord(AuditEntityType.TASK, AuditActionType.UPDATE, null, null, username);
+        return new ResponseEntity<>(mapper.mapAsList(tasks, Task.class), HttpStatus.OK);
     }
 
     /**
@@ -175,9 +182,11 @@ public class TaskController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация об обновленном задании", required = true)
-    public ResponseEntity<Task> updateTask(@RequestBody UpdateTaskRequest request) {
-        Task task = taskService.updateTask(request);
-        return new ResponseEntity<>(task, HttpStatus.OK);
+    public ResponseEntity<Task> updateTask(@RequestBody UpdateTaskRequest request,
+                                           @RequestHeader("username") String username) {
+        TaskEntity task = taskService.updateTask(request);
+        auditService.addRecord(AuditEntityType.TASK, AuditActionType.UPDATE, task.getId(), task.getName(), username);
+        return new ResponseEntity<>(mapper.map(task, Task.class), HttpStatus.OK);
     }
 
 
@@ -199,6 +208,7 @@ public class TaskController {
     })
     @Parameter(name = "id", description = "Идентификатор задания", required = true)
     public ResponseEntity<Task> getTaskById(@PathVariable Long id) {
-        return new ResponseEntity<>(taskService.getTaskById(id), HttpStatus.OK);
+        TaskEntity task = taskService.getTaskById(id);
+        return new ResponseEntity<>(mapper.map(task, Task.class), HttpStatus.OK);
     }
 }

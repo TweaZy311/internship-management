@@ -11,6 +11,10 @@ public enum SearchKey {
     STATUS_NAME("status.name"), //application, solution
     STATUS_TYPE("status.type"), //application, solution
     INTERNSHIP_ID("internship.id"), //application, lesson
+    USER_ID("user.id"),
+    USER_USERNAME("user.username"),
+    USER_EMAIL("user.email"),
+    USER_ROLE("user.role"),
     USERNAME("username"), //user
     ROLE("role"), //user
     //internship
@@ -25,10 +29,11 @@ public enum SearchKey {
     TYPE("type"),
     //task
     LESSON_ID("lesson.id"),
-    //todo или просто по дате смотреть? или дату убрать?
     IS_PUBLISHED("isPublished"), //task, lesson
-
-    ;
+    //audit
+    ACTION_TYPE("actionType"),
+    ENTITY_TYPE("entityType"),
+    ENTITY_ID("entityId");
 
     private final String column;
 }

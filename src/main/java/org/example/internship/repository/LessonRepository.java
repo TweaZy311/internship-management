@@ -1,8 +1,6 @@
 package org.example.internship.repository;
 
-import org.example.internship.entity.InternshipEntity;
 import org.example.internship.entity.LessonEntity;
-import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.PagingAndSortingRepository;

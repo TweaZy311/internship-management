@@ -1,6 +1,5 @@
 package org.example.internship.repository;
 
-import org.example.internship.entity.InternshipEntity;
 import org.example.internship.entity.SolutionEntity;
 import org.example.internship.entity.TaskEntity;
 import org.example.internship.entity.UserEntity;

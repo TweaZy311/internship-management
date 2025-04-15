@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.internship.annotation.UsernameMatches;
+import org.example.internship.entity.AuditActionType;
+import org.example.internship.entity.AuditEntityType;
 import org.example.internship.entity.UserEntity;
 import org.example.internship.mapper.Mapper;
 import org.example.internship.model.Page;
@@ -18,6 +20,7 @@ import org.example.internship.model.request.GetUsersRequest;
 import org.example.internship.model.response.User;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
+import org.example.internship.service.audit.AuditService;
 import org.example.internship.service.gitlab.GitlabService;
 import org.example.internship.service.user.UserService;
 import org.springframework.http.HttpStatus;
@@ -37,6 +40,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     private final UserService userService;
     private final GitlabService gitlabService;
+    private final AuditService auditService;
 
     private final Mapper mapper;
 
@@ -57,10 +61,12 @@ public class UserController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Данные нового пользователя", required = true)
-    public ResponseEntity<User> create(@RequestBody CreateUserRequest request) {
-        User user = userService.createUser(request);
+    public ResponseEntity<User> create(@RequestBody CreateUserRequest request,
+                                       @RequestHeader("username") String username) {
+        UserEntity user = userService.createUser(request);
         gitlabService.createUser(request);
-        return new ResponseEntity<>(user, HttpStatus.CREATED);
+        auditService.addRecord(AuditEntityType.USER, AuditActionType.CREATE, user.getId(), user.getUsername(), username);
+        return new ResponseEntity<>(mapper.map(user, User.class), HttpStatus.CREATED);
     }
 
     /**
@@ -92,7 +98,7 @@ public class UserController {
         if (username != null && email != null) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.ITS_400.getCode(), "Wrong param input");
         }
-        User user;
+        UserEntity user;
         if (username != null) {
             user = userService.getByUsername(username);
         } else if (email != null) {
@@ -100,7 +106,7 @@ public class UserController {
         } else {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.ITS_400.getCode(), "Wrong param input");
         }
-        return new ResponseEntity<>(user, HttpStatus.OK);
+        return new ResponseEntity<>(mapper.map(user, User.class), HttpStatus.OK);
     }
 
     /**
@@ -173,8 +179,10 @@ public class UserController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @Parameter(name = "username", description = "Имя пользователя", required = true)
-    public ResponseEntity<Void> archiveUser(@RequestParam String username) {
-        userService.archiveUser(username);
+    public ResponseEntity<Void> archiveUser(@RequestParam String username,
+    @RequestHeader("username") String headerUsername) {
+        UserEntity user = userService.archiveUser(username);
+        auditService.addRecord(AuditEntityType.USER, AuditActionType.UPDATE, user.getId(), user.getUsername(), headerUsername);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

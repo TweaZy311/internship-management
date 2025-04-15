@@ -6,7 +6,6 @@ import org.example.internship.mapper.Mapper;
 import org.example.internship.model.request.BaseGetListRequest;
 import org.example.internship.model.request.task.CreateTaskRequest;
 import org.example.internship.model.request.task.UpdateTaskRequest;
-import org.example.internship.model.response.task.Task;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.repository.LessonRepository;
@@ -21,7 +20,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,7 +44,7 @@ public class TaskServiceImpl implements TaskService {
      * @param createTaskRequest данные нового задания
      */
     @Override
-    public Task saveTask(CreateTaskRequest createTaskRequest) {
+    public TaskEntity saveTask(CreateTaskRequest createTaskRequest) {
         TaskEntity taskEntity = mapper.map(createTaskRequest, TaskEntity.class);
         taskEntity.setLesson(lessonRepository.findById(createTaskRequest.getLessonId()).orElseThrow(
                 () -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.LSN_404.getCode(), "Lesson with such ID has not been found")
@@ -58,8 +56,7 @@ public class TaskServiceImpl implements TaskService {
 
         taskEntity.setRepository(url);
         taskEntity.setRepositoryId(projectId);
-        taskEntity = taskRepository.save(taskEntity);
-        return mapper.map(taskEntity, Task.class);
+        return taskRepository.save(taskEntity);
     }
 
     /**
@@ -68,9 +65,8 @@ public class TaskServiceImpl implements TaskService {
      * @return список всех опубликованных заданий
      */
     @Override
-    public List<Task> getAllPublished() {
-        List<TaskEntity> tasks = taskRepository.findAllByPublishDateLessThanEqual(LocalDate.now());
-        return mapper.mapAsList(tasks, Task.class);
+    public List<TaskEntity> getAllPublished() {
+        return taskRepository.findAllByIsPublished(true);
     }
 
     /**
@@ -81,10 +77,9 @@ public class TaskServiceImpl implements TaskService {
      * @throws ServiceException если задание не найдено
      */
     @Override
-    public Task getTaskById(Long id) {
-        TaskEntity task = taskRepository.findById(id)
+    public TaskEntity getTaskById(Long id) {
+        return taskRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.TSK_404.getCode(), TASK_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
-        return mapper.map(task, Task.class);
     }
 
     /**
@@ -94,14 +89,13 @@ public class TaskServiceImpl implements TaskService {
      * @throws ServiceException если задание не найдено
      */
     @Override
-    public Task updateTask(UpdateTaskRequest updateTaskRequest) {
+    public TaskEntity updateTask(UpdateTaskRequest updateTaskRequest) {
         TaskEntity existingTask = taskRepository.findById(updateTaskRequest.getId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.TSK_404.getCode(), TASK_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
 
         //todo
         mapper.map(updateTaskRequest, existingTask);
-        existingTask = taskRepository.save(existingTask);
-        return mapper.map(existingTask, Task.class);
+        return taskRepository.save(existingTask);
     }
 
     /**
@@ -134,7 +128,7 @@ public class TaskServiceImpl implements TaskService {
      * @throws ServiceException если задание уже было ранее опубликовано
      */
     @Override
-    public Task publishById(Long id) {
+    public TaskEntity publishById(Long id) {
         TaskEntity task = taskRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.TSK_404.getCode(), TASK_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
 
@@ -151,13 +145,12 @@ public class TaskServiceImpl implements TaskService {
         for (UserEntity user : users) {
             gitlabService.forkRepository(task.getRepositoryId(), user.getUsername());
         }
-        task = taskRepository.save(task);
-        return mapper.map(task, Task.class);
+        return taskRepository.save(task);
     }
 
     @Override
-    public List<Task> publishByLessonId(Long lessonId) {
-        List<TaskEntity> tasks = taskRepository.findAllByLessonIdAndPublishDateIsNull(lessonId);
+    public List<TaskEntity> publishByLessonId(Long lessonId) {
+        List<TaskEntity> tasks = taskRepository.findAllByLessonIdAndIsPublished(lessonId, true);
 
         if (tasks.isEmpty()) {
             throw new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.TSK_404.getCode(), "Tasks not found for lesson with such ID");
@@ -179,6 +172,6 @@ public class TaskServiceImpl implements TaskService {
                 gitlabService.forkRepository(task.getRepositoryId(), user.getUsername());
             }
         }
-        return mapper.mapAsList(publishedTasks, Task.class);
+        return publishedTasks;
     }
 }

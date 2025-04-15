@@ -5,9 +5,6 @@ import org.example.internship.entity.InternshipEntity;
 import org.example.internship.mapper.Mapper;
 import org.example.internship.model.request.BaseGetListRequest;
 import org.example.internship.model.request.lesson.CreateLessonRequest;
-import org.example.internship.model.response.lesson.AdminLessonInfo;
-import org.example.internship.model.response.lesson.Lesson;
-import org.example.internship.model.response.lesson.UserLessonInfo;
 import org.example.internship.entity.LessonEntity;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
@@ -40,13 +37,12 @@ public class LessonServiceImpl implements LessonService {
      * @param createLessonRequest информация о новом занятии
      */
     @Override
-    public AdminLessonInfo saveLesson(CreateLessonRequest createLessonRequest) {
+    public LessonEntity saveLesson(CreateLessonRequest createLessonRequest) {
         LessonEntity lessonEntity = mapper.map(createLessonRequest, LessonEntity.class);
         InternshipEntity internship = internshipRepository.findById(createLessonRequest.getInternshipId())
-                        .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), "Internship with such ID could not be found"));
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), "Internship with such ID could not be found"));
         lessonEntity.setInternship(internship);
-        lessonEntity = lessonRepository.save(lessonEntity);
-        return mapper.map(lessonEntity, AdminLessonInfo.class);
+        return lessonRepository.save(lessonEntity);
     }
 
     /**
@@ -57,10 +53,9 @@ public class LessonServiceImpl implements LessonService {
      * @throws ServiceException если занятие не найдено
      */
     @Override
-    public UserLessonInfo getLessonById(Long id) {
-        LessonEntity lesson = lessonRepository.findById(id)
+    public LessonEntity getLessonById(Long id) {
+        return lessonRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.LSN_404.getCode(), LESSON_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
-        return mapper.map(lesson, UserLessonInfo.class);
     }
 
     /**
@@ -90,9 +85,8 @@ public class LessonServiceImpl implements LessonService {
      * @return список опубликованных занятий
      */
     @Override
-    public List<UserLessonInfo> getAllPublishedByInternshipId(Long internshipId) {
-        List<LessonEntity> publishedLessonEntities = lessonRepository.findByIsPublishedAndInternshipId(true, internshipId);
-        return mapper.mapAsList(publishedLessonEntities, UserLessonInfo.class);
+    public List<LessonEntity> getAllPublishedByInternshipId(Long internshipId) {
+        return lessonRepository.findByIsPublishedAndInternshipId(true, internshipId);
     }
 
     /**
@@ -102,14 +96,13 @@ public class LessonServiceImpl implements LessonService {
      * @throws ServiceException если занятие не найдено
      */
     @Override
-    public AdminLessonInfo publishLesson(Long id) {
+    public LessonEntity publishLesson(Long id) {
         LessonEntity lesson = lessonRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.LSN_404.getCode(), LESSON_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         if (lesson.getIsPublished()) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.LSN_400.getCode(), "Lesson is already published");
         }
         lesson.setIsPublished(true);
-        lesson = lessonRepository.save(lesson);
-        return mapper.map(lesson, AdminLessonInfo.class);
+        return lessonRepository.save(lesson);
     }
 }

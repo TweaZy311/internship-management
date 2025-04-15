@@ -7,6 +7,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.example.internship.entity.AuditActionType;
+import org.example.internship.entity.AuditEntityType;
 import org.example.internship.entity.LessonEntity;
 import org.example.internship.mapper.Mapper;
 import org.example.internship.model.Page;
@@ -15,6 +17,7 @@ import org.example.internship.model.request.lesson.CreateLessonRequest;
 import org.example.internship.model.response.lesson.AdminLessonInfo;
 import org.example.internship.model.response.lesson.Lesson;
 import org.example.internship.model.response.lesson.UserLessonInfo;
+import org.example.internship.service.audit.AuditService;
 import org.example.internship.service.lesson.LessonService;
 import org.example.internship.service.task.TaskService;
 import org.springframework.http.HttpStatus;
@@ -36,6 +39,8 @@ import java.util.List;
 public class LessonController {
     private final LessonService lessonService;
     private final TaskService taskService;
+    private final AuditService auditService;
+
     private final Mapper mapper;
 
     /**
@@ -54,9 +59,11 @@ public class LessonController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация о новом занятии", required = true)
-    public ResponseEntity<Lesson> createLesson(@RequestBody CreateLessonRequest request) {
-        AdminLessonInfo lesson = lessonService.saveLesson(request);
-        return new ResponseEntity<>(lesson, HttpStatus.CREATED);
+    public ResponseEntity<Lesson> createLesson(@RequestBody CreateLessonRequest request,
+                                               @RequestHeader("username") String username) {
+        LessonEntity lesson = lessonService.saveLesson(request);
+        auditService.addRecord(AuditEntityType.LESSON, AuditActionType.CREATE, lesson.getId(), lesson.getName(), username);
+        return new ResponseEntity<>(mapper.map(lesson, AdminLessonInfo.class), HttpStatus.CREATED);
     }
 
     /**
@@ -147,8 +154,8 @@ public class LessonController {
     })
     @Parameter(name = "internshipId", description = "Идентификатор стажировки", required = true)
     public ResponseEntity<List<UserLessonInfo>> getPublishedLessons(@RequestParam Long internshipId) {
-        List<UserLessonInfo> lessons = lessonService.getAllPublishedByInternshipId(internshipId);
-        return new ResponseEntity<>(lessons, HttpStatus.OK);
+        List<LessonEntity> lessons = lessonService.getAllPublishedByInternshipId(internshipId);
+        return new ResponseEntity<>(mapper.mapAsList(lessons, UserLessonInfo.class), HttpStatus.OK);
     }
 
     /**
@@ -169,10 +176,12 @@ public class LessonController {
     })
     @Parameter(name = "id", description = "Идентификатор задания", required = true)
     @Transactional
-    public ResponseEntity<Void> publishLesson(@PathVariable Long id) {
-        lessonService.publishLesson(id);
+    public ResponseEntity<Void> publishLesson(@PathVariable Long id,
+                                              @RequestHeader("username") String username) {
+        LessonEntity lesson = lessonService.publishLesson(id);
         //todo
         taskService.publishByLessonId(id);
+        auditService.addRecord(AuditEntityType.LESSON, AuditActionType.UPDATE, lesson.getId(), lesson.getName(), username);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }
