@@ -1,6 +1,13 @@
 package org.example.internship.controller;
 
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.internship.entity.AuditActionType;
 import org.example.internship.entity.AuditEntityType;
@@ -20,21 +27,35 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/status")
+@Tag(name = "Управление статусами")
 public class StatusController {
     private final StatusService statusService;
     private final AuditService auditService;
     private final Mapper mapper;
 
+    @Operation(summary = "Получить статус по ID", description = "Требуется роль ADMIN")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Статус найден", content = @Content(schema = @Schema(implementation = Status.class))),
+            @ApiResponse(responseCode = "404", description = "Статус не найден")
+    })
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Status> getStatusById(@PathVariable Long id) {
+    public ResponseEntity<Status> getStatusById(
+            @Parameter(description = "ID статуса") @PathVariable Long id) {
         StatusEntity status = statusService.getStatusById(id);
         return new ResponseEntity<>(mapper.map(status, Status.class), HttpStatus.OK);
     }
 
+    @Operation(summary = "Получить список статусов (с пагинацией)", description = "Требуется роль ADMIN")
+    @ApiResponse(responseCode = "200", description = "Список статусов",
+            content = @Content(schema = @Schema(implementation = Page.class)))
     @PostMapping("/page")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<Status>> getStatuses(@RequestBody BaseGetListRequest request) {
+    public ResponseEntity<Page<Status>> getStatuses(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Параметры фильтрации и пагинации",
+                    required = true,
+                    content = @Content(schema = @Schema(implementation = BaseGetListRequest.class)))
+            @RequestBody BaseGetListRequest request) {
         org.springframework.data.domain.Page<StatusEntity> page = statusService.getStatuses(request);
 
         Page<Status> result = Page.<Status>builder()
@@ -47,20 +68,37 @@ public class StatusController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
+    @Operation(summary = "Создать новый статус", description = "Требуется роль ADMIN")
+    @ApiResponse(responseCode = "201", description = "Статус создан",
+            content = @Content(schema = @Schema(implementation = Status.class)))
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Status> createStatus(@RequestBody CreateUpdateStatusRequest request,
-                                               @RequestHeader("username") String username) {
+    public ResponseEntity<Status> createStatus(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Данные для создания статуса",
+                    required = true,
+                    content = @Content(schema = @Schema(implementation = CreateUpdateStatusRequest.class)))
+            @RequestBody CreateUpdateStatusRequest request,
+            @Parameter(description = "Имя пользователя") @RequestHeader("username") String username) {
         StatusEntity status = statusService.createStatus(request);
         auditService.addRecord(AuditEntityType.STATUS, AuditActionType.CREATE, status.getId(), status.getName(), username);
         return new ResponseEntity<>(mapper.map(status, Status.class), HttpStatus.CREATED);
     }
 
+    @Operation(summary = "Обновить статус", description = "Требуется роль ADMIN")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Статус обновлён",
+                    content = @Content(schema = @Schema(implementation = Status.class))),
+            @ApiResponse(responseCode = "404", description = "Статус не найден")
+    })
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Status> updateStatus(@PathVariable Long id,
-                                               @RequestBody CreateUpdateStatusRequest request,
-                                               @RequestHeader("username") String username) {
+    public ResponseEntity<Status> updateStatus(
+            @Parameter(description = "ID статуса") @PathVariable Long id,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Данные для обновления статуса",
+                    required = true,
+                    content = @Content(schema = @Schema(implementation = CreateUpdateStatusRequest.class)))
+            @RequestBody CreateUpdateStatusRequest request,
+            @Parameter(description = "Имя пользователя") @RequestHeader("username") String username) {
         StatusEntity status = statusService.updateStatus(id, request);
         auditService.addRecord(AuditEntityType.STATUS, AuditActionType.UPDATE, status.getId(), status.getName(), username);
         return new ResponseEntity<>(mapper.map(status, Status.class), HttpStatus.OK);
