@@ -44,6 +44,7 @@ public class MessageController {
             @ApiResponse(responseCode = "201", description = "Сообщение успешно отправлено"),
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
+    @Deprecated
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Данные нового сообщения", required = true)
     public ResponseEntity<Message> sendMessage(@RequestBody CreateMessageRequest request) {
         Message message = messageService.create(request);
@@ -71,6 +72,7 @@ public class MessageController {
             @ApiResponse(responseCode = "204", description = "Сообщения не найдены"),
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
+    @Deprecated
     @Parameter(name = "id", description = "ID пользователя (отправителя или получателя)", required = true)
     public ResponseEntity<List<Message>> getMessagesById(@RequestParam Long id){
         List<Message> messages = messageService.getByReceiverIdOrSenderId(id);

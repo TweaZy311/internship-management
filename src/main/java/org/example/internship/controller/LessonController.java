@@ -2,6 +2,9 @@ package org.example.internship.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -29,14 +32,15 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * Контроллер для работы с занятиями.
+ * Контроллер для управления занятиями в рамках программы стажировок.
  */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/lesson")
 @SecurityRequirement(name = "basicAuth")
-@Tag(name = "Управление занятиями")
+@Tag(name = "Управление занятиями", description = "Операции для администрирования и получения информации о занятиях")
 public class LessonController {
+
     private final LessonService lessonService;
     private final TaskService taskService;
     private final AuditService auditService;
@@ -45,46 +49,50 @@ public class LessonController {
 
     /**
      * Создание нового занятия.
-     * Доступно только пользователям с ролью ADMIN.
      *
-     * @param request информация о новом занятии
-     * @return HTTP-ответ с кодом состояния 201 CREATED в случае успешного создания занятия
+     * @param request  информация о создаваемом занятии
+     * @param username имя пользователя, выполнившего запрос
+     * @return созданное занятие
      */
     @PostMapping("/create")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Создать новое занятие",
-            description = "Создает новое занятие. Доступно только администраторам.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Занятие успешно создано"),
-            @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
+    @Operation(summary = "Создать новое занятие", description = "Создаёт новое занятие. Доступно только администраторам.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Занятие успешно создано",
+                    content = @Content(schema = @Schema(implementation = AdminLessonInfo.class))),
+            @ApiResponse(responseCode = "403", description = "Недостаточно прав доступа")
     })
-    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация о новом занятии", required = true)
-    public ResponseEntity<Lesson> createLesson(@RequestBody CreateLessonRequest request,
-                                               @RequestHeader("username") String username) {
+    @RequestBody(description = "Информация о новом занятии", required = true,
+            content = @Content(schema = @Schema(implementation = CreateLessonRequest.class)))
+    public ResponseEntity<AdminLessonInfo> createLesson(@org.springframework.web.bind.annotation.RequestBody CreateLessonRequest request,
+                                                        @RequestHeader("username") String username) {
         LessonEntity lesson = lessonService.saveLesson(request);
         auditService.addRecord(AuditEntityType.LESSON, AuditActionType.CREATE, lesson.getId(), lesson.getName(), username);
         return new ResponseEntity<>(mapper.map(lesson, AdminLessonInfo.class), HttpStatus.CREATED);
     }
 
     /**
-     * Получение информации о занятии по его идентификатору.
-     * Доступно только пользователям с ролью ADMIN или USER.
+     * Получение информации о занятии по идентификатору.
      *
-     * @param id идентификатор занятия
-     * @return HTTP-ответ с информацией о занятии и кодом состояния 200 OK в случае успешного получения данных
+     * @param id        идентификатор занятия
+     * @param isPrivate если true, возвращается полная административная информация
+     * @return информация о занятии
      */
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
-    @Operation(summary = "Получить информацию о занятии",
-            description = "Возвращает информацию о занятии по его идентификатору. Доступно администраторам и пользователям.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Информация о занятии"),
-            @ApiResponse(responseCode = "404", description = "Занятие не найдено"),
-            @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
+    @Operation(summary = "Получить информацию о занятии", description = "Возвращает информацию о занятии по его ID. В зависимости от параметра `private` возвращает полную или общую информацию.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Информация о занятии",
+                    content = {
+                            @Content(schema = @Schema(implementation = AdminLessonInfo.class)),
+                            @Content(schema = @Schema(implementation = UserLessonInfo.class))
+                    }),
+            @ApiResponse(responseCode = "403", description = "Недостаточно прав доступа"),
+            @ApiResponse(responseCode = "404", description = "Занятие не найдено")
     })
-    @Parameter(name = "id", description = "Идентификатор занятия", required = true)
-    public ResponseEntity<?> getLessonById(@RequestParam(name = "private", defaultValue = "false") Boolean isPrivate,
-            @PathVariable Long id) {
+    public ResponseEntity<?> getLessonById(
+            @RequestParam(name = "private", defaultValue = "false") Boolean isPrivate,
+            @Parameter(description = "Идентификатор занятия", required = true) @PathVariable Long id) {
         LessonEntity lesson = lessonService.getLessonById(id);
         if (isPrivate) {
             return new ResponseEntity<>(mapper.map(lesson, AdminLessonInfo.class), HttpStatus.OK);
@@ -93,91 +101,74 @@ public class LessonController {
     }
 
     /**
-     * Получение списка всех занятий.
-     * Доступно только пользователям с ролью ADMIN.
+     * Получение всех занятий с пагинацией.
      *
-     * @return HTTP-ответ со списком всех занятий и кодом состояния 200 OK в случае успешного получения данных,
-     * или кодом состояния 204 NO CONTENT, если список пуст
+     * @param isPrivate если true, возвращаются административные данные
+     * @param request   параметры пагинации и фильтрации
+     * @return страница занятий
      */
     @PostMapping("/page")
-    @Operation(summary = "Получить список всех занятий",
-            description = "Возвращает список всех занятий.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Список всех занятий"),
-            @ApiResponse(responseCode = "204", description = "Список занятий пуст"),
-            @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Получить список всех занятий", description = "Возвращает страницу занятий с параметрами фильтрации и пагинации.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Список всех занятий",
+                    content = @Content(schema = @Schema(implementation = Page.class))),
+            @ApiResponse(responseCode = "403", description = "Недостаточно прав доступа")
     })
-    @PreAuthorize("@securityService.hasAccess(#isPrivate)")
-    public ResponseEntity<?> getLessons(@RequestParam(name = "private", defaultValue = "false") Boolean isPrivate,
-                                        @RequestBody BaseGetListRequest request) {
+    public ResponseEntity<Page<AdminLessonInfo>> getLessons(
+            @RequestParam(name = "private", defaultValue = "false") Boolean isPrivate,
+            @RequestBody BaseGetListRequest request) {
         org.springframework.data.domain.Page<LessonEntity> page = lessonService.getLessons(request);
-
-        if (isPrivate){
-            Page<AdminLessonInfo> result = Page.<AdminLessonInfo>builder()
-                    .pageSize(page.getSize())
-                    .pageNumber(page.getNumber())
-                    .totalPages(page.getTotalPages())
-                    .totalElements(page.getTotalElements())
-                    .content(mapper.mapAsList(page.getContent(), AdminLessonInfo.class))
-                    .build();
-            return new ResponseEntity<>(result, HttpStatus.OK);
-        }
-        Page<UserLessonInfo> result = Page.<UserLessonInfo>builder()
+        Page<AdminLessonInfo> result = Page.<AdminLessonInfo>builder()
                 .pageSize(page.getSize())
                 .pageNumber(page.getNumber())
                 .totalPages(page.getTotalPages())
                 .totalElements(page.getTotalElements())
-                .content(mapper.mapAsList(page.getContent(), UserLessonInfo.class))
+                .content(mapper.mapAsList(page.getContent(), AdminLessonInfo.class))
                 .build();
-
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     /**
-     * Получение списка опубликованных занятий по идентификатору программы стажировки.
-     * Доступно только пользователям с ролью ADMIN или USER.
+     * Получение опубликованных занятий по стажировке.
      *
      * @param internshipId идентификатор программы стажировки
-     * @return HTTP-ответ со списком опубликованных занятий и кодом состояния 200 OK в случае успешного получения данных,
-     * или кодом состояния 204 NO CONTENT, если список пуст
+     * @return список опубликованных занятий
      */
-
-    //todo deprecated
+    @Deprecated
     @GetMapping("/published")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
-    @Operation(summary = "Получить список опубликованных занятий",
-            description = "Возвращает список опубликованных занятий по идентификатору программы стажировки. Доступно администраторам и пользователям.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Список опубликованных занятий"),
-            @ApiResponse(responseCode = "204", description = "Список опубликованных занятий пуст"),
-            @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
+    @Operation(summary = "Получить список опубликованных занятий", description = "Возвращает опубликованные занятия по ID стажировки. Устаревший метод.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Список опубликованных занятий",
+                    content = @Content(schema = @Schema(implementation = AdminLessonInfo.class))),
+            @ApiResponse(responseCode = "403", description = "Недостаточно прав доступа")
     })
-    @Parameter(name = "internshipId", description = "Идентификатор стажировки", required = true)
-    public ResponseEntity<List<UserLessonInfo>> getPublishedLessons(@RequestParam Long internshipId) {
+    public ResponseEntity<List<AdminLessonInfo>> getPublishedLessons(
+            @Parameter(description = "Идентификатор стажировки", required = true) @RequestParam Long internshipId) {
         List<LessonEntity> lessons = lessonService.getAllPublishedByInternshipId(internshipId);
-        return new ResponseEntity<>(mapper.mapAsList(lessons, UserLessonInfo.class), HttpStatus.OK);
+        return new ResponseEntity<>(mapper.mapAsList(lessons, AdminLessonInfo.class), HttpStatus.OK);
     }
 
     /**
-     * Публикация занятия вместе с существующими к нему заданиями.
-     * Доступно только пользователям с ролью ADMIN.
+     * Публикация занятия и связанных заданий.
      *
-     * @param id идентификатор занятия, которое нужно опубликовать
-     * @return HTTP-ответ с кодом состояния 200 OK в случае успешной публикации занятия
+     * @param id       идентификатор занятия
+     * @param username имя пользователя, выполняющего действие
+     * @return статус выполнения операции
      */
     @PatchMapping("/{id}/publish")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Опубликовать занятие",
-            description = "Публикует занятие и связанные с ним задания. Доступно только администраторам.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Занятие успешно опубликовано"),
-            @ApiResponse(responseCode = "400", description = "Занятие уже было опубликовано ранее"),
-            @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
-    })
-    @Parameter(name = "id", description = "Идентификатор задания", required = true)
     @Transactional
-    public ResponseEntity<Void> publishLesson(@PathVariable Long id,
-                                              @RequestHeader("username") String username) {
+    @Operation(summary = "Опубликовать занятие", description = "Публикует занятие и связанные с ним задания. Доступно только администраторам.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Занятие успешно опубликовано"),
+            @ApiResponse(responseCode = "400", description = "Занятие уже опубликовано"),
+            @ApiResponse(responseCode = "403", description = "Недостаточно прав доступа")
+    })
+    public ResponseEntity<Void> publishLesson(
+            @Parameter(description = "Идентификатор занятия", required = true) @PathVariable Long id,
+            @RequestHeader("username") String username) {
         LessonEntity lesson = lessonService.publishLesson(id);
         //todo
         taskService.publishByLessonId(id);

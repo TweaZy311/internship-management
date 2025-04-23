@@ -1,12 +1,8 @@
 package org.example.internship.controller;
 
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.*;
+import io.swagger.v3.oas.annotations.media.*;
+import io.swagger.v3.oas.annotations.responses.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.internship.entity.AuditActionType;
@@ -24,15 +20,27 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * Контроллер для управления статусами в системе.
+ * Предоставляет CRUD-операции с проверкой прав доступа.
+ * Доступен только пользователям с ролью ADMIN.
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/status")
-@Tag(name = "Управление статусами")
+@Tag(name = "Управление статусами", description = "Операции создания, получения и обновления статусов")
 public class StatusController {
+
     private final StatusService statusService;
     private final AuditService auditService;
     private final Mapper mapper;
 
+    /**
+     * Получить статус по его ID.
+     *
+     * @param id ID статуса
+     * @return Объект {@link Status} или 404, если статус не найден
+     */
     @Operation(summary = "Получить статус по ID", description = "Требуется роль ADMIN")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Статус найден", content = @Content(schema = @Schema(implementation = Status.class))),
@@ -46,6 +54,12 @@ public class StatusController {
         return new ResponseEntity<>(mapper.map(status, Status.class), HttpStatus.OK);
     }
 
+    /**
+     * Получить список статусов с пагинацией и фильтрацией.
+     *
+     * @param request Параметры запроса для пагинации и фильтрации
+     * @return Объект {@link Page} со списком статусов
+     */
     @Operation(summary = "Получить список статусов (с пагинацией)", description = "Требуется роль ADMIN")
     @ApiResponse(responseCode = "200", description = "Список статусов",
             content = @Content(schema = @Schema(implementation = Page.class)))
@@ -68,6 +82,13 @@ public class StatusController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
+    /**
+     * Создать новый статус.
+     *
+     * @param request  Данные нового статуса
+     * @param username Имя пользователя, выполняющего операцию (из заголовка)
+     * @return Созданный статус и HTTP 201
+     */
     @Operation(summary = "Создать новый статус", description = "Требуется роль ADMIN")
     @ApiResponse(responseCode = "201", description = "Статус создан",
             content = @Content(schema = @Schema(implementation = Status.class)))
@@ -84,6 +105,14 @@ public class StatusController {
         return new ResponseEntity<>(mapper.map(status, Status.class), HttpStatus.CREATED);
     }
 
+    /**
+     * Обновить существующий статус по ID.
+     *
+     * @param id       ID статуса для обновления
+     * @param request  Новые данные для статуса
+     * @param username Имя пользователя, выполняющего операцию (из заголовка)
+     * @return Обновлённый статус или 404, если не найден
+     */
     @Operation(summary = "Обновить статус", description = "Требуется роль ADMIN")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Статус обновлён",

@@ -3,7 +3,8 @@ package org.example.internship.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -34,38 +35,37 @@ import java.time.LocalDate;
 
 
 /**
- * Класс контроллера для управления заявками на стажировку.
- * Этот контроллер предоставляет эндпоинты для создания, обновления и получения заявок на стажировку.
+ * Контроллер для управления заявками на стажировку.
+ * Предоставляет возможности создания, обновления статуса и получения информации о заявках.
  */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/application")
-@Tag(name = "Управление заявками")
+@Tag(name = "Управление заявками", description = "Операции по созданию, получению и обновлению заявок на стажировку")
 public class ApplicationController {
+
     private final ApplicationService applicationService;
     private final InternshipService internshipService;
     private final AuditService auditService;
-
     private final Validator validator;
     private final Mapper mapper;
 
     /**
-     * Создание новой заявки на стажировку.
-     * Перед сохранением заявки производится валидация формата электронной почты и номера телефона.
+     * Создать новую заявку на стажировку.
      *
-     * @param application Объект NewApplicationDto, содержащий данные заявки.
-     * @return ResponseEntity с HTTP-статусом 201 CREATED, если заявка успешно создана,
-     * или ResponseEntity с HTTP-статусом 400 BAD REQUEST, если формат электронной почты или номера телефона неверный.
+     * @param application Данные новой заявки.
+     * @return Созданная заявка.
      */
     @PostMapping("/create")
-    @Operation(summary = "Создать новую заявку на стажировку",
-            description = "Создает новую заявку на стажировку. Проверяет формат электронной почты и номера телефона.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Заявка успешно создана"),
-            @ApiResponse(responseCode = "400", description = "Неверный формат электронной почты или номера телефона, или регистрация закрыта")
+    @Operation(summary = "Создать заявку",
+            description = "Создает новую заявку на стажировку. Проверяет формат электронной почты и телефона.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Заявка успешно создана", content = @Content(schema = @Schema(implementation = Application.class))),
+            @ApiResponse(responseCode = "400", description = "Ошибка валидации")
     })
-    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Данные новой заявки", required = true)
     public ResponseEntity<Application> createApplication(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Данные новой заявки", required = true,
+                    content = @Content(schema = @Schema(implementation = CreateApplicationRequest.class)))
             @RequestBody CreateApplicationRequest application) {
         InternshipEntity internship = internshipService.getInternshipById(application.getInternshipId());
 
@@ -85,52 +85,48 @@ public class ApplicationController {
     }
 
     /**
-     * Обновление статуса заявки на стажировку.
-     * Доступно только пользователям с ролью ADMIN.
+     * Обновить статус заявки на стажировку (только для ADMIN).
      *
-     * @param statusDto Объект ApplicationStatusDto, содержащий идентификатор заявки и новый статус.
-     * @return ResponseEntity с HTTP-статусом 200 OK, если статус успешно обновлен.
+     * @param statusDto Объект с ID заявки и новым статусом.
+     * @param username  Имя пользователя, выполнившего операцию.
+     * @return Обновлённая заявка.
      */
     @PatchMapping("/status")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Изменить статус заявки на стажировку",
-            description = "Обновляет статус заявки на стажировку. Доступно только администраторам.")
-    @SecurityRequirement(name = "basicAuth")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Статус заявки успешно изменен"),
-            @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
+    @Operation(summary = "Обновить статус заявки", description = "Изменяет статус заявки. Доступно только администраторам.",
+            security = @SecurityRequirement(name = "basicAuth"))
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Статус успешно обновлён", content = @Content(schema = @Schema(implementation = Application.class))),
+            @ApiResponse(responseCode = "403", description = "Недостаточно прав")
     })
-    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Идентификатор заявки и новый статус", required = true)
-    public ResponseEntity<Application> changeApplicationStatus(@RequestBody UpdateApplicationStatusRequest statusDto,
-                                                               @RequestHeader String username) {
+    public ResponseEntity<Application> changeApplicationStatus(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Новый статус заявки", required = true,
+                    content = @Content(schema = @Schema(implementation = UpdateApplicationStatusRequest.class)))
+            @RequestBody UpdateApplicationStatusRequest statusDto,
+            @Parameter(description = "Имя администратора") @RequestHeader String username) {
         ApplicationEntity application = applicationService.changeApplicationStatus(statusDto);
         auditService.addRecord(AuditEntityType.APPLICATION, AuditActionType.UPDATE, application.getId(), null, username);
         return new ResponseEntity<>(mapper.map(application, Application.class), HttpStatus.OK);
     }
 
     /**
-     * Получение всех заявок на стажировку.
-     * Доступно только пользователям с ролью ADMIN.
+     * Получить список заявок (только для ADMIN).
      *
-     * @return ResponseEntity с списком объектов ApplicationDto и HTTP-статусом 200 OK,
-     * или ResponseEntity с HTTP-статусом 204 NO CONTENT, если заявки не найдены.
+     * @param request Параметры фильтрации и пагинации.
+     * @return Список заявок.
      */
     @PostMapping("/page")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Получить все заявки на стажировку",
-            description = "Возвращает список всех заявок на стажировку с указанным статусом (если он указан). " +
-                    "Доступно только администраторам.")
-    @SecurityRequirement(name = "basicAuth")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Список заявок получен"),
-            @ApiResponse(responseCode = "204", description = "Заявки не найдены"),
-            @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
+    @Operation(summary = "Получить список заявок", description = "Получает список заявок по параметрам. Доступно только администраторам.",
+            security = @SecurityRequirement(name = "basicAuth"))
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Список найден", content = @Content(schema = @Schema(implementation = Page.class))),
+            @ApiResponse(responseCode = "403", description = "Недостаточно прав")
     })
-    @Parameters({
-            @Parameter(name = "status", description = "Статус заявки для получения заявок с определенным статусом"),
-            @Parameter(name = "internshipId", description = "Идентификатор стажировки, на которую была оставлена заявка")
-    })
-    public ResponseEntity<Page<Application>> getApplications(@RequestBody GetApplicationsRequest request) {
+    public ResponseEntity<Page<Application>> getApplications(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Параметры запроса", required = true,
+                    content = @Content(schema = @Schema(implementation = GetApplicationsRequest.class)))
+            @RequestBody GetApplicationsRequest request) {
         org.springframework.data.domain.Page<ApplicationEntity> page = applicationService.getApplications(request);
 
         Page<Application> result = Page.<Application>builder()
@@ -145,25 +141,22 @@ public class ApplicationController {
     }
 
     /**
-     * Получение заявки на стажировку по идентификатору.
-     * Доступно только пользователям с ролью ADMIN.
+     * Получить заявку по идентификатору (только для ADMIN).
      *
-     * @param id Идентификатор заявки для получения.
-     * @return ResponseEntity с объектом ApplicationDto и HTTP-статусом 200 OK, если найдена,
-     * или ResponseEntity с HTTP-статусом 404 NOT FOUND, если заявка не найдена.
+     * @param id Идентификатор заявки.
+     * @return Заявка.
      */
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Получить заявку по идентификатору",
-            description = "Возвращает информацию о заявке с указанным идентификатором. Доступно только администраторам.")
-    @SecurityRequirement(name = "basicAuth")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Заявка найдена"),
+    @Operation(summary = "Получить заявку по ID", description = "Возвращает заявку по её идентификатору. Доступно только администраторам.",
+            security = @SecurityRequirement(name = "basicAuth"))
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Заявка найдена", content = @Content(schema = @Schema(implementation = Application.class))),
             @ApiResponse(responseCode = "404", description = "Заявка не найдена"),
-            @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
+            @ApiResponse(responseCode = "403", description = "Недостаточно прав")
     })
-    @Parameter(name = "id", description = "Идентификатор заявки")
-    public ResponseEntity<Application> getApplicationById(@PathVariable Long id) {
+    public ResponseEntity<Application> getApplicationById(
+            @Parameter(description = "ID заявки") @PathVariable Long id) {
         ApplicationEntity application = applicationService.getApplicationById(id);
         return new ResponseEntity<>(mapper.map(application, Application.class), HttpStatus.OK);
     }

@@ -1,6 +1,9 @@
 package org.example.internship.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -24,116 +27,128 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-
 /**
  * Контроллер для работы с решениями заданий.
  */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/solution")
-@Tag(name = "Управление решениями заданий")
+@Tag(name = "Управление решениями заданий", description = "Операции по управлению решениями заданий пользователей")
 public class SolutionController {
     private final SolutionService solutionService;
     private final GitlabService gitlabService;
     private final AuditService auditService;
-
     private final Mapper mapper;
 
     /**
      * Добавление нового решения задания.
-     * Доступно только пользователям Gitlab, у которых имеется токен
+     * Доступно только пользователям Gitlab, у которых имеется токен.
      *
-     * @param request информация о пуше в репозиторий
-     * @return HTTP-ответ с кодом состояния 201 CREATED в случае успешного добавления решения
+     * @param request информация о push-событии из GitLab
+     * @return HTTP-ответ с кодом состояния 201 CREATED и DTO добавленного решения
      */
     @PostMapping("/add")
     @GitlabTokenRequired
-    @Operation(summary = "Добавить новое решение задания",
-            description = "Добавляет новое решение задания. Доступно только пользователям GitLab с токеном.")
+    @Operation(
+            summary = "Добавить новое решение задания",
+            description = "Добавляет новое решение на основе пуша в GitLab. Доступно только пользователям с валидным GitLab-токеном."
+    )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Решение успешно добавлено"),
-            @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
+            @ApiResponse(responseCode = "201", description = "Решение успешно добавлено",
+                    content = @Content(schema = @Schema(implementation = Solution.class))),
+            @ApiResponse(responseCode = "403", description = "Нет доступа (отсутствует GitLab токен)")
     })
-    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация о пуше в репозиторий", required = true)
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Событие Push из GitLab", required = true,
+            content = @Content(schema = @Schema(implementation = PushSystemHookEvent.class)))
     public ResponseEntity<Solution> addSolution(@RequestBody PushSystemHookEvent request) {
         SolutionEntity solution = null;
         if (gitlabService.isForkedRepository(request.getProjectId())) {
             solution = solutionService.addSolution(request);
         }
-        //todo придумать как передавать заголовок
         return new ResponseEntity<>(mapper.map(solution, Solution.class), HttpStatus.CREATED);
     }
 
     /**
      * Обновление статуса решения задания.
-     * Доступно только пользователям с ролью ADMIN.
+     * Доступно только администраторам.
      *
-     * @param request информация для обновления статуса решения
-     * @return HTTP-ответ с кодом состояния 200 OK в случае успешного обновления статуса решения
+     * @param request  данные для обновления статуса
+     * @param username имя пользователя, производящего обновление (для аудита)
+     * @return HTTP-ответ с обновлённым решением и кодом 200 OK
      */
     @PatchMapping("/set-status")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Обновить статус решения задания",
-            description = "Обновляет статус решения задания. Доступно только администраторам.")
-    @SecurityRequirement(name = "basicAuth")
+    @Operation(
+            summary = "Обновить статус решения задания",
+            description = "Обновляет статус конкретного решения. Доступно только администраторам.",
+            security = @SecurityRequirement(name = "basicAuth")
+    )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Статус решения успешно обновлен"),
-            @ApiResponse(responseCode = "404", description = "Указанное решение не найдено"),
-            @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
+            @ApiResponse(responseCode = "200", description = "Статус успешно обновлён",
+                    content = @Content(schema = @Schema(implementation = Solution.class))),
+            @ApiResponse(responseCode = "403", description = "Нет доступа (требуется роль ADMIN)"),
+            @ApiResponse(responseCode = "404", description = "Решение не найдено")
     })
-    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация для обновления статуса решения", required = true)
-    public ResponseEntity<Solution> updateSolutionStatus(@RequestBody UpdateSolutionStatusRequest request,
-                                                         @RequestHeader("username") String username) {
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация для обновления статуса решения", required = true,
+            content = @Content(schema = @Schema(implementation = UpdateSolutionStatusRequest.class)))
+    public ResponseEntity<Solution> updateSolutionStatus(
+            @RequestBody UpdateSolutionStatusRequest request,
+            @Parameter(description = "Имя пользователя, совершающего действие", required = true)
+            @RequestHeader("username") String username) {
         SolutionEntity solution = solutionService.updateSolutionStatus(request);
-        //todo repository url == name??
         auditService.addRecord(AuditEntityType.SOLUTION, AuditActionType.UPDATE, solution.getId(), solution.getRepositoryUrl(), username);
         return new ResponseEntity<>(mapper.map(solution, Solution.class), HttpStatus.OK);
     }
 
     /**
-     * Получение информации о решении задания по его идентификатору.
-     * Доступно только пользователям с ролью ADMIN.
+     * Получение информации о решении задания по его ID.
+     * Доступно только администраторам.
      *
-     * @param id идентификатор решения задания
-     * @return HTTP-ответ с информацией о решении задания и кодом состояния 200 OK в случае успешного получения данных
+     * @param id идентификатор решения
+     * @return HTTP-ответ с DTO решения и кодом 200 OK
      */
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Получить информацию о решении задания",
-            description = "Возвращает информацию о решении задания по его идентификатору. Доступно только администраторам.")
-    @SecurityRequirement(name = "basicAuth")
+    @Operation(
+            summary = "Получить решение по ID",
+            description = "Возвращает решение по идентификатору. Доступно только администраторам.",
+            security = @SecurityRequirement(name = "basicAuth")
+    )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Информация о решении успешно получена"),
-            @ApiResponse(responseCode = "404", description = "Решение не найдено"),
-            @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
+            @ApiResponse(responseCode = "200", description = "Решение успешно найдено",
+                    content = @Content(schema = @Schema(implementation = Solution.class))),
+            @ApiResponse(responseCode = "403", description = "Нет доступа"),
+            @ApiResponse(responseCode = "404", description = "Решение не найдено")
     })
-    public ResponseEntity<Solution> getSolutionById(@PathVariable Long id) {
+    public ResponseEntity<Solution> getSolutionById(
+            @Parameter(description = "ID решения", required = true)
+            @PathVariable Long id) {
         SolutionEntity solution = solutionService.getSolutionById(id);
         return new ResponseEntity<>(mapper.map(solution, Solution.class), HttpStatus.OK);
     }
 
     /**
-     * Получение списка всех решений заданий.
-     * Доступно только пользователям с ролью ADMIN.
+     * Получение списка решений заданий с пагинацией.
+     * Доступно только администраторам.
      *
-     * @return HTTP-ответ со списком всех решений заданий и кодом состояния 200 OK в случае успешного получения данных,
-     * или кодом состояния 204 NO CONTENT, если список пуст
+     * @param request параметры пагинации и фильтрации
+     * @return HTTP-ответ с пагинированным списком решений и кодом 200 OK или 204 NO CONTENT
      */
     @PostMapping("/page")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Получить список решений заданий",
-            description = "Возвращает список всех решений заданий. Доступно только администраторам.")
-    @SecurityRequirement(name = "basicAuth")
+    @Operation(
+            summary = "Получить список решений заданий (с пагинацией)",
+            description = "Возвращает список решений с поддержкой пагинации. Доступно только администраторам.",
+            security = @SecurityRequirement(name = "basicAuth")
+    )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Список решений успешно получен"),
-            @ApiResponse(responseCode = "204", description = "Решения не найдены"),
-            @ApiResponse(responseCode = "400", description = "Некорректный запрос (указаны оба параметра одновременно)"),
-            @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
+            @ApiResponse(responseCode = "200", description = "Решения найдены",
+                    content = @Content(schema = @Schema(implementation = Page.class))),
+            @ApiResponse(responseCode = "400", description = "Некорректный запрос"),
+            @ApiResponse(responseCode = "403", description = "Нет доступа")
     })
-//    @Parameters({
-//            @Parameter(name = "status", description = "Статус решения"),
-//            @Parameter(name = "taskId", description = "Идентификатор задания, которому соответствуют решения")
-//    })
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Параметры запроса списка решений", required = true,
+            content = @Content(schema = @Schema(implementation = BaseGetListRequest.class)))
     public ResponseEntity<Page<Solution>> getSolutions(@RequestBody BaseGetListRequest request) {
         org.springframework.data.domain.Page<SolutionEntity> page = solutionService.getSolutions(request);
 
@@ -146,5 +161,4 @@ public class SolutionController {
                 .build();
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
-
 }
