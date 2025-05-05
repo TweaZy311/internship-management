@@ -11,7 +11,7 @@ import org.example.internship.entity.AuditActionType;
 import org.example.internship.entity.AuditEntityType;
 import org.example.internship.entity.LessonEntity;
 import org.example.internship.mapper.Mapper;
-import org.example.internship.model.Page;
+import org.example.internship.model.*;
 import org.example.internship.model.request.BaseGetListRequest;
 import org.example.internship.model.request.lesson.CreateLessonRequest;
 import org.example.internship.model.response.lesson.AdminLessonInfo;
@@ -111,6 +111,13 @@ public class LessonController {
     public ResponseEntity<?> getLessons(@RequestParam(name = "private", defaultValue = "false") Boolean isPrivate,
                                         @RequestBody BaseGetListRequest request) {
         org.springframework.data.domain.Page<LessonEntity> page = lessonService.getLessons(request);
+
+        //TODO FIXME
+        if (false) { //если пользователь не админ то возвращем только открытые
+            request.getFilters()
+                    .add(new SearchCriteria(SearchKey.IS_PUBLISHED, SearchOperation.EQ, Boolean.TRUE, BooleanOperator.AND));
+        }
+
 
         if (isPrivate){
             Page<AdminLessonInfo> result = Page.<AdminLessonInfo>builder()

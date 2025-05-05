@@ -34,6 +34,8 @@ public enum ErrorCode {
     STS_404("STS-404"),
     //message
     MSG_403("MSG-403"),
+    //token
+    TKN_401("TKN-401"),
     ;
 
     private final String code;
