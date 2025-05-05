@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.internship.entity.*;
 import org.example.internship.mapper.Mapper;
-import org.example.internship.model.Page;
+import org.example.internship.model.*;
 import org.example.internship.model.request.BaseGetListRequest;
 import org.example.internship.model.request.internship.CreateUpdateInternshipRequest;
 import org.example.internship.model.response.Report;
@@ -122,6 +122,12 @@ public class InternshipController {
     @Parameter(name = "status", description = "Статус стажировки")
     public ResponseEntity<Page<Internship>> getInternships(@RequestBody BaseGetListRequest request) {
         org.springframework.data.domain.Page<InternshipEntity> page = internshipService.getInternships(request);
+
+        //TODO FIXME
+        if (false) { //если пользователь не админ то возвращем только открытые
+            request.getFilters()
+                    .add(new SearchCriteria(SearchKey.IS_PUBLISHED, SearchOperation.EQ, Boolean.TRUE, BooleanOperator.AND));
+        }
 
         Page<Internship> result = Page.<Internship>builder()
                 .pageSize(page.getSize())

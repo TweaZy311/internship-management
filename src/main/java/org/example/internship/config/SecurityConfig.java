@@ -1,68 +1,71 @@
 package org.example.internship.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.example.internship.service.user.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
 
 /**
  * Конфигурация Spring Security для приложения.
  */
 @Configuration
-@EnableWebSecurity
+@RequiredArgsConstructor
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class SecurityConfig {
 
-
-    private final AuthEntryPoint authEntryPoint;
+    private final UserDetailsServiceImpl userDetailsService;
+    private final AuthEntryPoint unauthorizedHandler;
+    private final AuthTokenFilter authTokenFilter;
     private final PasswordEncoder passwordEncoder;
-    private final UserDetailsService userDetailsService;
 
-    @Autowired
-    public SecurityConfig(AuthEntryPoint authEntryPoint, PasswordEncoder passwordEncoder, UserDetailsService userDetailsService) {
-        this.authEntryPoint = authEntryPoint;
-        this.passwordEncoder = passwordEncoder;
-        this.userDetailsService = userDetailsService;
+    @Bean
+    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+        return http.getSharedObject(AuthenticationManagerBuilder.class)
+                .authenticationProvider(authProvider())
+                .build();
     }
 
-    /**
-     * Настройка HTTP безопасности при помощи Basic Authentication.
-     *
-     * @param http билдер для настройки безопасности HTTP
-     * @throws Exception если возникла ошибка при настройке безопасности
-     */
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    @Bean
+    public DaoAuthenticationProvider authProvider() {
+        DaoAuthenticationProvider prov = new DaoAuthenticationProvider();
+        prov.setUserDetailsService(userDetailsService);
+        prov.setPasswordEncoder(passwordEncoder);
+        return prov;
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf().disable()
+                .exceptionHandling()
+                .authenticationEntryPoint(unauthorizedHandler)
+                .and()
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
                 .authorizeRequests()
+                .antMatchers("/api/auth/**").permitAll()
                 .antMatchers("/api/application/create",
                         "/api/internship/opened",
                         "/api/internship/{id}",
                         "/api/solution/add",
-                        "/api-docs",
-                        "/swagger-ui/**",
-                        "/v3/api-docs").permitAll()
-                .anyRequest().authenticated()
-                .and()
-                .httpBasic().authenticationEntryPoint(authEntryPoint)
-                .and()
-                .sessionManagement().disable();
-    }
+                        "/api-docs", "/swagger-ui/**", "/v3/api-docs")
+                .permitAll()
+                .anyRequest().authenticated();
 
-    /**
-     * Настройка аутентификации с использованием UserDetailsService.
-     *
-     * @param auth билдер для настройки аутентификации
-     * @throws Exception если возникла ошибка при настройке аутентификации
-     */
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder);
+        http.addFilterBefore(authTokenFilter,
+                UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
     }
 }
