@@ -12,7 +12,7 @@ import org.example.internship.entity.AuditActionType;
 import org.example.internship.entity.AuditEntityType;
 import org.example.internship.entity.TaskEntity;
 import org.example.internship.mapper.Mapper;
-import org.example.internship.model.Page;
+import org.example.internship.model.*;
 import org.example.internship.model.request.BaseGetListRequest;
 import org.example.internship.model.request.task.CreateTaskRequest;
 import org.example.internship.model.request.task.UpdateTaskRequest;
@@ -144,7 +144,7 @@ public class TaskController {
      * или кодом состояния 204 NO CONTENT, если список пуст
      */
     @PostMapping("/page")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @Operation(summary = "Получить список всех заданий",
             description = "Возвращает список всех заданий. Доступно только администраторам.")
     @ApiResponses(value = {
@@ -154,6 +154,12 @@ public class TaskController {
     })
     public ResponseEntity<Page<Task>> getTasks(@RequestBody BaseGetListRequest request) {
         org.springframework.data.domain.Page<TaskEntity> page = taskService.getTasks(request);
+
+        //TODO FIXME
+        if (false) { //если пользователь не админ то возвращем только опубликованные
+            request.getFilters()
+                    .add(new SearchCriteria(SearchKey.IS_PUBLISHED, SearchOperation.EQ, Boolean.TRUE, BooleanOperator.AND));
+        }
 
         Page<Task> result = Page.<Task>builder()
                 .pageSize(page.getSize())
