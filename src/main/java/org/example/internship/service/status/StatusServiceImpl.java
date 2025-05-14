@@ -1,6 +1,7 @@
 package org.example.internship.service.status;
 
 import lombok.RequiredArgsConstructor;
+import org.example.internship.config.properties.StatusProperties;
 import org.example.internship.entity.StatusEntity;
 import org.example.internship.entity.StatusType;
 import org.example.internship.exception.ErrorCode;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 
 @Service
@@ -24,6 +26,7 @@ public class StatusServiceImpl implements StatusService {
     private final String STATUS_WITH_SUCH_ID_COULD_NOT_BE_FOUND = "Status with such ID could not be found";
 
     private final StatusRepository statusRepository;
+    private final StatusProperties statusProperties;
     private final Mapper mapper;
 
     @Override
@@ -64,5 +67,28 @@ public class StatusServiceImpl implements StatusService {
     @Override
     public List<StatusEntity> getAllByType(String type) {
         return statusRepository.findAllByType(StatusType.valueOf(type.toUpperCase()));
+    }
+
+    @PostConstruct
+    private void createDefaultStatuses() {
+        if (statusProperties.getDefaultApplicationStatusId() == null) {
+            StatusEntity statusEntity = StatusEntity.builder()
+                    .name("На рассмотрении")
+                    .type(StatusType.APPLICATION)
+                    .build();
+
+            statusEntity = statusRepository.save(statusEntity);
+            statusProperties.setDefaultApplicationStatusId(statusEntity.getId());
+        }
+
+        if (statusProperties.getDefaultSolutionStatusId() == null) {
+            StatusEntity statusEntity = StatusEntity.builder()
+                    .name("Отправлено")
+                    .type(StatusType.SOLUTION)
+                    .build();
+
+            statusEntity = statusRepository.save(statusEntity);
+            statusProperties.setDefaultSolutionStatusId(statusEntity.getId());
+        }
     }
 }
