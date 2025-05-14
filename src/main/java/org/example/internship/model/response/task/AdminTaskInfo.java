@@ -5,15 +5,9 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * DTO для получения краткой информации о задании.
- */
 @Getter
 @Setter
 @JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
-public class ShortTaskInfo {
-    private Long id;
-    private String name;
-    private String repositoryName;
-    private String description;
+public class AdminTaskInfo extends Task {
+    private String rootRepositoryUrl;
 }

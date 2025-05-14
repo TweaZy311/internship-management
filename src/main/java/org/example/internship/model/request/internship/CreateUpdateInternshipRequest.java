@@ -17,7 +17,6 @@ public class CreateUpdateInternshipRequest {
     private String name;
     private String description;
     private Long statusId;
-    //todo
     private LocalDate registrationStartDate = LocalDate.now();
     private LocalDate registrationEndDate;
     private LocalDate startDate;

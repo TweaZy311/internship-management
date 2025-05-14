@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
-public class Lesson {
+public class ShortLessonInfo {
     private Long id;
     private String name;
     private String description;

@@ -15,7 +15,8 @@ import java.util.List;
 @Getter
 @Setter
 @JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
-public class UserLessonInfo extends Lesson {
+public class LongLessonInfo extends ShortLessonInfo {
+    private Boolean isPublished;
     private List<ShortTaskInfo> tasks;
     private Internship internship;
 }
