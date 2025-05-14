@@ -30,7 +30,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class SolutionServiceImpl implements SolutionService {
-    private final String SOLUTION_WITH_SUCH_ID_COULD_NOT_BE_FOUND = "SolutionEntity with such ID could not be found";
+    private final String SOLUTION_WITH_SUCH_ID_COULD_NOT_BE_FOUND = "Solution with such ID could not be found";
     private final StatusProperties statusProperties;
 
     private final SolutionRepository solutionRepository;
@@ -47,7 +47,6 @@ public class SolutionServiceImpl implements SolutionService {
     @Override
     public SolutionEntity addSolution(PushSystemHookEvent pushEvent) {
         SolutionEntity SolutionEntity = mapper.map(pushEvent, SolutionEntity.class);
-        //todo fix status
         StatusEntity statusEntity = statusRepository.findById(statusProperties.getDefaultSolutionStatusId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.STS_404.getCode(), "Status with such id could not be found"));
 
@@ -124,17 +123,6 @@ public class SolutionServiceImpl implements SolutionService {
                 PageRequest.of(request.getPage(), request.getPageSize(), sort));
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @param status статус решений
-     * @return список решений с указанным статусом
-     */
-    @Override
-    public List<SolutionEntity> getAllByStatus(String status) {
-        //todo FIX
-        return solutionRepository.findAllByStatusIdAndIsArchived(null, true);
-    }
 
     /**
      * {@inheritDoc}
@@ -148,13 +136,18 @@ public class SolutionServiceImpl implements SolutionService {
         return mapper.mapAsList(solutions, SolutionEntity.class);
     }
 
+    @Override
+    public SolutionEntity getByRepositoryUrl(String repositoryUrl) {
+        return solutionRepository.findByRepositoryUrl(repositoryUrl);
+    }
+
     /**
      * {@inheritDoc}
      *
      * @param userId идентификатор пользователя
      */
     @Override
-    public void archiveSolutions(Long userId) {
+    public void archiveUserSolutions(Long userId) {
         List<SolutionEntity> solutions = solutionRepository.findAllByUserId(userId);
         solutions.forEach(SolutionEntity -> SolutionEntity.setIsArchived(true));
         solutionRepository.saveAll(solutions);

@@ -43,15 +43,6 @@ public interface SolutionService {
     Page<SolutionEntity> getSolutions(BaseGetListRequest request);
 
     /**
-     * Получение списка решений по указанному статусу.
-     *
-     * @param status статус решений
-     * @return список решений с указанным статусом
-     */
-    List<SolutionEntity> getAllByStatus(String status);
-
-
-    /**
      * Получение списка всех решений задания по его идентификатору.
      *
      * @param taskId идентификатор задания
@@ -59,10 +50,12 @@ public interface SolutionService {
      */
     List<SolutionEntity> getAllByTaskId(Long taskId);
 
+    SolutionEntity getByRepositoryUrl(String repositoryUrl);
+
     /**
      * Архивирование решений задач по идентификатору пользователя.
      *
      * @param userId идентификатор пользователя
      */
-    void archiveSolutions(Long userId);
+    void archiveUserSolutions(Long userId);
 }

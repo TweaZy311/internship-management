@@ -16,15 +16,20 @@ import org.example.internship.model.*;
 import org.example.internship.model.request.BaseGetListRequest;
 import org.example.internship.model.request.task.CreateTaskRequest;
 import org.example.internship.model.request.task.UpdateTaskRequest;
+import org.example.internship.model.response.task.AdminTaskInfo;
 import org.example.internship.model.response.task.Task;
 import org.example.internship.service.audit.AuditService;
 import org.example.internship.service.task.TaskService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Контроллер для работы с заданиями.
@@ -70,7 +75,7 @@ public class TaskController {
      * @return HTTP-ответ со списком опубликованных заданий и кодом состояния 200 OK в случае успешного получения данных,
      * или кодом состояния 204 NO CONTENT, если список пуст
      */
-    //todo deprecated
+    @Deprecated
     @GetMapping("/published")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @Operation(summary = "Получить список опубликованных заданий",
@@ -152,21 +157,39 @@ public class TaskController {
             @ApiResponse(responseCode = "204", description = "Список заданий пуст"),
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
-    public ResponseEntity<Page<Task>> getTasks(@RequestBody BaseGetListRequest request) {
-        org.springframework.data.domain.Page<TaskEntity> page = taskService.getTasks(request);
+    public ResponseEntity<Page<?>> getTasks(@RequestBody BaseGetListRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        //TODO FIXME
-        if (false) { //если пользователь не админ то возвращем только опубликованные
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toSet())
+                .contains("ROLE_ADMIN");
+
+        if (!isAdmin) {
             request.getFilters()
                     .add(new SearchCriteria(SearchKey.IS_PUBLISHED, SearchOperation.EQ, Boolean.TRUE, BooleanOperator.AND));
-        }
 
-        Page<Task> result = Page.<Task>builder()
+            org.springframework.data.domain.Page<TaskEntity> page = taskService.getTasks(request);
+
+            Page<Task> result = Page.<Task>builder()
+                    .pageSize(page.getSize())
+                    .pageNumber(page.getNumber())
+                    .totalPages(page.getTotalPages())
+                    .totalElements(page.getTotalElements())
+                    .content(mapper.mapAsList(page.getContent(), Task.class))
+                    .build();
+
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }
+        org.springframework.data.domain.Page<TaskEntity> page = taskService.getTasks(request);
+
+
+        Page<AdminTaskInfo> result = Page.<AdminTaskInfo>builder()
                 .pageSize(page.getSize())
                 .pageNumber(page.getNumber())
                 .totalPages(page.getTotalPages())
                 .totalElements(page.getTotalElements())
-                .content(mapper.mapAsList(page.getContent(), Task.class))
+                .content(mapper.mapAsList(page.getContent(), AdminTaskInfo.class))
                 .build();
         return new ResponseEntity<>(result, HttpStatus.OK);
     }

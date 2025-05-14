@@ -93,16 +93,6 @@ public class InternshipServiceImpl implements InternshipService {
     public InternshipEntity getInternshipById(Long id) {
         InternshipEntity internship = internshipRepository.findById(id)
                 .orElseThrow(() ->  new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), INTERNSHIP_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
-//        if (isPrivate) {
-//            List<UserEntity> participants = userRepository.findAllByInternshipIdAndRole(id, UserRole.USER);
-//            PrivateInternshipInfo internshipInfo =  mapper.map(internship, PrivateInternshipInfo.class);
-//            internshipInfo.setParticipants(mapper.mapAsList(participants, User.class));
-//            return internshipInfo;
-//        }
-
-        if (!internship.getIsOpen()) {
-            throw new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), "Internship is closed");
-        }
         return internship;
     }
 
@@ -161,13 +151,13 @@ public class InternshipServiceImpl implements InternshipService {
                 .orElseThrow(() ->  new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), INTERNSHIP_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
         List<UserEntity> users = userRepository.findAllByInternshipIdAndRole(internshipId, UserRole.USER);
         List<TaskEntity> tasks = taskRepository.findAllByLesson_InternshipId(internshipId);
-        //todo возможно здесь не нужны exception
-        if (users.isEmpty()) {
-            throw new EntityNotFoundException("No users found for internship with ID: " + internshipId);
-        }
-        if (tasks.isEmpty()) {
-            throw new EntityNotFoundException("No tasks found for internship with ID:" + internshipId);
-        }
+//
+//        if (users.isEmpty()) {
+//            throw new EntityNotFoundException("No users found for internship with ID: " + internshipId);
+//        }
+//        if (tasks.isEmpty()) {
+//            throw new EntityNotFoundException("No tasks found for internship with ID:" + internshipId);
+//        }
 
         List<Report> reports = new ArrayList<>();
         for (UserEntity user : users) {

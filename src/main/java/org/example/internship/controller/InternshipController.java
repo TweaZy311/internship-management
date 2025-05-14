@@ -27,9 +27,13 @@ import org.example.internship.utils.Validator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Контроллер для работы с программами стажировок.
@@ -67,9 +71,9 @@ public class InternshipController {
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Данные новой стажировки", required = true)
     public ResponseEntity<Internship> createInternship(@RequestBody CreateUpdateInternshipRequest request,
                                                        @RequestHeader("username") String username) {
-        //todo add validation to registration start date
         if (!validator.dateIsValid(request.getStartDate(),
                 request.getEndDate(),
+                request.getRegistrationStartDate(),
                 request.getRegistrationEndDate())) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.ITS_400.getCode(), "Wrong date input");
         }
@@ -110,7 +114,7 @@ public class InternshipController {
      * или кодом состояния 204 NO CONTENT, если список пуст
      */
     @PostMapping("/page")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @Operation(summary = "Получить все стажировки",
             description = "Возвращает список всех стажировок c указанным статусом (если он указан). Доступно только администраторам.")
     @SecurityRequirement(name = "basicAuth")
@@ -121,13 +125,19 @@ public class InternshipController {
     })
     @Parameter(name = "status", description = "Статус стажировки")
     public ResponseEntity<Page<Internship>> getInternships(@RequestBody BaseGetListRequest request) {
-        org.springframework.data.domain.Page<InternshipEntity> page = internshipService.getInternships(request);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        //TODO FIXME
-        if (false) { //если пользователь не админ то возвращем только открытые
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toSet())
+                .contains("ROLE_ADMIN");
+
+        if (!isAdmin) {
             request.getFilters()
-                    .add(new SearchCriteria(SearchKey.IS_PUBLISHED, SearchOperation.EQ, Boolean.TRUE, BooleanOperator.AND));
+                    .add(new SearchCriteria(SearchKey.IS_OPEN, SearchOperation.EQ, Boolean.TRUE, BooleanOperator.AND));
         }
+
+        org.springframework.data.domain.Page<InternshipEntity> page = internshipService.getInternships(request);
 
         Page<Internship> result = Page.<Internship>builder()
                 .pageSize(page.getSize())
@@ -153,7 +163,7 @@ public class InternshipController {
             @ApiResponse(responseCode = "200", description = "Список открытых стажировок"),
             @ApiResponse(responseCode = "204", description = "Список пуст"),
     })
-    //todo deprecated
+    @Deprecated
     public ResponseEntity<List<PublicInternshipInfo>> getAllOpenedInternships() {
         List<InternshipEntity> internships = internshipService.getInternshipsByIsOpen(true);
         return new ResponseEntity<>(mapper.mapAsList(internships, PublicInternshipInfo.class), HttpStatus.OK);
@@ -209,9 +219,10 @@ public class InternshipController {
     public ResponseEntity<Internship> updateInternship(@PathVariable Long id,
                                                        @RequestBody CreateUpdateInternshipRequest request,
                                                        @RequestHeader("username") String username) {
-        //todo add validation to registration start date
-        if (!validator.dateIsValid(request.getStartDate(), request.getEndDate(),
-                request.getRegistrationStartDate(), request.getRegistrationEndDate())) {
+        if (!validator.dateIsValid(request.getStartDate(),
+                request.getEndDate(),
+                request.getRegistrationStartDate(),
+                request.getRegistrationEndDate())) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, ErrorCode.ITS_400.getCode(), "Wrong date input");
         }
         InternshipEntity internship = internshipService.updateInternship(id, request);

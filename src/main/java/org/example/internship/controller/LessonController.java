@@ -14,19 +14,22 @@ import org.example.internship.mapper.Mapper;
 import org.example.internship.model.*;
 import org.example.internship.model.request.BaseGetListRequest;
 import org.example.internship.model.request.lesson.CreateLessonRequest;
-import org.example.internship.model.response.lesson.AdminLessonInfo;
-import org.example.internship.model.response.lesson.Lesson;
-import org.example.internship.model.response.lesson.UserLessonInfo;
+import org.example.internship.model.response.lesson.LongLessonInfo;
+import org.example.internship.model.response.lesson.ShortLessonInfo;
 import org.example.internship.service.audit.AuditService;
 import org.example.internship.service.lesson.LessonService;
 import org.example.internship.service.task.TaskService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Контроллер для работы с занятиями.
@@ -59,11 +62,11 @@ public class LessonController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация о новом занятии", required = true)
-    public ResponseEntity<Lesson> createLesson(@RequestBody CreateLessonRequest request,
-                                               @RequestHeader("username") String username) {
+    public ResponseEntity<ShortLessonInfo> createLesson(@RequestBody CreateLessonRequest request,
+                                                        @RequestHeader("username") String username) {
         LessonEntity lesson = lessonService.saveLesson(request);
         auditService.addRecord(AuditEntityType.LESSON, AuditActionType.CREATE, lesson.getId(), lesson.getName(), username);
-        return new ResponseEntity<>(mapper.map(lesson, AdminLessonInfo.class), HttpStatus.CREATED);
+        return new ResponseEntity<>(mapper.map(lesson, LongLessonInfo.class), HttpStatus.CREATED);
     }
 
     /**
@@ -83,13 +86,10 @@ public class LessonController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @Parameter(name = "id", description = "Идентификатор занятия", required = true)
-    public ResponseEntity<?> getLessonById(@RequestParam(name = "private", defaultValue = "false") Boolean isPrivate,
+    public ResponseEntity<LongLessonInfo> getLessonById(@RequestParam(name = "private", defaultValue = "false") Boolean isPrivate,
             @PathVariable Long id) {
         LessonEntity lesson = lessonService.getLessonById(id);
-        if (isPrivate) {
-            return new ResponseEntity<>(mapper.map(lesson, AdminLessonInfo.class), HttpStatus.OK);
-        }
-        return new ResponseEntity<>(mapper.map(lesson, UserLessonInfo.class), HttpStatus.OK);
+        return new ResponseEntity<>(mapper.map(lesson, LongLessonInfo.class), HttpStatus.OK);
     }
 
     /**
@@ -110,31 +110,25 @@ public class LessonController {
     @PreAuthorize("@securityService.hasAccess(#isPrivate)")
     public ResponseEntity<?> getLessons(@RequestParam(name = "private", defaultValue = "false") Boolean isPrivate,
                                         @RequestBody BaseGetListRequest request) {
-        org.springframework.data.domain.Page<LessonEntity> page = lessonService.getLessons(request);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        //TODO FIXME
-        if (false) { //если пользователь не админ то возвращем только открытые
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toSet())
+                .contains("ROLE_ADMIN");
+
+        if (!isAdmin) {
             request.getFilters()
                     .add(new SearchCriteria(SearchKey.IS_PUBLISHED, SearchOperation.EQ, Boolean.TRUE, BooleanOperator.AND));
         }
 
-
-        if (isPrivate){
-            Page<AdminLessonInfo> result = Page.<AdminLessonInfo>builder()
-                    .pageSize(page.getSize())
-                    .pageNumber(page.getNumber())
-                    .totalPages(page.getTotalPages())
-                    .totalElements(page.getTotalElements())
-                    .content(mapper.mapAsList(page.getContent(), AdminLessonInfo.class))
-                    .build();
-            return new ResponseEntity<>(result, HttpStatus.OK);
-        }
-        Page<UserLessonInfo> result = Page.<UserLessonInfo>builder()
+        org.springframework.data.domain.Page<LessonEntity> page = lessonService.getLessons(request);
+        Page<LongLessonInfo> result = Page.<LongLessonInfo>builder()
                 .pageSize(page.getSize())
                 .pageNumber(page.getNumber())
                 .totalPages(page.getTotalPages())
                 .totalElements(page.getTotalElements())
-                .content(mapper.mapAsList(page.getContent(), UserLessonInfo.class))
+                .content(mapper.mapAsList(page.getContent(), LongLessonInfo.class))
                 .build();
 
         return new ResponseEntity<>(result, HttpStatus.OK);
@@ -149,7 +143,7 @@ public class LessonController {
      * или кодом состояния 204 NO CONTENT, если список пуст
      */
 
-    //todo deprecated
+    @Deprecated
     @GetMapping("/published")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @Operation(summary = "Получить список опубликованных занятий",
@@ -160,9 +154,9 @@ public class LessonController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @Parameter(name = "internshipId", description = "Идентификатор стажировки", required = true)
-    public ResponseEntity<List<UserLessonInfo>> getPublishedLessons(@RequestParam Long internshipId) {
+    public ResponseEntity<List<LongLessonInfo>> getPublishedLessons(@RequestParam Long internshipId) {
         List<LessonEntity> lessons = lessonService.getAllPublishedByInternshipId(internshipId);
-        return new ResponseEntity<>(mapper.mapAsList(lessons, UserLessonInfo.class), HttpStatus.OK);
+        return new ResponseEntity<>(mapper.mapAsList(lessons, LongLessonInfo.class), HttpStatus.OK);
     }
 
     /**
