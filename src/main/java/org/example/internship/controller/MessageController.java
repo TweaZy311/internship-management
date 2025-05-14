@@ -36,6 +36,7 @@ public class MessageController {
      * @param request данные нового сообщения.
      * @return ResponseEntity с HTTP-статусом 201 CREATED, если сообщение успешно отправлено.
      */
+    @Deprecated
     @PostMapping("/send")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @Operation(summary = "Отправить сообщение",
@@ -60,6 +61,7 @@ public class MessageController {
      * @return ResponseEntity с HTTP-статусом 200 OK,
      * или ResponseEntity с HTTP-статусом 204 NO CONTENT, если сообщения не найдены.
      */
+    @Deprecated
     @GetMapping
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @UserIdMatches

@@ -138,10 +138,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserEntity archiveUser(String username) {
         UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username")));;
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username")));
 
         user.setRole(UserRole.ARCHIVED);
-        solutionService.archiveSolutions(user.getId());
+        solutionService.archiveUserSolutions(user.getId());
         gitlabService.blockUser(username);
         return userRepository.saveAndFlush(user);
     }

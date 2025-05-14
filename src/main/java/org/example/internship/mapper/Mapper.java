@@ -23,10 +23,10 @@ import org.example.internship.model.response.application.Application;
 import org.example.internship.model.response.internship.Internship;
 import org.example.internship.model.response.internship.PrivateInternshipInfo;
 import org.example.internship.model.response.internship.PublicInternshipInfo;
-import org.example.internship.model.response.lesson.AdminLessonInfo;
-import org.example.internship.model.response.lesson.Lesson;
-import org.example.internship.model.response.lesson.UserLessonInfo;
+import org.example.internship.model.response.lesson.LongLessonInfo;
+import org.example.internship.model.response.lesson.ShortLessonInfo;
 import org.example.internship.model.response.solution.Solution;
+import org.example.internship.model.response.task.AdminTaskInfo;
 import org.example.internship.model.response.task.ShortTaskInfo;
 import org.example.internship.model.response.task.Task;
 import org.gitlab4j.api.systemhooks.PushSystemHookEvent;
@@ -77,15 +77,11 @@ public class Mapper extends ConfigurableMapper {
                 .byDefault()
                 .register();
 
-        factory.classMap(LessonEntity.class, AdminLessonInfo.class)
+        factory.classMap(LessonEntity.class, LongLessonInfo.class)
                 .byDefault()
                 .register();
 
-        factory.classMap(LessonEntity.class, Lesson.class)
-                .byDefault()
-                .register();
-
-        factory.classMap(LessonEntity.class, UserLessonInfo.class)
+        factory.classMap(LessonEntity.class, ShortLessonInfo.class)
                 .byDefault()
                 .register();
 
@@ -120,6 +116,11 @@ public class Mapper extends ConfigurableMapper {
                 .byDefault()
                 .register();
 
+        factory.classMap(TaskEntity.class, AdminTaskInfo.class)
+                .field("repository", "rootRepositoryUrl")
+                .byDefault()
+                .register();
+
         factory.classMap(TaskEntity.class, ShortTaskInfo.class)
                 .byDefault()
                 .register();
@@ -133,6 +134,12 @@ public class Mapper extends ConfigurableMapper {
                 .register();
 
         factory.classMap(UserEntity.class, User.class)
+                .customize(new CustomMapper<>() {
+                    @Override
+                    public void mapAtoB(UserEntity userEntity, User user, MappingContext context) {
+                        user.setRole(userEntity.getRole().getName());
+                    }
+                })
                 .byDefault()
                 .register();
 
