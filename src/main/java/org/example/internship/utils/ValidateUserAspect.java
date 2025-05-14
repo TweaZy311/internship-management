@@ -73,7 +73,7 @@ public class ValidateUserAspect {
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), "User with such username has not been found"));
 
         if (!user.getRole().equals(UserRole.ADMIN) && (StringUtils.isEmpty(usernameInParam) || !usernameInParam.equals(username))) {
-            throw new ServiceException(HttpStatus.FORBIDDEN, ErrorCode.MSG_403.getCode(), "Access denied: Username mismatch");
+            throw new ServiceException(HttpStatus.FORBIDDEN, ErrorCode.USR_403.getCode(), "Access denied: Username mismatch");
         }
     }
 }

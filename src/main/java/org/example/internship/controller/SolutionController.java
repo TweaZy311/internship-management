@@ -55,12 +55,22 @@ public class SolutionController {
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Информация о пуше в репозиторий", required = true)
-    public ResponseEntity<Solution> addSolution(@RequestBody PushSystemHookEvent request) {
-        SolutionEntity solution = null;
-        if (gitlabService.isForkedRepository(request.getProjectId())) {
-            solution = solutionService.addSolution(request);
+    public ResponseEntity<Solution> addSolution(@RequestBody PushSystemHookEvent request,
+    @RequestHeader("username") String username) {
+        if (!gitlabService.isForkedRepository(request.getProjectId())) {
+            return new ResponseEntity<>(HttpStatus.OK);
         }
+        SolutionEntity existingSolution = solutionService.getByRepositoryUrl(request.getProject().getWebUrl());
+        SolutionEntity solution = solutionService.addSolution(request);
+
         //todo придумать как передавать заголовок
+        //todo или оставить только AuditActionType.CREATE
+        if (existingSolution != null) {
+            auditService.addRecord(AuditEntityType.SOLUTION, AuditActionType.UPDATE, solution.getId(), solution.getRepositoryUrl(), username);
+        } else {
+            auditService.addRecord(AuditEntityType.SOLUTION, AuditActionType.CREATE, solution.getId(), solution.getRepositoryUrl(), username);
+        }
+
         return new ResponseEntity<>(mapper.map(solution, Solution.class), HttpStatus.CREATED);
     }
 
@@ -85,7 +95,6 @@ public class SolutionController {
     public ResponseEntity<Solution> updateSolutionStatus(@RequestBody UpdateSolutionStatusRequest request,
                                                          @RequestHeader("username") String username) {
         SolutionEntity solution = solutionService.updateSolutionStatus(request);
-        //todo repository url == name??
         auditService.addRecord(AuditEntityType.SOLUTION, AuditActionType.UPDATE, solution.getId(), solution.getRepositoryUrl(), username);
         return new ResponseEntity<>(mapper.map(solution, Solution.class), HttpStatus.OK);
     }
@@ -130,10 +139,6 @@ public class SolutionController {
             @ApiResponse(responseCode = "400", description = "Некорректный запрос (указаны оба параметра одновременно)"),
             @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
     })
-//    @Parameters({
-//            @Parameter(name = "status", description = "Статус решения"),
-//            @Parameter(name = "taskId", description = "Идентификатор задания, которому соответствуют решения")
-//    })
     public ResponseEntity<Page<Solution>> getSolutions(@RequestBody BaseGetListRequest request) {
         org.springframework.data.domain.Page<SolutionEntity> page = solutionService.getSolutions(request);
 
