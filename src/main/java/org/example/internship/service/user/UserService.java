@@ -4,7 +4,7 @@ import org.example.internship.entity.UserEntity;
 import org.example.internship.entity.UserRole;
 import org.example.internship.model.request.CreateUserRequest;
 import org.example.internship.model.request.GetUsersRequest;
-import org.example.internship.model.response.User;
+import org.example.internship.model.request.UpdateUserRequest;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -28,7 +28,7 @@ public interface UserService {
      * @param id идентификатор пользователя
      * @return информация о пользователе
      */
-    User getById(Long id);
+    UserEntity getById(Long id);
 
     /**
      * Получение информации о пользователе по его username.
@@ -50,9 +50,13 @@ public interface UserService {
     /**
      * Создание нового пользователя.
      *
-     * @param user информация о новом пользователе
+     * @param request информация о новом пользователе
      */
-    UserEntity createUser(CreateUserRequest user);
+    UserEntity createUser(CreateUserRequest request);
+
+    UserEntity updateUser(Long id, UpdateUserRequest request);
+
+    UserEntity linkTelegramChatId(String username, Long telegramId);
 
     /**
      * Архивирование данных пользователя.

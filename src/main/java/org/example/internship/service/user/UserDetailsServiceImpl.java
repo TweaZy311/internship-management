@@ -33,7 +33,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws ServiceException {
         UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), "User with such username could not be found"));
+                .orElseThrow(() -> new UsernameNotFoundException("User with such username could not be found"));
 
         String role = "ROLE_" + user.getRole();
         List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role));

@@ -46,11 +46,11 @@ public class SolutionServiceImpl implements SolutionService {
      */
     @Override
     public SolutionEntity addSolution(PushSystemHookEvent pushEvent) {
-        SolutionEntity SolutionEntity = mapper.map(pushEvent, SolutionEntity.class);
+        SolutionEntity solutionEntity = mapper.map(pushEvent, SolutionEntity.class);
         StatusEntity statusEntity = statusRepository.findById(statusProperties.getDefaultSolutionStatusId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.STS_404.getCode(), "Status with such id could not be found"));
 
-        SolutionEntity existingSolution = solutionRepository.findByRepositoryUrl(SolutionEntity.getRepositoryUrl());
+        SolutionEntity existingSolution = solutionRepository.findByRepositoryUrl(solutionEntity.getRepositoryUrl());
         if (existingSolution != null) {
             existingSolution.setCommits(mapper.mapAsList(pushEvent.getCommits(), Commit.class));
             existingSolution.setStatus(statusEntity);
@@ -63,29 +63,30 @@ public class SolutionServiceImpl implements SolutionService {
         UserEntity user = userRepository.findByUsername(pushEvent.getProject().getNamespace())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), "User with such username could not be found"));
         TaskEntity task = taskRepository.findByName(pushEvent.getProject().getName());
-        SolutionEntity.setUser(user);
-        SolutionEntity.setTask(task);
-        SolutionEntity.setIsArchived(Boolean.FALSE);
-        SolutionEntity.setStatus(statusEntity);
-        SolutionEntity = solutionRepository.save(SolutionEntity);
-        return mapper.map(SolutionEntity, SolutionEntity.class);
+        solutionEntity.setUser(user);
+        solutionEntity.setTask(task);
+        solutionEntity.setIsArchived(Boolean.FALSE);
+        solutionEntity.setStatus(statusEntity);
+        solutionEntity = solutionRepository.save(solutionEntity);
+        return mapper.map(solutionEntity, SolutionEntity.class);
     }
 
     /**
      * {@inheritDoc}
      *
-     * @param updateSolutionStatusRequest информация о решении и его новом статусе
+     * @param request информация о решении и его новом статусе
      * @throws EntityNotFoundException если решение не найдено
      */
     @Override
-    public SolutionEntity updateSolutionStatus(UpdateSolutionStatusRequest updateSolutionStatusRequest) {
-        SolutionEntity SolutionEntity = solutionRepository.findById(updateSolutionStatusRequest.getId())
+    public SolutionEntity updateSolutionStatus(UpdateSolutionStatusRequest request) {
+        SolutionEntity solutionEntity = solutionRepository.findById(request.getId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.SLN_404.getCode(), SOLUTION_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
-        StatusEntity status = statusRepository.findById(updateSolutionStatusRequest.getStatusId())
+        StatusEntity status = statusRepository.findById(request.getStatusId())
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.STS_404.getCode(), "Status with such id could not be found"));
-        SolutionEntity.setStatus(status);
-        SolutionEntity.setCheckedTime(new Date());
-        return solutionRepository.save(SolutionEntity);
+        solutionEntity.setStatus(status);
+        solutionEntity.setComment(request.getComment());
+        solutionEntity.setCheckedTime(new Date());
+        return solutionRepository.save(solutionEntity);
     }
 
     /**
@@ -99,8 +100,6 @@ public class SolutionServiceImpl implements SolutionService {
     public SolutionEntity getSolutionById(Long id) {
         return solutionRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.SLN_404.getCode(), SOLUTION_WITH_SUCH_ID_COULD_NOT_BE_FOUND));
-        //todo реализовать методы в маппере
-//        return mapper.map(SolutionEntity, SolutionEntity.class);
     }
 
     /**

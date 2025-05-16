@@ -42,6 +42,9 @@ public class UserEntity {
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
+    @Column(name = "telegram_chat_id")
+    private Long telegramChatId;
+
     /**
      * Пароль пользователя.
      */
