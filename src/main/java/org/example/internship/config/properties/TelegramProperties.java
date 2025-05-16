@@ -13,6 +13,6 @@ import org.springframework.validation.annotation.Validated;
 @Setter
 public class TelegramProperties {
     private Boolean enabled = Boolean.TRUE;
-    private String token = "7743770450:AAGhUjjxXp39NzN4PMk9_ZqJXJkJ2jkMXAI";
-    private String username = "gandon";
+    private String token;
+    private String username;
 }
