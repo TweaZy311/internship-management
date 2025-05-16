@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.example.internship.config.properties.TokenProperties;
+import org.example.internship.entity.UserEntity;
+import org.example.internship.service.user.UserService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -18,11 +20,14 @@ import java.util.Date;
 @Slf4j
 public class TokenService {
     private final TokenProperties tokenProperties;
+    private final UserService userService;
     private SecretKey key;
 
 
     public String generateAccessToken(Authentication authentication) {
         String username = authentication.getName();
+        UserEntity user = userService.getByUsername(username);
+
         Date exp = new Date(System.currentTimeMillis() + tokenProperties.getAccessExpiration() * 1000L);
         return Jwts.builder()
                 .subject(username)
@@ -30,12 +35,15 @@ public class TokenService {
                 .expiration(exp)
                 .claim("token_type", "access")
                 .claim("role", authentication.getAuthorities())
+                .claim("id", user.getId())
                 .signWith(key)
                 .compact();
     }
 
     public String generateRefreshToken(Authentication authentication) {
         String username = authentication.getName();
+        UserEntity user = userService.getByUsername(username);
+
         Date exp = new Date(System.currentTimeMillis() + tokenProperties.getRefreshExpiration() * 1000L);
         return Jwts.builder()
                 .subject(username)
@@ -43,6 +51,7 @@ public class TokenService {
                 .expiration(exp)
                 .claim("token_type", "refresh")
                 .claim("role", authentication.getAuthorities())
+                .claim("id", user.getId())
                 .signWith(key)
                 .compact();
     }
