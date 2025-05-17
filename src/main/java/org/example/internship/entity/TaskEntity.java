@@ -51,8 +51,8 @@ public class TaskEntity {
     /**
      * Флаг публикации задания.
      */
-    @Column(name = "is_published")
-    private Boolean isPublished;
+    @Column(name = "is_published", nullable = false)
+    private Boolean isPublished = Boolean.FALSE;
 
     /**
      * Занятие, к которому относится задание.
