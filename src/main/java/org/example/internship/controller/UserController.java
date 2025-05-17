@@ -17,9 +17,11 @@ import org.example.internship.mapper.Mapper;
 import org.example.internship.model.Page;
 import org.example.internship.model.request.CreateUserRequest;
 import org.example.internship.model.request.GetUsersRequest;
+import org.example.internship.model.request.UpdateUserRequest;
 import org.example.internship.model.response.User;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
+import org.example.internship.model.response.UserInfo;
 import org.example.internship.service.audit.AuditService;
 import org.example.internship.service.gitlab.GitlabService;
 import org.example.internship.service.user.UserService;
@@ -69,6 +71,24 @@ public class UserController {
         return new ResponseEntity<>(mapper.map(user, User.class), HttpStatus.CREATED);
     }
 
+    @PutMapping("/update/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @Operation(summary = "Создать нового пользователя",
+            description = "Создает нового пользователя. Доступно только администраторам.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Пользователь успешно создан"),
+            @ApiResponse(responseCode = "409", description = "Пользователь с таким username или email уже существует"),
+            @ApiResponse(responseCode = "403", description = "У пользователя нет нужных прав")
+    })
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Данные нового пользователя", required = true)
+    public ResponseEntity<User> update(@PathVariable Long id,
+                                       @RequestBody UpdateUserRequest request,
+                                       @RequestHeader("username") String username) {
+        UserEntity user = userService.updateUser(id, request);
+        auditService.addRecord(AuditEntityType.USER, AuditActionType.UPDATE, user.getId(), user.getUsername(), username);
+        return new ResponseEntity<>(mapper.map(user, UserInfo.class), HttpStatus.CREATED);
+    }
+
     /**
      * Получение информации о пользователе по параметрам.
      * Доступно только пользователям с ролью ADMIN.
@@ -79,7 +99,7 @@ public class UserController {
      * или кодом состояния 400 BAD REQUEST, если переданы оба параметра или ни одного из них
      */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @Operation(summary = "Получить информацию о пользователе",
             description = "Возвращает информацию о пользователе по имени пользователя или адресу электронной почты. Доступно только администраторам.")
     @ApiResponses(value = {
@@ -157,7 +177,8 @@ public class UserController {
     })
     @Parameter(name = "id", description = "Идентификатор пользователя", required = true)
     public ResponseEntity<User> getById(@PathVariable Long id) {
-        return new ResponseEntity<>(userService.getById(id), HttpStatus.OK);
+        UserEntity userEntity = userService.getById(id);
+        return new ResponseEntity<>(mapper.map(userEntity, UserInfo.class), HttpStatus.OK);
     }
 
     /**
@@ -180,7 +201,7 @@ public class UserController {
     })
     @Parameter(name = "username", description = "Имя пользователя", required = true)
     public ResponseEntity<Void> archiveUser(@RequestParam String username,
-    @RequestHeader("username") String headerUsername) {
+                                            @RequestHeader("username") String headerUsername) {
         UserEntity user = userService.archiveUser(username);
         auditService.addRecord(AuditEntityType.USER, AuditActionType.UPDATE, user.getId(), user.getUsername(), headerUsername);
         return new ResponseEntity<>(HttpStatus.OK);

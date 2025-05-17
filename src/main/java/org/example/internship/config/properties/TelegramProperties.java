@@ -7,11 +7,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 
 @Configuration
-@ConfigurationProperties(prefix = "status")
+@ConfigurationProperties(prefix = "telegram")
 @Validated
 @Getter
 @Setter
-public class StatusProperties {
-    private Long defaultApplicationStatusId;
-    private Long defaultSolutionStatusId;
+public class TelegramProperties {
+    private Boolean enabled = Boolean.TRUE;
+    private String token;
+    private String username;
 }

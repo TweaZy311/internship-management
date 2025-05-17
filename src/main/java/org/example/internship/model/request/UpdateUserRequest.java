@@ -1,18 +1,15 @@
-package org.example.internship.model.request.solution;
+package org.example.internship.model.request;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * DTO для обновления статуса решения.
- */
 @Getter
 @Setter
 @JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
-public class UpdateSolutionStatusRequest {
-    private Long id;
-    private Long statusId;
-    private String comment = "";
+public class UpdateUserRequest {
+    private String name;
+    private String email;
+    private String password;
 }

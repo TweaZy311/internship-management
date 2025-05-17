@@ -32,7 +32,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             token = header.substring(7);
         }
 
-        if (token != null && tokenService.validateToken(token) && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (token != null && SecurityContextHolder.getContext().getAuthentication() == null && tokenService.validateToken(token)) {
             String username = tokenService.getUsernameFromToken(token);
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 

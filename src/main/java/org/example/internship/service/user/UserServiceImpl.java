@@ -8,11 +8,11 @@ import org.example.internship.entity.InternshipEntity;
 import org.example.internship.mapper.Mapper;
 import org.example.internship.model.request.CreateUserRequest;
 import org.example.internship.model.request.GetUsersRequest;
-import org.example.internship.model.response.User;
 import org.example.internship.exception.ErrorCode;
 import org.example.internship.exception.ServiceException;
 import org.example.internship.entity.UserRole;
 import org.example.internship.entity.UserEntity;
+import org.example.internship.model.request.UpdateUserRequest;
 import org.example.internship.repository.InternshipRepository;
 import org.example.internship.repository.UserRepository;
 import org.example.internship.service.gitlab.GitlabService;
@@ -80,18 +80,30 @@ public class UserServiceImpl implements UserService {
     /**
      * {@inheritDoc}
      *
-     * @param createUserRequest информация о новом пользователе
+     * @param request информация о новом пользователе
      */
     @Override
-    public UserEntity createUser(CreateUserRequest createUserRequest) {
-        UserEntity user = mapper.map(createUserRequest, UserEntity.class);
+    public UserEntity createUser(CreateUserRequest request) {
+        UserEntity user = mapper.map(request, UserEntity.class);
         user.setRole(UserRole.USER);
-        if (createUserRequest.getInternshipId() != null) {
-            InternshipEntity internship = internshipRepository.findById(createUserRequest.getInternshipId())
+        if (request.getInternshipId() != null) {
+            InternshipEntity internship = internshipRepository.findById(request.getInternshipId())
                     .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.ITS_404.getCode(), "Internship with such ID could not be found"));
             user.setInternship(internship);
         }
         user.setPassword(passwordEncoder.encode(gitlabProperties.getUserPassword()));
+        return userRepository.save(user);
+    }
+
+    @Override
+    public UserEntity updateUser(Long id, UpdateUserRequest request) {
+        UserEntity user = userRepository.findById(id)
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "ID")));
+        mapper.map(request, user);
+        if (!StringUtils.isEmpty(request.getPassword())) {
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
+
         return userRepository.save(user);
     }
 
@@ -103,10 +115,9 @@ public class UserServiceImpl implements UserService {
      * @throws EntityNotFoundException если пользователь с указанным идентификатором не найден
      */
     @Override
-    public User getById(Long id) {
-        UserEntity user = userRepository.findById(id)
+    public UserEntity getById(Long id) {
+       return userRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "ID")));
-        return mapper.map(user, User.class);
     }
 
     /**
@@ -149,6 +160,15 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserEntity> getUsersByInternshipIdAndRole(Long internshipId, UserRole role) {
         return userRepository.findAllByInternshipIdAndRole(internshipId, role);
+    }
+
+    @Override
+    public UserEntity linkTelegramChatId(String username, Long telegramId) {
+        UserEntity userEntity = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, ErrorCode.USR_404.getCode(), String.format(USER_NOT_FOUND_WITH, "username")));
+        userEntity.setTelegramChatId(telegramId);
+
+        return userRepository.save(userEntity);
     }
 
     /**

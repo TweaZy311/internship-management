@@ -36,6 +36,9 @@ public enum ErrorCode {
     MSG_403("MSG-403"),
     //token
     TKN_401("TKN-401"),
+    //telegram
+    TGM_400("TGM-400"),
+    TGM_500("TGM-500"),
     ;
 
     private final String code;

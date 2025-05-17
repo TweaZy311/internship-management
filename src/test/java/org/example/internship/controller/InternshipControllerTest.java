@@ -1,199 +1,216 @@
 package org.example.internship.controller;
 
-import org.example.internship.dto.request.internship.InternshipStatusDto;
-import org.example.internship.dto.request.internship.NewInternshipDto;
-import org.example.internship.dto.request.internship.UpdateInternshipDto;
-import org.example.internship.dto.response.ReportDto;
-import org.example.internship.dto.response.internship.AdminInternshipDto;
-import org.example.internship.dto.response.internship.PublicInternshipDto;
-import org.example.internship.exception.ExceptionResponse;
-import org.example.internship.service.internship.InternshipService;
-import org.example.internship.utils.Validator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.internship.InternshipApplicationTests;
+import org.example.internship.entity.*;
+import org.example.internship.model.BooleanOperator;
+import org.example.internship.model.SearchCriteria;
+import org.example.internship.model.SearchKey;
+import org.example.internship.model.SearchOperation;
+import org.example.internship.model.request.GenerateTokenRequest;
+import org.example.internship.model.request.BaseGetListRequest;
+import org.example.internship.model.request.internship.CreateUpdateInternshipRequest;
+import org.example.internship.repository.InternshipRepository;
+import org.example.internship.repository.StatusRepository;
+import org.example.internship.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(MockitoExtension.class)
-class InternshipControllerTest {
+class InternshipControllerTest extends InternshipApplicationTests {
 
-    @Mock
-    private InternshipService internshipService;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private InternshipRepository internshipRepository;
+    @Autowired
+    private StatusRepository statusRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private ObjectMapper objectMapper;
 
-    @Mock
-    private Validator validator;
+    private Long statusId;
 
-    @InjectMocks
-    private InternshipController internshipController;
-
-    private NewInternshipDto newInternshipDto;
-    private UpdateInternshipDto updateInternshipDto;
-    private InternshipStatusDto statusDto;
+    private String adminToken;
+    private Long internshipId;
 
     @BeforeEach
-    void setUp() {
-        newInternshipDto = new NewInternshipDto();
-        newInternshipDto.setName("Test Internship");
-        newInternshipDto.setDescription("Test Description");
-        newInternshipDto.setRegistrationEndDate(LocalDate.now().plusDays(10));
-        newInternshipDto.setStartDate(LocalDate.now().plusDays(20));
-        newInternshipDto.setEndDate(LocalDate.now().plusDays(30));
+    void setup() throws Exception {
+        internshipRepository.deleteAll();
+        userRepository.deleteAll();
 
-        updateInternshipDto = new UpdateInternshipDto();
-        updateInternshipDto.setId(1L);
-        updateInternshipDto.setDescription("Updated Description");
-        updateInternshipDto.setRegistrationStartDate(LocalDate.now().plusDays(10));
-        updateInternshipDto.setRegistrationEndDate(LocalDate.now().plusDays(20));
-        updateInternshipDto.setStartDate(LocalDate.now().plusDays(30));
-        updateInternshipDto.setEndDate(LocalDate.now().plusDays(40));
+        UserEntity admin = UserEntity.builder()
+                .username("admin")
+                .password(passwordEncoder.encode("adminpass"))
+                .email("admin@example.com")
+                .name("Admin")
+                .role(UserRole.ADMIN)
+                .build();
+        userRepository.save(admin);
 
-        statusDto = new InternshipStatusDto();
-        statusDto.setId(1L);
-        statusDto.setStatus("CLOSED");
+        StatusEntity status = StatusEntity.builder()
+                .name("Active")
+                .type(StatusType.INTERNSHIP)
+                .build();
+        statusId = statusRepository.save(status).getId();
+
+        GenerateTokenRequest authRequest = new GenerateTokenRequest();
+        authRequest.setUsername("admin");
+        authRequest.setPassword("adminpass");
+
+        String json = mockMvc.perform(post("/api/auth/token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(authRequest)))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        adminToken = "Bearer " + objectMapper.readTree(json).get("accessToken").asText();
+
+        InternshipEntity internship = InternshipEntity.builder()
+                .name("Test Internship")
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusDays(30))
+                .registrationStartDate(LocalDate.now().minusDays(5))
+                .registrationEndDate(LocalDate.now().plusDays(5))
+                .isOpen(true)
+                .build();
+        internshipId = internshipRepository.save(internship).getId();
     }
 
     @Test
-    void createInternship_returnCreated() {
-        when(validator.dateIsValid(newInternshipDto.getStartDate(),
-                newInternshipDto.getEndDate(),
-                newInternshipDto.getRegistrationEndDate())).thenReturn(true);
+    void shouldCreateInternshipSuccessfully() throws Exception {
+        CreateUpdateInternshipRequest request = new CreateUpdateInternshipRequest();
+        request.setName("New Internship");
+        request.setStartDate(LocalDate.now().plusDays(10));
+        request.setEndDate(LocalDate.now().plusDays(30));
+        request.setRegistrationStartDate(LocalDate.now());
+        request.setRegistrationEndDate(LocalDate.now().plusDays(5));
+        request.setStatusId(statusId);
 
-        ResponseEntity<ExceptionResponse> response = internshipController.createInternship(newInternshipDto);
-
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        verify(internshipService, times(1)).save(newInternshipDto);
+        mockMvc.perform(post("/api/internship/create")
+                        .header("Authorization", adminToken)
+                        .header("username", "admin")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name").value("New Internship"));
     }
 
     @Test
-    void createInternship_invalidDates_returnBadRequest() {
-        when(validator.dateIsValid(newInternshipDto.getStartDate(),
-                newInternshipDto.getEndDate(),
-                newInternshipDto.getRegistrationEndDate())).thenReturn(false);
+    void shouldRejectInvalidDatesWhenCreatingInternship() throws Exception {
+        CreateUpdateInternshipRequest request = new CreateUpdateInternshipRequest();
+        request.setName("Invalid Internship");
+        request.setStartDate(LocalDate.now().plusDays(10));
+        request.setEndDate(LocalDate.now().plusDays(5)); // end before start
+        request.setRegistrationStartDate(LocalDate.now());
+        request.setRegistrationEndDate(LocalDate.now().plusDays(1));
 
-        ResponseEntity<ExceptionResponse> response = internshipController.createInternship(newInternshipDto);
-
-        verify(internshipService, never()).save(newInternshipDto);
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals("Wrong date input", response.getBody().getMessage());
+        mockMvc.perform(post("/api/internship/create")
+                        .header("Authorization", adminToken)
+                        .header("username", "admin")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Wrong date input"));
     }
 
     @Test
-    void changeInternshipStatus_returnOk() {
-        ResponseEntity<Void> response = internshipController.changeInternshipStatus(statusDto);
-
-        verify(internshipService, times(1)).changeStatus(statusDto);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+    void shouldGetInternshipById() throws Exception {
+        mockMvc.perform(get("/api/internship/{id}", internshipId)
+                        .param("private", "false")
+                        .header("Authorization", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Test Internship"));
     }
 
     @Test
-    void getAllInternships_returnListOfInternships() {
-        List<AdminInternshipDto> internships = List.of(new AdminInternshipDto());
+    void shouldUpdateInternship() throws Exception {
+        CreateUpdateInternshipRequest updateRequest = new CreateUpdateInternshipRequest();
+        updateRequest.setName("Updated Internship");
+        updateRequest.setStartDate(LocalDate.now().plusDays(10));
+        updateRequest.setEndDate(LocalDate.now().plusDays(30));
+        updateRequest.setRegistrationStartDate(LocalDate.now());
+        updateRequest.setRegistrationEndDate(LocalDate.now().plusDays(5));
 
-        when(internshipService.getAll()).thenReturn(internships);
-
-        ResponseEntity<List<AdminInternshipDto>> response = internshipController.getAllInternships(null);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(internships, response.getBody());
+        mockMvc.perform(patch("/api/internship/update/{id}", internshipId)
+                        .header("Authorization", adminToken)
+                        .header("username", "admin")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Updated Internship"));
     }
 
     @Test
-    void getAllInternships_emptyList_returnNoContent() {
-        when(internshipService.getAll()).thenReturn(List.of());
+    void shouldGetInternshipPageAsAdmin() throws Exception {
+        BaseGetListRequest request = new BaseGetListRequest();
+        request.setPage(0);
+        request.setPageSize(10);
+        request.setFilters(Collections.emptyList());
 
-        ResponseEntity<List<AdminInternshipDto>> response = internshipController.getAllInternships(null);
-
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        mockMvc.perform(post("/api/internship/page")
+                        .header("Authorization", adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray());
     }
 
     @Test
-    void getAllInternships_withStatus_returnListOfInternshipsWithStatus() {
-        List<AdminInternshipDto> internshipDtos = List.of(new AdminInternshipDto());
-        when(internshipService.getByStatus("CLOSED")).thenReturn(internshipDtos);
+    void shouldFilterInternshipsByStatusName() throws Exception {
+        StatusEntity anotherStatus = statusRepository.save(StatusEntity.builder()
+                .name("Inactive")
+                .type(StatusType.INTERNSHIP)
+                .build());
 
-        ResponseEntity<List<AdminInternshipDto>> response = internshipController.getAllInternships("CLOSED");
+        InternshipEntity secondInternship = InternshipEntity.builder()
+                .name("Filtered Internship")
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusDays(20))
+                .registrationStartDate(LocalDate.now().minusDays(2))
+                .registrationEndDate(LocalDate.now().plusDays(2))
+                .isOpen(true)
+                .status(anotherStatus)
+                .build();
+        internshipRepository.save(secondInternship);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(internshipDtos, response.getBody());
+        SearchCriteria criteria = new SearchCriteria();
+        criteria.setKey(SearchKey.STATUS_NAME);
+        criteria.setOperation(SearchOperation.EQ);
+        criteria.setValue(anotherStatus.getName());
+        criteria.setOperator(BooleanOperator.AND);
+        BaseGetListRequest request = new BaseGetListRequest();
+        request.setPage(0);
+        request.setPageSize(10);
+        request.setFilters(List.of(criteria));
+
+        mockMvc.perform(post("/api/internship/page")
+                        .header("Authorization", adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].name").value("Filtered Internship"));
     }
 
-    @Test
-    void getAllOpenedInternships_returnListOfOpenedInternships() {
-        List<PublicInternshipDto> internshipDtos = List.of(new PublicInternshipDto());
-        when(internshipService.getOpened()).thenReturn(internshipDtos);
-
-        ResponseEntity<List<PublicInternshipDto>> response = internshipController.getAllOpenedInternships();
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(internshipDtos, response.getBody());
-    }
 
     @Test
-    void getAllOpenedInternships_emptyList_returnNoContent() {
-        when(internshipService.getOpened()).thenReturn(List.of());
-
-        ResponseEntity<List<PublicInternshipDto>> response = internshipController.getAllOpenedInternships();
-
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-    }
-
-    @Test
-    void getInternshipById_returnInternship() {
-        PublicInternshipDto internshipDto = new PublicInternshipDto();
-        when(internshipService.getById(1L)).thenReturn(internshipDto);
-
-        ResponseEntity<PublicInternshipDto> response = internshipController.getInternshipById(1L);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(internshipDto, response.getBody());
-    }
-
-    @Test
-    void updateInternship_returnOk() {
-        when(validator.dateIsValid(updateInternshipDto.getStartDate(),
-                updateInternshipDto.getEndDate(),
-                updateInternshipDto.getRegistrationStartDate(),
-                updateInternshipDto.getRegistrationEndDate())).thenReturn(true);
-
-        ResponseEntity<ExceptionResponse> response = internshipController.updateInternship(updateInternshipDto);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(internshipService, times(1)).update(updateInternshipDto);
-    }
-
-    @Test
-    void updateInternship_invalidDates_returnBadRequest() {
-        when(validator.dateIsValid(updateInternshipDto.getStartDate(),
-                updateInternshipDto.getEndDate(),
-                updateInternshipDto.getRegistrationStartDate(),
-                updateInternshipDto.getRegistrationEndDate())).thenReturn(false);
-
-        ResponseEntity<ExceptionResponse> response = internshipController.updateInternship(updateInternshipDto);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals("Wrong date input", response.getBody().getMessage());
-    }
-
-    @Test
-    void getReport_returnReport() {
-        List<ReportDto> reportDtos = List.of(new ReportDto("user1", Map.of()));
-        when(internshipService.createReport(1L)).thenReturn(reportDtos);
-
-        ResponseEntity<List<ReportDto>> response = internshipController.getReport(1L);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(reportDtos, response.getBody());
+    void shouldGetInternshipReport() throws Exception {
+        mockMvc.perform(get("/api/internship/{id}/report", internshipId)
+                        .header("Authorization", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
     }
 }

@@ -10,6 +10,7 @@ import org.example.internship.annotation.GitlabTokenRequired;
 import org.example.internship.entity.AuditActionType;
 import org.example.internship.entity.AuditEntityType;
 import org.example.internship.entity.SolutionEntity;
+import org.example.internship.entity.UserEntity;
 import org.example.internship.mapper.Mapper;
 import org.example.internship.model.Page;
 import org.example.internship.model.request.BaseGetListRequest;
@@ -18,6 +19,7 @@ import org.example.internship.model.response.solution.Solution;
 import org.example.internship.service.audit.AuditService;
 import org.example.internship.service.gitlab.GitlabService;
 import org.example.internship.service.solution.SolutionService;
+import org.example.internship.utils.NotificationBot;
 import org.gitlab4j.api.systemhooks.PushSystemHookEvent;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +38,7 @@ public class SolutionController {
     private final SolutionService solutionService;
     private final GitlabService gitlabService;
     private final AuditService auditService;
+    private final NotificationBot notificationBot;
 
     private final Mapper mapper;
 
@@ -96,6 +99,18 @@ public class SolutionController {
                                                          @RequestHeader("username") String username) {
         SolutionEntity solution = solutionService.updateSolutionStatus(request);
         auditService.addRecord(AuditEntityType.SOLUTION, AuditActionType.UPDATE, solution.getId(), solution.getRepositoryUrl(), username);
+
+        UserEntity user = solution.getUser();
+        Long chatId = user.getTelegramChatId();
+
+        if (chatId != null) {
+            String comment = solution.getComment();
+            String status = solution.getStatus().getName();
+            String message = String.format("Ваше решение было проверено. Текущий статус: %s\n" +
+                    "Комментарий проверяющего:\n%s", status, comment);
+            notificationBot.sendMessage(chatId, message);
+        }
+
         return new ResponseEntity<>(mapper.map(solution, Solution.class), HttpStatus.OK);
     }
 

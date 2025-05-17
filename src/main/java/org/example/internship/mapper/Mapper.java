@@ -11,6 +11,7 @@ import org.example.internship.entity.*;
 import org.example.internship.model.CreateUpdateStatusRequest;
 import org.example.internship.model.Status;
 import org.example.internship.model.request.CreateUserRequest;
+import org.example.internship.model.request.UpdateUserRequest;
 import org.example.internship.model.request.application.CreateApplicationRequest;
 import org.example.internship.model.request.internship.CreateUpdateInternshipRequest;
 import org.example.internship.model.request.lesson.CreateLessonRequest;
@@ -130,6 +131,11 @@ public class Mapper extends ConfigurableMapper {
                 .register();
 
         factory.classMap(CreateUserRequest.class, UserEntity.class)
+                .byDefault()
+                .register();
+
+        factory.classMap(UpdateUserRequest.class, UserEntity.class)
+                .mapNulls(false)
                 .byDefault()
                 .register();
 
